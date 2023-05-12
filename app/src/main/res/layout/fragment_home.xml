@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".HomeFragment">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/temp_layout"
+            android:layout_width="match_parent"
+            android:layout_height="367dp"
+            android:background="@drawable/home_bg"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/name"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:text="彤彤的体温"
+                android:textColor="@color/black"
+                android:textSize="17sp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@drawable/divider"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/name" />
+
+            <com.miyuan.smarthome.temp.view.BatteryView
+                android:layout_width="32dp"
+                android:layout_height="14dp"
+                android:layout_marginLeft="22dp"
+                android:layout_marginTop="11dp"
+                app:batteryColor="@android:color/black"
+                app:batteryOrientation="horizontal"
+                app:batteryPower="40"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:id="@+id/history"
+                android:layout_width="16.67dp"
+                android:layout_height="16.67dp"
+                android:layout_marginTop="9.67dp"
+                android:layout_marginRight="22dp"
+                android:background="@drawable/history"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:id="@+id/remind"
+                android:layout_width="17dp"
+                android:layout_height="16.67dp"
+                android:layout_marginTop="9.67dp"
+                android:layout_marginRight="7.67dp"
+                android:background="@drawable/remind"
+                app:layout_constraintRight_toLeftOf="@id/history"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:id="@+id/share"
+                android:layout_width="16.67dp"
+                android:layout_height="16.67dp"
+                android:layout_marginTop="9.67dp"
+                android:layout_marginRight="8dp"
+                android:background="@drawable/share"
+                app:layout_constraintRight_toLeftOf="@id/remind"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:id="@+id/temp_bg"
+                android:layout_width="316dp"
+                android:layout_height="216.67dp"
+                android:layout_marginTop="23dp"
+                android:visibility="invisible"
+                android:background="@drawable/temp_bg"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/name" />
+
+            <TextView
+                android:id="@+id/temp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="126.33dp"
+                android:text="36.7"
+                android:textSize="49.24sp"
+                android:textStyle="bold"
+                android:visibility="invisible"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/name" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="°C"
+                android:textSize="19.99sp"
+                android:textStyle="bold"
+                android:visibility="invisible"
+                app:layout_constraintBaseline_toBaselineOf="@id/temp"
+                app:layout_constraintLeft_toRightOf="@id/temp" />
+
+            <ImageView
+                android:id="@+id/scan"
+                android:layout_width="316dp"
+                android:layout_height="216.67dp"
+                android:layout_marginTop="23dp"
+                android:background="@drawable/scan_bg"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/name" />
+
+            <TextView
+                android:id="@+id/hint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="目前获取温度较低，确认设备正常贴在腋下？"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/temp_bg" />
+
+            <View
+                android:layout_width="6.67dp"
+                android:layout_height="8.67dp"
+                android:layout_marginTop="6.67dp"
+                android:layout_marginRight="3.67dp"
+                android:background="@drawable/warm"
+                app:layout_constraintRight_toLeftOf="@id/hint"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/temp_bg" />
+
+            <View
+                android:layout_width="11.33dp"
+                android:layout_height="68.33dp"
+                android:layout_marginTop="97.67dp"
+                android:background="@drawable/pointer"
+                android:visibility="invisible"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/statistics"
+            android:layout_width="333dp"
+            android:layout_height="144.67dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="297dp"
+            android:layout_marginRight="30dp"
+            android:background="@drawable/test"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/dd" />
+
+            <LinearLayout
+                android:id="@+id/top"
+                android:layout_width="match_parent"
+                android:layout_height="74.33dp"
+                android:orientation="horizontal"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="40°C"
+                        android:textColor="#FFFF0000"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="最高温度"
+                        android:textColor="#FF7D7D7D"
+                        android:textSize="11.67sp" />
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="21:38:20"
+                        android:textColor="#FFFF0000"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="发生时间"
+                        android:textColor="#FF7D7D7D"
+                        android:textSize="11.67sp" />
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="05时25分"
+                        android:textColor="#FFFF0000"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="高烧时长"
+                        android:textColor="#FF7D7D7D"
+                        android:textSize="11.67sp" />
+
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3次"
+                        android:textColor="#FFFF0000"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="高烧次数"
+                        android:textColor="#FF7D7D7D"
+                        android:textSize="11.67sp" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="74.33dp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/top">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:paddingTop="8dp"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="12时03分"
+                        android:textColor="#FFFF0000"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="测温时长"
+                        android:textColor="#FF7D7D7D"
+                        android:textSize="11.67sp" />
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:paddingTop="8dp"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="03时03分"
+                        android:textColor="#FFFF0000"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="低烧时长"
+                        android:textColor="#FF7D7D7D"
+                        android:textSize="11.67sp" />
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:paddingTop="8dp"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="03时08分"
+                        android:textColor="#FFFF0000"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="标准温度时长"
+                        android:textColor="#FF7D7D7D"
+                        android:textSize="11.67sp" />
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:paddingTop="8dp"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2次"
+                        android:textColor="#FFFF0000"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="护理记录"
+                        android:textColor="#FF7D7D7D"
+                        android:textSize="11.67sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/second"
+            android:layout_width="32.33dp"
+            android:layout_height="16.33dp"
+            android:layout_marginLeft="22dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/time_bg"
+            android:gravity="center"
+            android:text="30分"
+            android:textColor="@color/black"
+            android:textSize="11.67sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/statistics" />
+
+
+        <TextView
+            android:id="@+id/six"
+            android:layout_width="32.33dp"
+            android:layout_height="16.33dp"
+            android:layout_marginLeft="11.33dp"
+            android:background="@drawable/time_bg"
+            android:gravity="center"
+            android:text="6时"
+            android:textColor="@color/black"
+            android:textSize="11.67sp"
+            app:layout_constraintBaseline_toBaselineOf="@id/second"
+            app:layout_constraintLeft_toRightOf="@id/second" />
+
+
+        <TextView
+            android:id="@+id/twelve"
+            android:layout_width="32.33dp"
+            android:layout_height="16.33dp"
+            android:layout_marginLeft="11.33dp"
+            android:background="@drawable/time_bg"
+            android:gravity="center"
+            android:text="12时"
+            android:textColor="@color/black"
+            android:textSize="11.67sp"
+            app:layout_constraintBaseline_toBaselineOf="@id/six"
+            app:layout_constraintLeft_toRightOf="@id/six" />
+
+
+        <TextView
+            android:id="@+id/twenty"
+            android:layout_width="32.33dp"
+            android:layout_height="16.33dp"
+            android:layout_marginLeft="11.33dp"
+            android:background="@drawable/time_bg"
+            android:gravity="center"
+            android:text="24时"
+            android:textColor="@color/black"
+            android:textSize="11.67sp"
+            app:layout_constraintBaseline_toBaselineOf="@id/twelve"
+            app:layout_constraintLeft_toRightOf="@id/twelve" />
+
+
+        <LinearLayout
+            android:id="@+id/record"
+            android:layout_width="42dp"
+            android:layout_height="16.33dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginRight="22dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/statistics">
+
+            <View
+                android:layout_width="10.33dp"
+                android:layout_height="9dp"
+                android:layout_marginLeft="4dp"
+                android:background="@drawable/record" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="2.67dp"
+                android:text="记录"
+                android:textColor="@color/black"
+                android:textSize="11.67sp" />
+
+        </LinearLayout>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.core.widget.NestedScrollView>

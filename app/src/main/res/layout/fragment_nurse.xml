@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ScanFailFragment">
+
+    <include
+        android:id="@+id/titlelayout"
+        layout="@layout/title" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/time_layout"
+        android:layout_width="match_parent"
+        android:layout_height="61.33dp"
+        android:layout_marginLeft="22dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginRight="22dp"
+        android:background="@drawable/test"
+        android:orientation="horizontal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/titlelayout">
+
+        <TextView
+            android:id="@+id/timehint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:text="记录时间"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15.33dp"
+            android:text="2023.4.15 15:30"
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/timehint"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <View
+            android:layout_width="10.67dp"
+            android:layout_height="11dp"
+            android:layout_marginLeft="12.67dp"
+            android:background="@drawable/record"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/time"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/methodlayout"
+        android:layout_width="match_parent"
+        android:layout_height="61.33dp"
+        android:layout_marginLeft="22dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginRight="22dp"
+        android:background="@drawable/test"
+        android:orientation="horizontal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/time_layout">
+
+        <TextView
+            android:id="@+id/method"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:text="护理方式"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+        <TextView
+            android:id="@+id/medicine"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:background="@drawable/time_bg"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="用药"
+            android:textColor="@color/black"
+            android:textSize="13.33sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/method"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/physical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:background="@drawable/time_bg"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="物理降温"
+            android:textColor="@color/black"
+            android:textSize="13.33sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/medicine"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/other"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:background="@drawable/time_bg"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="其他"
+            android:textColor="@color/black"
+            android:textSize="13.33sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/physical"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="292.67dp"
+        android:layout_marginLeft="22dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginRight="22dp"
+        android:background="@drawable/test"
+        android:orientation="horizontal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/methodlayout">
+
+        <TextView
+            android:id="@+id/details_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:layout_marginTop="17dp"
+            android:text="护理详情"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+        <TextView
+            android:id="@+id/spirit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/nurse_bg"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="精神状态"
+            android:textColor="@color/black"
+            android:textSize="13.33dp"
+            app:layout_constraintLeft_toLeftOf="@id/details_hint"
+            app:layout_constraintTop_toBottomOf="@id/details_hint" />
+
+
+        <TextView
+            android:id="@+id/appetite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:background="@drawable/nurse_bg"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="食欲"
+            android:textColor="@color/black"
+            android:textSize="13.33dp"
+            app:layout_constraintLeft_toRightOf="@id/spirit"
+            app:layout_constraintTop_toTopOf="@id/spirit" />
+
+
+        <TextView
+            android:id="@+id/cooling"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:background="@drawable/nurse_bg"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="降温方法"
+            android:textColor="@color/black"
+            android:textSize="13.33dp"
+            app:layout_constraintLeft_toRightOf="@id/appetite"
+            app:layout_constraintTop_toTopOf="@id/appetite" />
+
+
+        <TextView
+            android:id="@+id/dose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:background="@drawable/nurse_bg"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="用药剂量"
+            android:textColor="@color/black"
+            android:textSize="13.33dp"
+            app:layout_constraintLeft_toRightOf="@id/cooling"
+            app:layout_constraintTop_toTopOf="@id/cooling" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="14dp"
+            android:layout_marginBottom="24dp"
+            android:text="0/70"
+            android:textColor="#FF696868"
+            android:textSize="13.33sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent" />
+
+        <EditText
+            android:id="@+id/record"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="13dp"
+            android:layout_marginBottom="20dp"
+            android:background="@android:color/transparent"
+            android:gravity="left|top"
+            android:hint="详细记录下病人的情况…"
+            android:padding="15dp"
+            android:textSize="13.33sp"
+            android:maxLength="70"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="@id/details_hint"
+            app:layout_constraintTop_toBottomOf="@id/spirit" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

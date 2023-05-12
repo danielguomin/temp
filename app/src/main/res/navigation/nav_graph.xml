@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/HomeFragment">
+
+    <fragment
+        android:id="@+id/HomeFragment"
+        android:name="com.miyuan.smarthome.temp.HomeFragment"
+        android:label="@string/second_fragment_label"
+        tools:layout="@layout/fragment_home">
+
+        <action
+            android:id="@+id/action_HomeFragment_to_ScanFailFragment"
+            app:destination="@id/ScanFailFragment" />
+
+        <action
+            android:id="@+id/action_HomeFragment_to_NurseFragment"
+            app:destination="@id/NurseFragment" />
+
+        <action
+            android:id="@+id/action_HomeFragment_to_CreateFamilyMemberFragment"
+            app:destination="@id/CreateFamilyMemberFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/ScanFailFragment"
+        android:name="com.miyuan.smarthome.temp.ScanFailFragment"
+        android:label="@string/scan_fail_fragment_label"
+        tools:layout="@layout/fragment_scan_fail">
+
+        <action
+            android:id="@+id/action_ScanFailFragment_to_HomeFragment"
+            app:destination="@id/HomeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/NurseFragment"
+        android:name="com.miyuan.smarthome.temp.NurselFragment"
+        android:label="nurse Fragment"
+        tools:layout="@layout/fragment_nurse">
+
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/CreateFamilyMemberFragment"
+        android:name="com.miyuan.smarthome.temp.CreateFamilyMemberFragment"
+        android:label="create family member Fragment"
+        tools:layout="@layout/fragment_create_family_member">
+
+    </fragment>
+
+</navigation>

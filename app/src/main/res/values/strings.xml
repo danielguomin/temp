@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Temp</string>
+    <string name="action_settings">Settings</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="scan_fail_fragment_label">scan fail Fragment</string>
+    <string name="second_fragment_label">Home Fragment</string>
+    <string name="next">Next</string>
+    <string name="back">Back</string>
+    <string name="previous">Previous</string>
+
+    <string name="scan_fail_title">扫描失败</string>
+    <string name="scan_fail_reson">可能原因：\n1、设备电量不足。 \n2、设备距离手机太远。 \n3、设备与其他手机正在连接中。\n\n\n友情提示： \n1、确认设备已从充电仓中取出，且取出时设备绿灯闪烁。 \n2、确认设备与手机的距离在3米以内。 \n3、确认设备当前未与其他手机连接。</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+</resources>
