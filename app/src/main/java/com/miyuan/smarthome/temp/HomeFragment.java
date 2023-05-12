@@ -37,6 +37,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         binding.six.setOnClickListener(this);
         binding.twelve.setOnClickListener(this);
         binding.twenty.setOnClickListener(this);
+        binding.triangle.setOnClickListener(this);
 
         binding.scan.setImageResource(R.drawable.scan_bg);
         AnimationDrawable drawable = (AnimationDrawable) binding.scan.getDrawable();
@@ -53,6 +54,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.name:
+            case R.id.triangle:
                 break;
             case R.id.history:
                 break;

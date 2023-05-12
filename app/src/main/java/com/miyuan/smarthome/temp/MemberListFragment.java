@@ -9,27 +9,27 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
-import com.miyuan.smarthome.temp.databinding.FragmentCreateFamilyMemberBinding;
+import com.miyuan.smarthome.temp.databinding.FragmentFamilyListBinding;
 
-public class CreateFamilyMemberFragment extends Fragment implements View.OnClickListener {
+public class MemberListFragment extends Fragment implements View.OnClickListener {
 
-    private FragmentCreateFamilyMemberBinding binding;
+    private FragmentFamilyListBinding binding;
 
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        binding = FragmentCreateFamilyMemberBinding.inflate(inflater, container, false);
+        binding = FragmentFamilyListBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         binding.titlelayout.back.setOnClickListener(this);
-        binding.titlelayout.title.setText("创建成员");
+        binding.titlelayout.title.setText("成员列表");
         binding.titlelayout.back.setOnClickListener(this);
-        binding.save.setOnClickListener(this);
+        binding.add.setOnClickListener(this);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class CreateFamilyMemberFragment extends Fragment implements View.OnClick
             case R.id.back:
                 Navigation.findNavController(v).navigateUp();
                 break;
-            case R.id.save:
+            case R.id.add:
                 break;
         }
     }

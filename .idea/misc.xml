@@ -9,6 +9,7 @@
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/nurse_bg.xml" value="0.288" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/save_bg.xml" value="0.288" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/scan_bg.xml" value="0.288" />
+        <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/shape_reverse_triangle.xml" value="0.193" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/time_bg.xml" value="0.226" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/time_seleced_bg.xml" value="0.226" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/time_selected_bg.xml" value="0.288" />
@@ -17,6 +18,7 @@
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/layout/content_main.xml" value="0.28229166666666666" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/layout/fragment_create_family_member.xml" value="0.2034383954154728" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/layout/fragment_device_share.xml" value="0.2034383954154728" />
+        <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/layout/fragment_family_list.xml" value="0.18489583333333334" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/layout/fragment_first.xml" value="0.28229166666666666" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/layout/fragment_home.xml" value="0.24315068493150685" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/layout/fragment_nurse.xml" value="0.25" />
