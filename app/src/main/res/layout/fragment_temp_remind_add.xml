@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFBFBFB">
+
+    <include
+        android:id="@+id/titlelayout"
+        layout="@layout/title" />
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/temp_layout"
+        android:layout_width="140dp"
+        android:layout_height="160dp"
+        android:layout_marginTop="40dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/titlelayout">
+
+        <NumberPicker
+            android:id="@+id/whole"
+            android:layout_width="70dp"
+            android:layout_height="match_parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <View
+            android:layout_width="5dp"
+            android:layout_height="5dp"
+            android:layout_marginTop="80dp"
+            android:background="@drawable/circle_black_bg"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <NumberPicker
+            android:id="@+id/decimal"
+            android:layout_width="70dp"
+            android:layout_height="match_parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/high_layout"
+        android:layout_width="match_parent"
+        android:layout_height="61.33dp"
+        android:layout_marginLeft="22dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginRight="22dp"
+        android:background="@drawable/test"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/temp_layout">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="22dp"
+            android:text="高于设置温度提醒"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Switch
+            android:id="@+id/high"
+            android:layout_width="wrap_content"
+            android:layout_height="17.67dp"
+            android:layout_marginRight="22dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/low_layout"
+        android:layout_width="match_parent"
+        android:layout_height="61.33dp"
+        android:layout_marginLeft="22dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginRight="22dp"
+        android:background="@drawable/test"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/high_layout">
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="22dp"
+            android:text="低于设置温度提醒"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Switch
+            android:id="@+id/low"
+            android:layout_width="wrap_content"
+            android:layout_height="17.67dp"
+            android:layout_marginRight="22dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/btn_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/low_layout">
+
+        <TextView
+            android:id="@+id/confirm"
+            android:layout_width="81dp"
+            android:layout_height="25.33dp"
+            android:background="@drawable/time_selected_bg"
+            android:gravity="center"
+            android:text="确定"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/cancel"
+            android:layout_width="81dp"
+            android:layout_height="25.33dp"
+            android:layout_marginRight="50dp"
+            android:background="@drawable/cancel_btn_bg"
+            android:gravity="center"
+            android:text="取消"
+            android:textColor="#FF9FA2A8"
+            android:textSize="15sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/confirm"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="90dp"
+        android:paddingLeft="22dp"
+        android:paddingRight="22dp"
+        android:text="在设备连接正常状态下，当检测到温度高于或低于所设置的提醒温度时，手机端将会进行提醒。"
+        android:textColor="#FF696868"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_layout" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

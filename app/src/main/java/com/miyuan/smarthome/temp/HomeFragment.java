@@ -87,7 +87,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 binding.twenty.setSelected(true);
                 break;
             case R.id.record:
-                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_CreateFamilyMemberFragment);
+                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_DisclaimerFragment);
+//                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_CreateFamilyMemberFragment);
                 break;
         }
     }

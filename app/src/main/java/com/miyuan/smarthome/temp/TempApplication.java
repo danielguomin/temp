@@ -3,6 +3,8 @@ package com.miyuan.smarthome.temp;
 import android.app.Application;
 import android.content.Context;
 
+import com.tencent.mmkv.MMKV;
+
 public class TempApplication extends Application {
 
     @Override
@@ -13,5 +15,6 @@ public class TempApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        MMKV.initialize(this);
     }
 }
