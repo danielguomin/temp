@@ -11,7 +11,6 @@
         tools:context=".HomeFragment">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/temp_layout"
             android:layout_width="match_parent"
             android:layout_height="367dp"
             android:background="@drawable/home_bg"
@@ -90,81 +89,124 @@
                 app:layout_constraintRight_toLeftOf="@id/remind"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <View
-                android:id="@+id/temp_bg"
-                android:layout_width="316dp"
-                android:layout_height="216.67dp"
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/temp_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="23dp"
-                android:background="@drawable/temp_bg"
                 android:visibility="invisible"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/name" />
+                app:layout_constraintTop_toBottomOf="@id/name">
 
-            <TextView
-                android:id="@+id/temp"
+                <View
+                    android:id="@+id/temp_bg"
+                    android:layout_width="316dp"
+                    android:layout_height="216.67dp"
+                    android:background="@drawable/temp_bg"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/temp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="103.33dp"
+                    android:text="36.7"
+                    android:textSize="49.24sp"
+                    android:textStyle="bold"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="°C"
+                    android:textSize="19.99sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBaseline_toBaselineOf="@id/temp"
+                    app:layout_constraintLeft_toRightOf="@id/temp" />
+
+
+                <View
+                    android:layout_width="11.33dp"
+                    android:layout_height="68.33dp"
+                    android:layout_marginTop="40.67dp"
+                    android:background="@drawable/pointer"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+
+                <TextView
+                    android:id="@+id/hint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="目前获取温度较低，确认设备正常贴在腋下？"
+                    android:textColor="@color/white"
+                    android:textSize="10sp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/temp_bg" />
+
+                <View
+                    android:layout_width="6.67dp"
+                    android:layout_height="8.67dp"
+                    android:layout_marginTop="6.67dp"
+                    android:layout_marginRight="3.67dp"
+                    android:background="@drawable/warm"
+                    app:layout_constraintRight_toLeftOf="@id/hint"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/temp_bg" />
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="126.33dp"
-                android:text="36.7"
-                android:textSize="49.24sp"
-                android:textStyle="bold"
-                android:visibility="invisible"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/name" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="°C"
-                android:textSize="19.99sp"
-                android:textStyle="bold"
-                android:visibility="invisible"
-                app:layout_constraintBaseline_toBaselineOf="@id/temp"
-                app:layout_constraintLeft_toRightOf="@id/temp" />
-
-            <ImageView
-                android:id="@+id/scan"
-                android:layout_width="316dp"
-                android:layout_height="216.67dp"
                 android:layout_marginTop="23dp"
-                android:background="@drawable/scan_bg"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/name" />
+                app:layout_constraintTop_toBottomOf="@id/name">
 
-            <TextView
-                android:id="@+id/hint"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="目前获取温度较低，确认设备正常贴在腋下？"
-                android:textColor="@color/white"
-                android:textSize="10sp"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/temp_bg" />
+                <ImageView
+                    android:id="@+id/scan"
+                    android:layout_width="316dp"
+                    android:layout_height="216.67dp"
+                    android:background="@drawable/scan_bg"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            <View
-                android:layout_width="6.67dp"
-                android:layout_height="8.67dp"
-                android:layout_marginTop="6.67dp"
-                android:layout_marginRight="3.67dp"
-                android:background="@drawable/warm"
-                app:layout_constraintRight_toLeftOf="@id/hint"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/temp_bg" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="连接中"
+                    android:textSize="22.18sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            <View
-                android:layout_width="11.33dp"
-                android:layout_height="68.33dp"
-                android:layout_marginTop="97.67dp"
-                android:background="@drawable/pointer"
-                android:visibility="invisible"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:text="正在连接体温计设备…"
+                    android:textColor="@color/white"
+                    android:textSize="10sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent" />
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

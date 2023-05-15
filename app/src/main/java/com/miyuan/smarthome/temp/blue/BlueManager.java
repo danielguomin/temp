@@ -302,7 +302,7 @@ public class BlueManager {
             public void run() {
                 stopScan(false);
             }
-        }, 10000);
+        }, 1000 * 60);
 
     }
 
