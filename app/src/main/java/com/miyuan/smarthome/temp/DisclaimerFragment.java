@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
@@ -21,12 +20,14 @@ public class DisclaimerFragment extends Fragment implements View.OnClickListener
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        binding = FragmentDisclaimerBinding.inflate(inflater, container, false);
+        if (binding == null) {
+            binding = FragmentDisclaimerBinding.inflate(inflater, container, false);
+            initView();
+        }
         return binding.getRoot();
     }
 
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    private void initView() {
         binding.titlelayout.back.setVisibility(View.INVISIBLE);
         binding.titlelayout.title.setText("免责声明");
         binding.agree.setOnClickListener(this);

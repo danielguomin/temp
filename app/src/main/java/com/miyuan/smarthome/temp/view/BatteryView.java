@@ -17,9 +17,11 @@ public class BatteryView extends View {
     private int width;
     private int height;
     private int mColor;
+
     public BatteryView(Context context) {
         super(context);
     }
+
     public BatteryView(Context context, AttributeSet attrs) {
         super(context, attrs);
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.Battery);
@@ -35,6 +37,7 @@ public class BatteryView extends View {
          */
         typedArray.recycle();
     }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -43,6 +46,7 @@ public class BatteryView extends View {
         //对View上的內容进行测量后得到的View內容占据的高度
         height = getMeasuredHeight();
     }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -53,6 +57,7 @@ public class BatteryView extends View {
             drawVerticalBattery(canvas);
         }
     }
+
     /**
      * 绘制水平电池
      *
@@ -90,7 +95,19 @@ public class BatteryView extends View {
         //设置电池头颜色为黑色
         paint.setColor(Color.BLACK);
         canvas.drawRect(r3, paint);
+        // 画电量
+        paint.setTextSize(30);
+        paint.setColor(Color.WHITE);
+        paint.setStyle(Paint.Style.FILL);
+        //该方法即为设置基线上那个点究竟是left,center,还是right  这里我设置为center
+        paint.setTextAlign(Paint.Align.CENTER);
+        Paint.FontMetrics fontMetrics = paint.getFontMetrics();
+        float top = fontMetrics.top;//为基线到字体上边框的距离,即上图中的top
+        float bottom = fontMetrics.bottom;//为基线到字体下边框的距离,即上图中的bottom
+        int baseLineY = (int) (height / 2 - top / 2 - bottom / 2);//基线中间点的y轴计算公式
+        canvas.drawText(String.valueOf(mPower), width / 2, baseLineY, paint);
     }
+
     /**
      * 绘制垂直电池
      *
@@ -114,6 +131,7 @@ public class BatteryView extends View {
         RectF headRect = new RectF(width / 4.0f, 0, width * 0.75f, headHeight);
         canvas.drawRect(headRect, paint);
     }
+
     /**
      * 设置电池电量
      *
@@ -126,6 +144,7 @@ public class BatteryView extends View {
         }
         invalidate();//刷新VIEW
     }
+
     /**
      * 设置电池颜色
      *
@@ -135,6 +154,7 @@ public class BatteryView extends View {
         this.mColor = color;
         invalidate();
     }
+
     /**
      * 获取电池电量
      *

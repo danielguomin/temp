@@ -1,5 +1,6 @@
 package com.miyuan.smarthome.temp;
 
+import android.content.Context;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -8,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.navigation.Navigation;
@@ -18,8 +20,11 @@ import com.miyuan.smarthome.temp.blue.ProtocolUtils;
 import com.miyuan.smarthome.temp.databinding.FragmentHomeBinding;
 import com.miyuan.smarthome.temp.db.CurrentTemp;
 import com.miyuan.smarthome.temp.db.HistoryTemp;
+import com.miyuan.smarthome.temp.db.Member;
 import com.miyuan.smarthome.temp.db.TempInfo;
 import com.miyuan.smarthome.temp.log.Log;
+
+import java.util.List;
 
 public class HomeFragment extends Fragment implements View.OnClickListener {
 
@@ -30,19 +35,15 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        Log.d("HomeFragment onCreateView");
+        if (binding == null) {
+            binding = FragmentHomeBinding.inflate(inflater, container, false);
+            initView();
+        }
         return binding.getRoot();
     }
 
-    //一直重复
     Handler handler = new Handler();
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
-    }
-
     Runnable runnable = new Runnable() {
         @Override
         public void run() {
@@ -51,8 +52,62 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         }
     };
 
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        Log.d("HomeFragment onAttach");
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Log.d("HomeFragment onCreate");
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d("HomeFragment onStart");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("HomeFragment onResume");
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d("HomeFragment onPause");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d("HomeFragment onStop");
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+//        binding = null;
+        Log.d("HomeFragment onDestroyView");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d("HomeFragment onDestroy");
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        Log.d("HomeFragment onCreate");
+    }
+
+    private void initView() {
         binding.history.setOnClickListener(this);
         binding.remind.setOnClickListener(this);
         binding.share.setOnClickListener(this);
@@ -132,10 +187,13 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
     }
 
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.name:
+                binding.scanlayout.setVisibility(View.GONE);
+                binding.tempLayout.setVisibility(View.VISIBLE);
             case R.id.triangle:
                 break;
             case R.id.history:
@@ -169,7 +227,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 binding.twenty.setSelected(true);
                 break;
             case R.id.record:
-                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_FamilyMemberListFragment);
+                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_ScanFailFragment);
                 break;
         }
     }
@@ -177,8 +235,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     private void initUI(TempInfo info, CurrentTemp temp) {
         if (info != null) {
             binding.charging.setPower(info.getCharging());
-//            binding.name.setText(info.);
-
+            List<Member> members = info.getMembers();
+            for (Member member : members) {
+                if (member.getMemberId() == info.getMemberId()) {
+                    binding.name.setText(member.getName());
+                }
+            }
         }
         if (temp != null) {
             binding.temp.setText(String.valueOf(temp.getTemp()));

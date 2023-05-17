@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.navigation.Navigation;
@@ -31,40 +30,49 @@ public class FamilyMemberListFragment extends Fragment implements View.OnClickLi
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        binding = FragmentFamilyMemberListBinding.inflate(inflater, container, false);
+        if (binding == null) {
+            binding = FragmentFamilyMemberListBinding.inflate(inflater, container, false);
+            initView();
+        }
         return binding.getRoot();
     }
 
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    private void initView() {
         binding.titlelayout.back.setOnClickListener(this);
         binding.titlelayout.title.setText("成员列表");
         binding.titlelayout.back.setOnClickListener(this);
         binding.add.setOnClickListener(this);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         binding.members.setLayoutManager(layoutManager);
-        MemberAdapter memberAdapter = new MemberAdapter(BlueManager.tempInfoLiveData.getValue().getMembers());
+        List<Member> members = BlueManager.tempInfoLiveData.getValue().getMembers();
+        for (Member member : members) {
+            if (member.getMemberId() == BlueManager.tempInfoLiveData.getValue().getMemberId()) {
+                member.setChoice(true);
+            }
+        }
+        MemberAdapter memberAdapter = new MemberAdapter(members);
+        binding.members.setAdapter(memberAdapter);
+        memberAdapter.setOnItemClickListerner(new MemberAdapter.OnItemClickListerner() {
+            @Override
+            public void onItemClick(int position) {
+                for (int i = 0; i < members.size(); i++) {
+                    members.get(i).setChoice(position == i);
+                }
+                BlueManager.getInstance().send(ProtocolUtils.updateMember(false, members.get(position).getMemberId(), ""));
+                memberAdapter.notifyDataSetChanged();
+            }
+        });
         BlueManager.tempInfoLiveData.observe(this.getViewLifecycleOwner(), new Observer<TempInfo>() {
             @Override
             public void onChanged(TempInfo tempInfo) {
+                Log.d("FamilyMemberListFragment onChanged send updateMember");
                 List<Member> members = tempInfo.getMembers();
                 for (Member member : members) {
                     if (member.getMemberId() == tempInfo.getMemberId()) {
                         member.setChoice(true);
                     }
                 }
-                binding.members.setAdapter(memberAdapter);
-                memberAdapter.setOnItemClickListerner(new MemberAdapter.OnItemClickListerner() {
-                    @Override
-                    public void onItemClick(int position) {
-                        for (int i = 0; i < members.size(); i++) {
-                            members.get(i).setChoice(position == i);
-                        }
-                        Log.d("FamilyMemberListFragment onChanged send updateMember");
-                        BlueManager.getInstance().send(ProtocolUtils.updateMember(false, members.get(position).getMemberId(), ""));
-                        memberAdapter.notifyDataSetChanged();
-                    }
-                });
+                memberAdapter.notifyDataSetChanged();
             }
         });
 

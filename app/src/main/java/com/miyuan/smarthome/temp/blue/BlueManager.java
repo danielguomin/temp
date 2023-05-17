@@ -606,7 +606,7 @@ public class BlueManager {
                             member.setMemberId(HexUtils.byteToInt(content[start++]));
                             int length = HexUtils.byteToInt(content[start++]);
                             member.setLength(length);
-                            member.setName(new String(Arrays.copyOfRange(content, start, start + length)));
+                            member.setName(new String(Arrays.copyOfRange(content, start, start + length), "GBK"));
                             start += length;
                             members.add(member);
                         }
@@ -618,7 +618,7 @@ public class BlueManager {
                         temp.setCharging(HexUtils.byteToInt(content[4]));
                         temp.setStatus(HexUtils.byteToInt(content[5]));
                         temp.setMemberId(HexUtils.byteToInt(content[6]));
-                        temp.setTemp((HexUtils.byteToInt(content[6]) + 170) / 10.0f);
+                        temp.setTemp((HexUtils.byteToInt(content[7]) + 170) / 10.0f);
                         _currentTempLiveData.postValue(temp);
                     } else if (content[1] == 03) { // 历史温度
                         HistoryTemp historyTemp = new HistoryTemp();
@@ -636,9 +636,7 @@ public class BlueManager {
                     } else if (content[1] == 05) { // 修改成员信息
                         _membearLiveData.postValue(HexUtils.byteToInt(content[4]) == 1);
                     }
-
                 }
-
             } catch (Exception e) {
                 Log.d(Log.toString(e));
             }

@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
@@ -20,12 +19,14 @@ public class TempRemindListFragment extends Fragment implements View.OnClickList
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        binding = FragmentTempRemindListBinding.inflate(inflater, container, false);
+        if (binding == null) {
+            binding = FragmentTempRemindListBinding.inflate(inflater, container, false);
+            initView();
+        }
         return binding.getRoot();
     }
 
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    private void initView() {
         binding.titlelayout.back.setOnClickListener(this);
         binding.titlelayout.title.setText("成员列表");
         binding.titlelayout.back.setOnClickListener(this);

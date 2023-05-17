@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.miyuan.smarthome.temp.databinding.FragmentScanFailBinding;
@@ -19,12 +18,14 @@ public class ScanFailFragment extends Fragment implements View.OnClickListener {
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        binding = FragmentScanFailBinding.inflate(inflater, container, false);
+        if (binding == null) {
+            binding = FragmentScanFailBinding.inflate(inflater, container, false);
+            initView();
+        }
         return binding.getRoot();
     }
 
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    private void initView() {
         binding.retry.setOnClickListener(this);
         binding.titlelayout.back.setVisibility(View.INVISIBLE);
     }
