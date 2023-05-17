@@ -21,6 +21,10 @@ public class FileLoggingTree extends Timber.Tree {
 
     public FileLoggingTree(String filePath) {
         File dir = new File(filePath);
+        if (!dir.exists()) {
+            boolean result = dir.mkdirs();
+            System.out.println("Temp_Blue " + result);
+        }
         while (null != dir.listFiles() && dir.listFiles().length > 4) {
             File[] files = dir.listFiles();
             File deleteFile = files[0];
@@ -29,10 +33,15 @@ public class FileLoggingTree extends Timber.Tree {
                     deleteFile = files[i];
                 }
             }
+
             deleteFile.delete();
         }
         file = new File(filePath, "/" + sdf.format(System.currentTimeMillis()) + ".txt");
-        new File(file.getParent()).mkdirs();
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

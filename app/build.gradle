@@ -4,12 +4,12 @@ plugins {
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdk 32
+    compileSdk 29
 
     defaultConfig {
         applicationId "com.miyuan.smarthome.temp"
         minSdk 23
-        targetSdk 32
+        targetSdk 29
         versionCode 1
         versionName "1.0"
     }
@@ -26,6 +26,16 @@ android {
     }
     buildFeatures {
         viewBinding true
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("../key/miyuan_android.keystore")
+            storePassword "miyuan2018"
+            keyAlias "miyuan_android"
+            keyPassword "miyuan2018"
+            v2SigningEnabled false
+        }
     }
 }
 

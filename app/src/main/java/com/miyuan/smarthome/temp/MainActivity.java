@@ -1,7 +1,6 @@
 package com.miyuan.smarthome.temp;
 
 import android.Manifest;
-import android.os.Build;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,7 +9,6 @@ import androidx.navigation.NavController;
 import androidx.navigation.NavGraph;
 import androidx.navigation.Navigation;
 
-import com.miyuan.smarthome.temp.blue.BlueManager;
 import com.miyuan.smarthome.temp.databinding.ActivityMainBinding;
 import com.tencent.mmkv.MMKV;
 
@@ -28,32 +26,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        NavGraph graph = navController.getNavInflater().inflate(R.navigation.nav_graph);
-        MMKV mmkv = MMKV.defaultMMKV();
-        if (mmkv.getBoolean("no_prompt", false)) {
-            graph.setStartDestination(R.id.HomeFragment);
-        } else {
-            graph.setStartDestination(R.id.DisclaimerFragment);
-        }
-        navController.setGraph(graph);
         initPermission();
     }
 
     private void initPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // Android 版本大于等于 Android12 时
-            // 只包括蓝牙这部分的权限，其余的需要什么权限自己添加
-            mPermissionList.add(Manifest.permission.BLUETOOTH_SCAN);
-            mPermissionList.add(Manifest.permission.BLUETOOTH_ADVERTISE);
-            mPermissionList.add(Manifest.permission.BLUETOOTH_CONNECT);
-        } else {
-            // Android 版本小于 Android12 及以下版本
-            mPermissionList.add(Manifest.permission.ACCESS_COARSE_LOCATION);
-            mPermissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//            // Android 版本大于等于 Android12 时
+//            // 只包括蓝牙这部分的权限，其余的需要什么权限自己添加
+//            mPermissionList.add(Manifest.permission.BLUETOOTH_SCAN);
+//            mPermissionList.add(Manifest.permission.BLUETOOTH_ADVERTISE);
+//            mPermissionList.add(Manifest.permission.BLUETOOTH_CONNECT);
+////            mPermissionList.add(Manifest.permission.MANAGE_EXTERNAL_STORAGE);
+//        } else {
+        // Android 版本小于 Android12 及以下版本
+        mPermissionList.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+        mPermissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
         mPermissionList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+//        }
 
         if (mPermissionList.size() > 0) {
             ActivityCompat.requestPermissions(this, mPermissionList.toArray(new String[0]), 1001);
@@ -78,7 +67,15 @@ public class MainActivity extends AppCompatActivity {
             // 有权限未通过的处理
         } else {
             //权限全部通过的处理
-            BlueManager.getInstance().init(this);
+            NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+            NavGraph graph = navController.getNavInflater().inflate(R.navigation.nav_graph);
+            MMKV mmkv = MMKV.defaultMMKV();
+            if (mmkv.getBoolean("no_prompt", false)) {
+                graph.setStartDestination(R.id.HomeFragment);
+            } else {
+                graph.setStartDestination(R.id.DisclaimerFragment);
+            }
+            navController.setGraph(graph);
         }
     }
 }

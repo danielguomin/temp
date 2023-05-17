@@ -23,8 +23,14 @@ import android.os.Message;
 import android.widget.Toast;
 
 import androidx.annotation.MainThread;
+import androidx.lifecycle.LiveData;
 
+import com.miyuan.smarthome.temp.db.CurrentTemp;
+import com.miyuan.smarthome.temp.db.HistoryTemp;
+import com.miyuan.smarthome.temp.db.Member;
+import com.miyuan.smarthome.temp.db.TempInfo;
 import com.miyuan.smarthome.temp.log.Log;
+import com.miyuan.smarthome.temp.utils.SingleLiveData;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -38,7 +44,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Created by guomin on 2018/3/8.
  */
-@SuppressLint("MissingPermission")
 public class BlueManager {
 
     public static final String KEY_WRITE_BUNDLE_STATUS = "write_status";
@@ -46,6 +51,7 @@ public class BlueManager {
     private static final int STOP_SCAN_AND_CONNECT = 0;
     private static final int MSG_SPLIT_WRITE = 1;
     private static final int MSG_OBD_DISCONNECTED = 12;
+
 
     private static final String SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
     private static final String READ_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
@@ -62,11 +68,22 @@ public class BlueManager {
     private Handler mMainHandler = new Handler(Looper.getMainLooper());
     private HandlerThread mWorkerThread;
     private Handler mHandler;
+
+    private static SingleLiveData<Integer> _connectStatusLiveData = new SingleLiveData<>();
+    public static LiveData<Integer> connectStatusLiveData = _connectStatusLiveData;
+    private static SingleLiveData<TempInfo> _tempInfoLiveData = new SingleLiveData<>();
+    public static LiveData<TempInfo> tempInfoLiveData = _tempInfoLiveData;
+    private static SingleLiveData<CurrentTemp> _currentTempLiveData = new SingleLiveData<>();
+    public static LiveData<CurrentTemp> currentTempLiveData = _currentTempLiveData;
+    private static SingleLiveData<HistoryTemp> _historyTempLiveData = new SingleLiveData<>();
+    public static LiveData<HistoryTemp> historyTempLiveData = _historyTempLiveData;
+    private static SingleLiveData<Boolean> _membearLiveData = new SingleLiveData<>();
+    public static LiveData<Boolean> membearLiveData = _membearLiveData;
+
     private int connectStatus;
     private boolean isScaning = false;
     private volatile boolean canGo = true;
     private ArrayList<String> scanResult = new ArrayList<>();
-    private ArrayList<BleCallBackListener> callBackListeners = new ArrayList<>();
     private BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback() {
         /**
          *
@@ -83,9 +100,9 @@ public class BlueManager {
             if (scanResult.contains(name)) {
                 return;
             }
+            Log.d("device.getName()=    " + device.getName() + " device.getAddress()=" + device.getAddress());
             scanResult.add(name);
-            if (name != null && name.startsWith("Guardian")) {
-                Log.d("device.getName()=    " + device.getName() + " device.getAddress()=" + device.getAddress());
+            if (name != null && name.startsWith("MYobd")) {
                 Message msg = mHandler.obtainMessage();
                 msg.what = STOP_SCAN_AND_CONNECT;
                 msg.obj = device.getAddress();
@@ -169,12 +186,6 @@ public class BlueManager {
             Log.d("onServicesDiscovered  " + status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
 
-                mMainHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        notifyBleCallBackListener(OBDEvent.BLUE_CONNECTED, null);
-                    }
-                });
                 //拿到该服务 1,通过UUID拿到指定的服务  2,可以拿到该设备上所有服务的集合
                 List<BluetoothGattService> serviceList = mBluetoothGatt.getServices();
 
@@ -186,6 +197,13 @@ public class BlueManager {
                 readCharacteristic = bluetoothGattService.getCharacteristic(UUID.fromString(NOTIFY_UUID));
 
                 mBluetoothGatt.setCharacteristicNotification(readCharacteristic, true);
+                mMainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        _connectStatusLiveData.setValue(BoxEvent.BLUE_CONNECTED);
+//                        notifyBleCallBackListener(BoxEvent.BLUE_CONNECTED, null);
+                    }
+                });
             }
         }
 
@@ -243,20 +261,6 @@ public class BlueManager {
                 && mContext.getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
     }
 
-    public void addBleCallBackListener(BleCallBackListener listener) {
-        callBackListeners.add(listener);
-    }
-
-    void notifyBleCallBackListener(int event, Object data) {
-        for (BleCallBackListener callBackListener : callBackListeners) {
-            callBackListener.onEvent(event, data);
-        }
-    }
-
-    public boolean removeCallBackListener(BleCallBackListener listener) {
-        return callBackListeners.remove(listener);
-    }
-
     @SuppressLint("ServiceCast")
     @MainThread
     public void init(Activity activity) {
@@ -311,7 +315,12 @@ public class BlueManager {
             return;
         }
         isScaning = false;
-        notifyBleCallBackListener(OBDEvent.BLUE_SCAN_FINISHED, find);
+        if (!find) {
+            _connectStatusLiveData.setValue(BoxEvent.BLUE_SCAN_FAILED);
+        } else {
+            _connectStatusLiveData.setValue(BoxEvent.BLUE_SCAN_FINISHED);
+        }
+//        notifyBleCallBackListener(BoxEvent.BLUE_SCAN_FINISHED, find);
         mBluetoothAdapter.stopLeScan(leScanCallback);
     }
 
@@ -577,16 +586,61 @@ public class BlueManager {
         if (cr != result[result.length - 1]) {
             result = null;
         } else {
-            byte[] content = new byte[result.length - 1];
-            System.arraycopy(result, 0, content, 0, content.length); // 去掉校验码
-            Log.d("content  " + HexUtils.formatHexString(content));
-            if (content[0] == 00) {
-                if (content[1] == 00) { // 通用错误
+            try {
+                byte[] content = new byte[result.length - 1];
+                System.arraycopy(result, 0, content, 0, content.length); // 去掉校验码
+                Log.d("content  " + HexUtils.formatHexString(content));
+                if (content[0] == 00) {
+                    if (content[1] == 01) { // Box状态
+                        TempInfo info = new TempInfo();
+                        info.setDeviceId(HexUtils.formatHexString(Arrays.copyOfRange(content, 4, 16)));
+                        info.setDeviceVersion(new String(Arrays.copyOfRange(content, 16, 28)));
+                        info.setCharging(HexUtils.byteToInt(content[28]));
+                        info.setMemberId(HexUtils.byteToInt(content[29]));
+                        int memberCount = HexUtils.byteToInt(content[30]);
+                        info.setMemberCount(memberCount);
+                        List<Member> members = new ArrayList<>();
+                        int start = 31;
+                        for (int i = 0; i < memberCount; i++) {
+                            Member member = new Member();
+                            member.setMemberId(HexUtils.byteToInt(content[start++]));
+                            int length = HexUtils.byteToInt(content[start++]);
+                            member.setLength(length);
+                            member.setName(new String(Arrays.copyOfRange(content, start, start + length)));
+                            start += length;
+                            members.add(member);
+                        }
+                        info.setMembers(members);
+                        info.setOrginal(content);
+                        _tempInfoLiveData.postValue(info);
+                    } else if (content[1] == 02) { // 实时温度
+                        CurrentTemp temp = new CurrentTemp();
+                        temp.setCharging(HexUtils.byteToInt(content[4]));
+                        temp.setStatus(HexUtils.byteToInt(content[5]));
+                        temp.setMemberId(HexUtils.byteToInt(content[6]));
+                        temp.setTemp((HexUtils.byteToInt(content[6]) + 170) / 10.0f);
+                        _currentTempLiveData.postValue(temp);
+                    } else if (content[1] == 03) { // 历史温度
+                        HistoryTemp historyTemp = new HistoryTemp();
+                        historyTemp.setStartTime(HexUtils.byteToLong(Arrays.copyOfRange(content, 4, 8)));
+                        historyTemp.setMemberId(HexUtils.byteToInt(content[8]));
+                        historyTemp.setStep(HexUtils.byteToInt(content[9]));
+                        int count = HexUtils.byteToInt(content[10]);
+                        historyTemp.setTempCount(count);
+                        float[] temps = new float[count];
+                        for (int i = 11; i < count; i++) {
+                            temps[i - 11] = (HexUtils.byteToInt(content[6]) + 170) / 10.0f;
+                        }
+                        historyTemp.setTemps(temps);
+                        _historyTempLiveData.postValue(historyTemp);
+                    } else if (content[1] == 05) { // 修改成员信息
+                        _membearLiveData.postValue(HexUtils.byteToInt(content[4]) == 1);
+                    }
 
-                } else if (content[1] == 01) {
                 }
-            } else if (content[0] == 2) {
 
+            } catch (Exception e) {
+                Log.d(Log.toString(e));
             }
         }
     }
@@ -640,7 +694,7 @@ public class BlueManager {
                     mMainHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            notifyBleCallBackListener(OBDEvent.OBD_DISCONNECTED, null);
+                            _connectStatusLiveData.setValue(BoxEvent.TEMP_DISCONNECTED);
                         }
                     });
                     break;
@@ -689,7 +743,8 @@ public class BlueManager {
 //                                            needRewire = false;
 //                                            currentRepeat = 0;
                                             disconnect();
-                                            notifyBleCallBackListener(OBDEvent.OBD_DISCONNECTED, null);
+                                            _connectStatusLiveData.setValue(BoxEvent.TEMP_DISCONNECTED);
+//                                            notifyBleCallBackListener(BoxEvent.TEMP_DISCONNECTED, null);
                                         }
                                     });
                                 } else {

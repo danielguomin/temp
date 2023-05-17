@@ -4,7 +4,7 @@ package com.miyuan.smarthome.temp.blue;
  * Created by guomin on 2018/3/7.
  */
 
-public class OBDEvent {
+public class BoxEvent {
     /**
      * 开始扫描设备<br>
      */
@@ -32,5 +32,10 @@ public class OBDEvent {
     /**
      * 蓝牙设备断开连接<br>
      */
-    public static final int OBD_DISCONNECTED = 6;
+    public static final int TEMP_DISCONNECTED = 6;
+
+    public static final int TEMP_NORMAL = 7;
+    public static final int TEMP_MEMBER = 8;
+    public static final int TEMP_CURRENT = 9;
+    public static final int TEMP_HISTROY = 10;
 }

@@ -34,6 +34,15 @@
             app:popEnterAnim="@anim/anim_left_in"
             app:popExitAnim="@anim/anim_right_out" />
 
+
+        <action
+            android:id="@+id/action_HomeFragment_to_FamilyMemberListFragment"
+            app:destination="@id/FamilyMemberListFragment"
+            app:enterAnim="@anim/anim_right_in"
+            app:exitAnim="@anim/anim_left_out"
+            app:popEnterAnim="@anim/anim_left_in"
+            app:popExitAnim="@anim/anim_right_out" />
+
         <action
             android:id="@+id/action_HomeFragment_to_RemindFragment"
             app:destination="@id/TempRemindAddFragment"
@@ -82,6 +91,23 @@
         tools:layout="@layout/fragment_create_family_member">
 
     </fragment>
+
+    <fragment
+        android:id="@+id/FamilyMemberListFragment"
+        android:name="com.miyuan.smarthome.temp.FamilyMemberListFragment"
+        android:label="family member list Fragment"
+        tools:layout="@layout/fragment_family_member_list">
+
+        <action
+            android:id="@+id/action_FamilyMemberListFragment_to_CreateFamilyMemberFragment"
+            app:destination="@id/CreateFamilyMemberFragment"
+            app:enterAnim="@anim/anim_right_in"
+            app:exitAnim="@anim/anim_left_out"
+            app:popEnterAnim="@anim/anim_left_in"
+            app:popExitAnim="@anim/anim_right_out" />
+
+    </fragment>
+
 
     <fragment
         android:id="@+id/TempRemindAddFragment"

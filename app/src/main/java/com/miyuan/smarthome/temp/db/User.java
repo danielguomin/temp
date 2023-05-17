@@ -3,16 +3,15 @@ package com.miyuan.smarthome.temp.db;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-import java.util.Objects;
-
 @Entity
 public class User {
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey
     private int id;
     private String name;
     private boolean checked = false;
 
-    public User(String name) {
+    public User(int id, String name) {
+        this.id = id;
         this.name = name;
     }
 
@@ -47,18 +46,5 @@ public class User {
                 ", name='" + name + '\'' +
                 ", checked=" + checked +
                 '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof User)) return false;
-        User user = (User) o;
-        return isChecked() == user.isChecked() && getName().equals(user.getName());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getName(), isChecked());
     }
 }
