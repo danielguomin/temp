@@ -24,7 +24,7 @@
                 android:layout_height="36dp"
                 android:layout_gravity="center"
                 android:gravity="center"
-                android:text="彤彤的体温"
+                android:hint="彤彤的体温"
                 android:textColor="@color/black"
                 android:textSize="17sp"
                 app:layout_constraintLeft_toLeftOf="parent"

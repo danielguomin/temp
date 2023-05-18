@@ -24,8 +24,6 @@ import com.miyuan.smarthome.temp.db.Member;
 import com.miyuan.smarthome.temp.db.TempInfo;
 import com.miyuan.smarthome.temp.log.Log;
 
-import java.util.List;
-
 public class HomeFragment extends Fragment implements View.OnClickListener {
 
     private FragmentHomeBinding binding;
@@ -111,7 +109,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         binding.history.setOnClickListener(this);
         binding.remind.setOnClickListener(this);
         binding.share.setOnClickListener(this);
-        binding.name.setOnClickListener(this);
         binding.record.setOnClickListener(this);
         binding.second.setOnClickListener(this);
         binding.second.setSelected(true);
@@ -119,7 +116,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         binding.twelve.setOnClickListener(this);
         binding.twenty.setOnClickListener(this);
         binding.triangle.setOnClickListener(this);
-
+        binding.name.setOnClickListener(this);
 
         binding.scan.setImageResource(R.drawable.scan_bg);
         AnimationDrawable drawable = (AnimationDrawable) binding.scan.getDrawable();
@@ -184,21 +181,35 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
             }
         });
-
     }
 
+    private void updateName() {
+        TempInfo tempInfo = BlueManager.tempInfoLiveData.getValue();
+        if (null != tempInfo && tempInfo.getMemberId() != 0) {
+            for (Member member : tempInfo.getMembers()) {
+                if (member.getMemberId() == tempInfo.getMemberId()) {
+                    binding.name.setText(member.getName());
+                }
+            }
+        }
+    }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.name:
-                binding.scanlayout.setVisibility(View.GONE);
-                binding.tempLayout.setVisibility(View.VISIBLE);
+                TempInfo tempInfo = BlueManager.tempInfoLiveData.getValue();
+                if (null != tempInfo && tempInfo.getMemberCount() > 0) {
+                    Log.d("HomeFragment onClick go FamilyMemberListFragment");
+                    Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_FamilyMemberListFragment);
+                }
             case R.id.triangle:
                 break;
             case R.id.history:
                 break;
             case R.id.remind:
+                Log.d("HomeFragment onClick go TempRemindListFragment");
+                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_TempRemindListFragment);
                 break;
             case R.id.share:
                 break;
@@ -227,20 +238,15 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 binding.twenty.setSelected(true);
                 break;
             case R.id.record:
-                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_ScanFailFragment);
+                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
                 break;
         }
     }
 
     private void initUI(TempInfo info, CurrentTemp temp) {
+        updateName();
         if (info != null) {
             binding.charging.setPower(info.getCharging());
-            List<Member> members = info.getMembers();
-            for (Member member : members) {
-                if (member.getMemberId() == info.getMemberId()) {
-                    binding.name.setText(member.getName());
-                }
-            }
         }
         if (temp != null) {
             binding.temp.setText(String.valueOf(temp.getTemp()));

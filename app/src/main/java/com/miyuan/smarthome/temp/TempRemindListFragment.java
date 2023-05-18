@@ -7,12 +7,23 @@ import android.view.ViewGroup;
 
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.room.Room;
 
 import com.miyuan.smarthome.temp.databinding.FragmentTempRemindListBinding;
+import com.miyuan.smarthome.temp.db.Remind;
+import com.miyuan.smarthome.temp.db.TempDataBase;
+import com.miyuan.smarthome.temp.view.RemindAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TempRemindListFragment extends Fragment implements View.OnClickListener {
 
     private FragmentTempRemindListBinding binding;
+    private RemindAdapter remindAdapter;
+    private TempDataBase db;
+    private List<Remind> reminds;
 
     @Override
     public View onCreateView(
@@ -27,10 +38,31 @@ public class TempRemindListFragment extends Fragment implements View.OnClickList
     }
 
     private void initView() {
-        binding.titlelayout.back.setOnClickListener(this);
-        binding.titlelayout.title.setText("成员列表");
-        binding.titlelayout.back.setOnClickListener(this);
+        binding.back.setOnClickListener(this);
         binding.add.setOnClickListener(this);
+        binding.edit.setOnClickListener(this);
+        binding.cancel.setOnClickListener(this);
+        binding.confirm.setOnClickListener(this);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        binding.reminds.setLayoutManager(layoutManager);
+        remindAdapter = new RemindAdapter();
+        binding.reminds.setAdapter(remindAdapter);
+        db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
+        reminds = db.getRemindDao().getAll();
+        binding.edit.setVisibility(reminds.size() > 0 ? View.VISIBLE : View.INVISIBLE);
+        remindAdapter.setmList(reminds);
+        remindAdapter.setOnItemClickListerner(new RemindAdapter.OnItemClickListerner() {
+            @Override
+            public void onItemClick(int position) {
+                if (binding.edit.isSelected()) {
+                    // 编辑模式
+                    Remind remind = reminds.get(position);
+                    remind.setChoice(!remind.isChoice());
+                }
+                remindAdapter.notifyItemChanged(position);
+            }
+        });
+
     }
 
     @Override
@@ -45,7 +77,42 @@ public class TempRemindListFragment extends Fragment implements View.OnClickList
             case R.id.back:
                 Navigation.findNavController(v).navigateUp();
                 break;
+            case R.id.edit:
+            case R.id.cancel:
+                boolean edit = binding.edit.isSelected();
+                if (edit) {
+                    binding.edit.setText("编辑");
+                    binding.add.setVisibility(View.VISIBLE);
+                    binding.btnLayout.setVisibility(View.GONE);
+                } else {
+                    binding.edit.setText("完成");
+                    binding.add.setVisibility(View.GONE);
+                    binding.btnLayout.setVisibility(View.VISIBLE);
+                }
+                binding.edit.setSelected(!edit);
+                remindAdapter.setEdit(binding.edit.isSelected());
+                remindAdapter.notifyDataSetChanged();
+                break;
             case R.id.add:
+                Navigation.findNavController(v).navigate(R.id.action_TempRemindListFragment_to_TempRemindAddFragment);
+                break;
+            case R.id.confirm:
+                List<Remind> delete = new ArrayList<>();
+                for (Remind remind : reminds) {
+                    if (remind.isChoice()) {
+                        delete.add(remind);
+                    }
+                }
+                reminds.removeAll(delete);
+                remindAdapter.notifyDataSetChanged();
+                db.getRemindDao().delete(delete);
+                if (reminds.size() == 0) {
+                    binding.edit.setText("编辑");
+                    binding.edit.setSelected(false);
+                    binding.edit.setVisibility(View.INVISIBLE);
+                    binding.add.setVisibility(View.VISIBLE);
+                    binding.btnLayout.setVisibility(View.GONE);
+                }
                 break;
         }
     }

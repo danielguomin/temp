@@ -3,11 +3,20 @@ package com.miyuan.smarthome.temp.db;
 import java.io.Serializable;
 
 public class HistoryTemp implements Serializable {
+    private int status;
     private long startTime;
     private int memberId;
     private int step;
     private int tempCount;
     private float[] temps;
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
 
     public long getStartTime() {
         return startTime;

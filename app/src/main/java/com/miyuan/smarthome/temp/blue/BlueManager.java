@@ -622,14 +622,15 @@ public class BlueManager {
                         _currentTempLiveData.postValue(temp);
                     } else if (content[1] == 03) { // 历史温度
                         HistoryTemp historyTemp = new HistoryTemp();
-                        historyTemp.setStartTime(HexUtils.byteToLong(Arrays.copyOfRange(content, 4, 8)));
-                        historyTemp.setMemberId(HexUtils.byteToInt(content[8]));
-                        historyTemp.setStep(HexUtils.byteToInt(content[9]));
-                        int count = HexUtils.byteToInt(content[10]);
+                        historyTemp.setStatus(HexUtils.byteToInt(content[4]));
+                        historyTemp.setStartTime(HexUtils.byteToLong(Arrays.copyOfRange(content, 5, 9)));
+                        historyTemp.setMemberId(HexUtils.byteToInt(content[9]));
+                        historyTemp.setStep(HexUtils.byteToInt(content[10]));
+                        int count = HexUtils.byteToInt(content[11]);
                         historyTemp.setTempCount(count);
                         float[] temps = new float[count];
-                        for (int i = 11; i < count; i++) {
-                            temps[i - 11] = (HexUtils.byteToInt(content[6]) + 170) / 10.0f;
+                        for (int i = 12; i < count; i++) {
+                            temps[i - 12] = (HexUtils.byteToInt(content[6]) + 170) / 10.0f;
                         }
                         historyTemp.setTemps(temps);
                         _historyTempLiveData.postValue(historyTemp);

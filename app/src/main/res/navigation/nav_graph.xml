@@ -44,8 +44,16 @@
             app:popExitAnim="@anim/anim_right_out" />
 
         <action
-            android:id="@+id/action_HomeFragment_to_RemindFragment"
+            android:id="@+id/action_HomeFragment_to_TempRemindAddFragment"
             app:destination="@id/TempRemindAddFragment"
+            app:enterAnim="@anim/anim_right_in"
+            app:exitAnim="@anim/anim_left_out"
+            app:popEnterAnim="@anim/anim_left_in"
+            app:popExitAnim="@anim/anim_right_out" />
+
+        <action
+            android:id="@+id/action_HomeFragment_to_TempRemindListFragment"
+            app:destination="@id/TempRemindListFragment"
             app:enterAnim="@anim/anim_right_in"
             app:exitAnim="@anim/anim_left_out"
             app:popEnterAnim="@anim/anim_left_in"
@@ -140,7 +148,13 @@
         android:name="com.miyuan.smarthome.temp.TempRemindListFragment"
         android:label="temp remind list Fragment"
         tools:layout="@layout/fragment_temp_remind_list">
-
+        <action
+            android:id="@+id/action_TempRemindListFragment_to_TempRemindAddFragment"
+            app:destination="@id/TempRemindAddFragment"
+            app:enterAnim="@anim/anim_right_in"
+            app:exitAnim="@anim/anim_left_out"
+            app:popEnterAnim="@anim/anim_left_in"
+            app:popExitAnim="@anim/anim_right_out" />
 
     </fragment>
 
