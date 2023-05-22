@@ -4,6 +4,10 @@ import android.app.Application;
 import android.content.Context;
 import android.os.Environment;
 
+import androidx.lifecycle.LiveData;
+
+import com.miyuan.smarthome.temp.db.Member;
+import com.miyuan.smarthome.temp.utils.SingleLiveData;
 import com.tencent.mmkv.MMKV;
 
 import java.io.File;
@@ -15,6 +19,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class TempApplication extends Application {
+
+    public static SingleLiveData<Member> _currentMemberLiveData = new SingleLiveData<>();
+    public static LiveData<Member> currentLiveData = _currentMemberLiveData;
 
     @Override
     protected void attachBaseContext(Context base) {

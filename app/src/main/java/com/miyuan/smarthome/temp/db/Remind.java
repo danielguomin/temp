@@ -29,7 +29,7 @@ public class Remind {
     }
 
     public boolean isOpen() {
-        return isHigh() || isLow();
+        return open;
     }
 
     public void setOpen(boolean open) {

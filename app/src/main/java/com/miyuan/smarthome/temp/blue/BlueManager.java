@@ -77,8 +77,12 @@ public class BlueManager {
     public static LiveData<CurrentTemp> currentTempLiveData = _currentTempLiveData;
     private static SingleLiveData<HistoryTemp> _historyTempLiveData = new SingleLiveData<>();
     public static LiveData<HistoryTemp> historyTempLiveData = _historyTempLiveData;
-    private static SingleLiveData<Boolean> _membearLiveData = new SingleLiveData<>();
-    public static LiveData<Boolean> membearLiveData = _membearLiveData;
+    public static long startTime = 0;
+    public static SingleLiveData<List<Float>> _currentList = new SingleLiveData<>();
+    public static LiveData<List<Float>> currentList = _currentList;
+    private static SingleLiveData<Boolean> _memberLiveData = new SingleLiveData<>();
+    public static LiveData<Boolean> memberLiveData = _memberLiveData;
+    private List<Float> currentTempList = new ArrayList<>();
 
     private int connectStatus;
     private boolean isScaning = false;
@@ -618,11 +622,17 @@ public class BlueManager {
                         temp.setCharging(HexUtils.byteToInt(content[4]));
                         temp.setStatus(HexUtils.byteToInt(content[5]));
                         temp.setMemberId(HexUtils.byteToInt(content[6]));
-                        temp.setTemp((HexUtils.byteToInt(content[7]) + 170) / 10.0f);
+                        float t = (HexUtils.byteToInt(content[7]) + 170) / 10.0f;
+                        temp.setTemp(t);
                         _currentTempLiveData.postValue(temp);
+                        currentTempList.add(t);
+                        _currentList.postValue(currentTempList);
                     } else if (content[1] == 03) { // 历史温度
                         HistoryTemp historyTemp = new HistoryTemp();
                         historyTemp.setStatus(HexUtils.byteToInt(content[4]));
+                        if (startTime == 0) {
+                            startTime = HexUtils.byteToLong(Arrays.copyOfRange(content, 5, 9));
+                        }
                         historyTemp.setStartTime(HexUtils.byteToLong(Arrays.copyOfRange(content, 5, 9)));
                         historyTemp.setMemberId(HexUtils.byteToInt(content[9]));
                         historyTemp.setStep(HexUtils.byteToInt(content[10]));
@@ -635,7 +645,7 @@ public class BlueManager {
                         historyTemp.setTemps(temps);
                         _historyTempLiveData.postValue(historyTemp);
                     } else if (content[1] == 05) { // 修改成员信息
-                        _membearLiveData.postValue(HexUtils.byteToInt(content[4]) == 1);
+                        _memberLiveData.postValue(HexUtils.byteToInt(content[4]) == 1);
                     }
                 }
             } catch (Exception e) {

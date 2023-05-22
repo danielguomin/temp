@@ -1,7 +1,10 @@
 package com.miyuan.smarthome.temp.db;
 
+import androidx.room.Dao;
+
 import java.io.Serializable;
 
+@Dao
 public class HistoryTemp implements Serializable {
     private int status;
     private long startTime;

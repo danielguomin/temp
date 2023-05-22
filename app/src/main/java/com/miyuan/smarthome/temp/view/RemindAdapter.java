@@ -59,9 +59,9 @@ public class RemindAdapter extends
         } else {
             holder.choice.setVisibility(View.GONE);
             holder.status.setVisibility(View.VISIBLE);
-            boolean b = remind.isOpen() ? remind.isHigh() : remind.isLow();
-            holder.status.setChecked(b);
-            holder.temp.setTextColor(b ? Color.BLACK : Color.GRAY);
+            boolean b = remind.isOpen();
+            holder.status.setChecked(remind.isHigh() || remind.isLow());
+            holder.temp.setTextColor((remind.isHigh() || remind.isLow()) ? Color.BLACK : Color.GRAY);
         }
         holder.temp.setText(remind.getTemp() + "℃提醒");
         if (onItemClickListerner != null) {
@@ -111,8 +111,8 @@ public class RemindAdapter extends
 
         public ViewHolder(@NonNull View view) {
             super(view);
-            temp = (TextView) view.findViewById(R.id.temp);
-            status = (Switch) view.findViewById(R.id.status);
+            temp = view.findViewById(R.id.temp);
+            status = view.findViewById(R.id.status);
             choice = view.findViewById(R.id.choice);
         }
     }

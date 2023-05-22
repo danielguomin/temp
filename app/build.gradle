@@ -57,7 +57,7 @@ dependencies {
 
     implementation 'com.jakewharton.timber:timber:4.7.0'
     implementation 'com.tencent:mmkv:1.2.16'
-//    implementation 'com.yanzhenjie:permission:2.0.3'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 
 }
 repositories {

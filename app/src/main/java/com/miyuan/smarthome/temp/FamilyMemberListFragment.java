@@ -56,6 +56,9 @@ public class FamilyMemberListFragment extends Fragment implements View.OnClickLi
             @Override
             public void onItemClick(int position) {
                 for (int i = 0; i < members.size(); i++) {
+                    if (position == i) {
+                        TempApplication._currentMemberLiveData.setValue(members.get(i));
+                    }
                     members.get(i).setChoice(position == i);
                 }
                 BlueManager.getInstance().send(ProtocolUtils.updateMember(false, members.get(position).getMemberId(), ""));
@@ -76,7 +79,7 @@ public class FamilyMemberListFragment extends Fragment implements View.OnClickLi
             }
         });
 
-        BlueManager.membearLiveData.observe(this.getViewLifecycleOwner(), new Observer<Boolean>() {
+        BlueManager.memberLiveData.observe(this.getViewLifecycleOwner(), new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean success) {
                 Log.d("FamilyMemberListFragment membearLiveData onChanged ");

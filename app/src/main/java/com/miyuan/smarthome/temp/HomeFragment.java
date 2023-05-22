@@ -1,45 +1,57 @@
 package com.miyuan.smarthome.temp;
 
-import android.content.Context;
+import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.navigation.Navigation;
+import androidx.room.Room;
 
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.LimitLine;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.mikephil.charting.listener.ChartTouchListener;
+import com.github.mikephil.charting.listener.OnChartGestureListener;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.miyuan.smarthome.temp.blue.BlueManager;
 import com.miyuan.smarthome.temp.blue.BoxEvent;
 import com.miyuan.smarthome.temp.blue.ProtocolUtils;
 import com.miyuan.smarthome.temp.databinding.FragmentHomeBinding;
 import com.miyuan.smarthome.temp.db.CurrentTemp;
+import com.miyuan.smarthome.temp.db.History;
 import com.miyuan.smarthome.temp.db.HistoryTemp;
 import com.miyuan.smarthome.temp.db.Member;
+import com.miyuan.smarthome.temp.db.TempDataBase;
 import com.miyuan.smarthome.temp.db.TempInfo;
 import com.miyuan.smarthome.temp.log.Log;
 
-public class HomeFragment extends Fragment implements View.OnClickListener {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class HomeFragment extends Fragment implements View.OnClickListener, OnChartGestureListener, OnChartValueSelectedListener {
 
     private FragmentHomeBinding binding;
 
-    @Override
-    public View onCreateView(
-            LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState
-    ) {
-        Log.d("HomeFragment onCreateView");
-        if (binding == null) {
-            binding = FragmentHomeBinding.inflate(inflater, container, false);
-            initView();
-        }
-        return binding.getRoot();
-    }
+    private TempDataBase db;
+    private XAxis xAxis;                //X轴
 
     Handler handler = new Handler();
     Runnable runnable = new Runnable() {
@@ -49,60 +61,22 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             handler.postDelayed(this, 10000);
         }
     };
+    private YAxis leftYAxis;            //左侧Y轴
+    private YAxis rightYaxis;           //右侧Y轴
+    private Legend legend;              //图例
 
     @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        Log.d("HomeFragment onAttach");
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.d("HomeFragment onCreate");
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        Log.d("HomeFragment onStart");
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.d("HomeFragment onResume");
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        Log.d("HomeFragment onPause");
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        Log.d("HomeFragment onStop");
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-//        binding = null;
-        Log.d("HomeFragment onDestroyView");
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d("HomeFragment onDestroy");
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        Log.d("HomeFragment onCreate");
+    public View onCreateView(
+            LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState
+    ) {
+        Log.d("HomeFragment onCreateView");
+        Log.d(System.currentTimeMillis() + "");
+        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        initView();
+        initChart(binding.lineChart);
+        db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
+        return binding.getRoot();
     }
 
     private void initView() {
@@ -124,7 +98,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
         BlueManager.getInstance().init(getActivity());
 
-        BlueManager.connectStatusLiveData.observe(this.getViewLifecycleOwner(), new Observer<Integer>() {
+        if (BlueManager.getInstance().isConnected()) {
+            binding.scanlayout.setVisibility(View.GONE);
+            binding.tempLayout.setVisibility(View.VISIBLE);
+        }
+
+        BlueManager.connectStatusLiveData.observe(getViewLifecycleOwner(), new Observer<Integer>() {
             @Override
             public void onChanged(Integer integer) {
                 Log.d("HomeFragment connectStatusLiveData onChanged " + integer);
@@ -144,7 +123,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        BlueManager.tempInfoLiveData.observe(this.getViewLifecycleOwner(), new Observer<TempInfo>() {
+        BlueManager.tempInfoLiveData.observe(getViewLifecycleOwner(), new Observer<TempInfo>() {
             @Override
             public void onChanged(TempInfo info) {
                 Log.d("HomeFragment tempInfoLiveData onChanged ");
@@ -159,14 +138,27 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                     Navigation.findNavController(getView()).navigate(R.id.action_HomeFragment_to_FamilyMemberListFragment);
                     return;
                 }
+                List<Member> members = info.getMembers();
+                for (Member member : members) {
+                    if (member.getMemberId() == info.getMemberId()) {
+                        TempApplication._currentMemberLiveData.postValue(member);
+                    }
+                }
                 // 定时获取实时温度
+                handler.removeCallbacks(runnable);
                 handler.postDelayed(runnable, 0);//启动定时任务
-//                handler.removeCallbacks(runnable);
+
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        BlueManager.getInstance().send(ProtocolUtils.getHistoryTemp());
+                    }
+                }, 1000);
                 initUI(info, null);
             }
         });
 
-        BlueManager.currentTempLiveData.observe(this.getViewLifecycleOwner(), new Observer<CurrentTemp>() {
+        BlueManager.currentTempLiveData.observe(getViewLifecycleOwner(), new Observer<CurrentTemp>() {
             @Override
             public void onChanged(CurrentTemp temp) {
                 Log.d("HomeFragment currentTempLiveData onChanged ");
@@ -174,13 +166,210 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        BlueManager.historyTempLiveData.observe(this.getViewLifecycleOwner(), new Observer<HistoryTemp>() {
+        BlueManager.currentList.observe(getViewLifecycleOwner(), new Observer<List<Float>>() {
+            @Override
+            public void onChanged(List<Float> floats) {
+                Log.d("HomeFragment currentList onChanged " + floats);
+                List<Entry> entryList = new ArrayList<>();
+                float[] temps = new float[floats.size()];
+                for (int i = 0; i < floats.size(); i++) {
+                    temps[i] = floats.get(i);
+                    Entry entry = new Entry(i * 10, floats.get(i));
+                    entryList.add(entry);
+                }
+                setData(entryList);
+//                History history = new History();
+//                history.setTime(BlueManager.startTime);
+//                history.setMemberId(TempApplication.currentLiveData.getValue().getMemberId());
+//                history.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+//                history.setTemps(Arrays.toString(temps));
+//                db.getHistoryDao().updateTemps(history);
+            }
+        });
+
+        BlueManager.historyTempLiveData.observe(getViewLifecycleOwner(), new Observer<HistoryTemp>() {
             @Override
             public void onChanged(HistoryTemp historyTemp) {
                 Log.d("HomeFragment historyTempLiveData onChanged ");
-
+                if (historyTemp.getTempCount() > 0) {
+                    // 存入数据库
+                    History history = new History();
+                    history.setTime(historyTemp.getStartTime());
+                    history.setMemberId(historyTemp.getMemberId());
+                    history.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+                    history.setTemps(Arrays.toString(historyTemp.getTemps()));
+                    db.getHistoryDao().insert(history);
+                }
             }
         });
+
+        BlueManager.memberLiveData.observe(getViewLifecycleOwner(), new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean success) {
+                Log.d("HomeFragment memberLiveData onChanged ");
+                if (success) {
+                    Navigation.findNavController(getView()).navigateUp();
+                    Log.d("FamilyMemberListFragment onChanged send getTempStatus");
+                    BlueManager.getInstance().send(ProtocolUtils.getTempStatus(System.currentTimeMillis()));
+                }
+            }
+        });
+
+        TempApplication.currentLiveData.observeForever(new Observer<Member>() {
+            @Override
+            public void onChanged(Member member) {
+                Log.d("HomeFragment currentLiveData onChanged ");
+                binding.name.setText(member.getName());
+            }
+        });
+    }
+
+    private void initChart(LineChart lineChart) {
+
+        /***图表设置***/
+        //是否展示网格线
+        lineChart.setDrawGridBackground(false);
+        //是否显示边界
+        lineChart.setDrawBorders(true);
+        //是否可以拖动
+        lineChart.setDragEnabled(false);
+        //是否有触摸事件
+        lineChart.setTouchEnabled(true);
+        lineChart.setDoubleTapToZoomEnabled(false);
+        lineChart.setScaleEnabled(false);
+        //设置XY轴动画效果
+        lineChart.animateY(1000);
+        lineChart.animateX(1000);
+
+        /***XY轴的设置***/
+        xAxis = lineChart.getXAxis();
+        leftYAxis = lineChart.getAxisLeft();
+        rightYaxis = lineChart.getAxisRight();
+        rightYaxis.setEnabled(false);
+        //X轴设置显示位置在底部
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setAxisMinimum(0f);
+        xAxis.setLabelCount(10, true);
+//        xAxis.setLabelCount(20);
+        //保证Y轴从0开始，不然会上移一点
+        leftYAxis.setAxisMinimum(35);
+        leftYAxis.setAxisMaximum(42);
+        leftYAxis.setLabelCount(5);
+        leftYAxis.setSpaceMax(1);
+        leftYAxis.setSpaceMin(1);
+        setHightLimitLine(38.5f);
+        setLowLimitLine(37.3f);
+
+        xAxis.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getFormattedValue(float value) {
+                return String.valueOf((int) value) + "分";
+            }
+        });
+        leftYAxis.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getFormattedValue(float value) {
+                return String.valueOf(value) + "°C";
+            }
+        });
+        /***折线图例 标签 设置***/
+        legend = lineChart.getLegend();
+        //设置显示类型，LINE CIRCLE SQUARE EMPTY 等等 多种方式，查看LegendForm 即可
+        legend.setForm(Legend.LegendForm.LINE);
+        legend.setTextSize(12f);
+        //显示位置 左下方
+        legend.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
+        legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.LEFT);
+        legend.setOrientation(Legend.LegendOrientation.HORIZONTAL);
+        //是否绘制在图表里面
+        legend.setDrawInside(false);
+    }
+
+
+    /**
+     * 设置高限制线
+     *
+     * @param high
+     */
+    public void setHightLimitLine(float high) {
+        LimitLine hightLimit = new LimitLine(high, "38.5");
+        hightLimit.setTextSize(10f);
+        hightLimit.setLineColor(Color.parseColor("#FFFFA326"));
+        hightLimit.setTextColor(Color.parseColor("#FFFFA326"));
+        hightLimit.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_TOP);
+        leftYAxis.addLimitLine(hightLimit);
+        binding.lineChart.invalidate();
+    }
+
+    /**
+     * 设置低限制线
+     *
+     * @param low
+     */
+    public void setLowLimitLine(float low) {
+        LimitLine hightLimit = new LimitLine(low, "37.3");
+        hightLimit.setLineColor(Color.parseColor("#FFFFDE00"));
+        hightLimit.setTextColor(Color.parseColor("#FFFFDE00"));
+        hightLimit.setTextSize(10f);
+        hightLimit.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_TOP);
+        leftYAxis.addLimitLine(hightLimit);
+        binding.lineChart.invalidate();
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        handler.post(runnable);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        handler.removeCallbacks(runnable);
+    }
+
+    private void setData(List<Entry> values) {
+        LineData data1 = binding.lineChart.getData();
+        if (null != data1) {
+            binding.lineChart.clear();
+        }
+        // 创建一个数据集,并给它一个类型
+        LineDataSet lineDataSet = new LineDataSet(values, "");
+        // 在这里设置线
+        lineDataSet.setColor(Color.BLACK);
+        lineDataSet.setCircleColor(Color.BLACK);
+        lineDataSet.setCircleRadius(1f);
+        lineDataSet.setDrawCircleHole(false);
+        lineDataSet.setValueTextSize(9f);
+        lineDataSet.setDrawFilled(true);
+        lineDataSet.setFormLineWidth(1f);
+        lineDataSet.setFormLineDashEffect(new DashPathEffect(new float[]{10f, 5f}, 0f));
+        lineDataSet.setFormSize(15.f);
+        lineDataSet.setFillColor(Color.parseColor("#FF2BAC69"));
+        ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
+        //添加数据集
+        dataSets.add(lineDataSet);
+        //创建一个数据集的数据对象
+        LineData data = new LineData(dataSets);
+        //谁知数据
+        binding.lineChart.setData(data);
+        setChartFillDrawable(getContext().getDrawable(R.drawable.linechart_bg));
+    }
+
+    /**
+     * 设置线条填充背景颜色
+     *
+     * @param drawable
+     */
+    public void setChartFillDrawable(Drawable drawable) {
+        if (binding.lineChart.getData() != null && binding.lineChart.getData().getDataSetCount() > 0) {
+            LineDataSet lineDataSet = (LineDataSet) binding.lineChart.getData().getDataSetByIndex(0);
+            //避免在 initLineDataSet()方法中 设置了 lineDataSet.setDrawFilled(false); 而无法实现效果
+            lineDataSet.setDrawFilled(true);
+            lineDataSet.setFillDrawable(drawable);
+            binding.lineChart.invalidate();
+        }
     }
 
     private void updateName() {
@@ -196,16 +385,20 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
+        TempInfo tempInfo = BlueManager.tempInfoLiveData.getValue();
         switch (v.getId()) {
             case R.id.name:
-                TempInfo tempInfo = BlueManager.tempInfoLiveData.getValue();
+            case R.id.triangle:
                 if (null != tempInfo && tempInfo.getMemberCount() > 0) {
                     Log.d("HomeFragment onClick go FamilyMemberListFragment");
                     Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_FamilyMemberListFragment);
                 }
-            case R.id.triangle:
                 break;
             case R.id.history:
+                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_HistoryListFragment);
+                if (null != tempInfo && tempInfo.getMemberCount() > 0) {
+                    Log.d("HomeFragment onClick go HistoryListFragment");
+                }
                 break;
             case R.id.remind:
                 Log.d("HomeFragment onClick go TempRemindListFragment");
@@ -238,7 +431,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 binding.twenty.setSelected(true);
                 break;
             case R.id.record:
-                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
+                List<Float> floats1 = new ArrayList<>();
+                floats1.add(36.5f);
+                floats1.add(36.1f);
+                floats1.add(36.2f);
+                BlueManager._currentList.postValue(floats1);
+//                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
                 break;
         }
     }
@@ -252,5 +450,57 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             binding.temp.setText(String.valueOf(temp.getTemp()));
             binding.charging.setPower(temp.getCharging());
         }
+    }
+
+    @Override
+    public void onChartGestureStart(MotionEvent me, ChartTouchListener.ChartGesture
+            lastPerformedGesture) {
+
+    }
+
+    @Override
+    public void onChartGestureEnd(MotionEvent me, ChartTouchListener.ChartGesture
+            lastPerformedGesture) {
+
+    }
+
+    @Override
+    public void onChartLongPressed(MotionEvent me) {
+
+    }
+
+    @Override
+    public void onChartDoubleTapped(MotionEvent me) {
+
+    }
+
+    @Override
+    public void onChartSingleTapped(MotionEvent me) {
+
+    }
+
+    @Override
+    public void onChartFling(MotionEvent me1, MotionEvent me2, float velocityX, float velocityY) {
+
+    }
+
+    @Override
+    public void onChartScale(MotionEvent me, float scaleX, float scaleY) {
+
+    }
+
+    @Override
+    public void onChartTranslate(MotionEvent me, float dX, float dY) {
+
+    }
+
+    @Override
+    public void onValueSelected(Entry e, Highlight h) {
+
+    }
+
+    @Override
+    public void onNothingSelected() {
+
     }
 }

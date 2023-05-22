@@ -38,7 +38,7 @@ public class CreateFamilyMemberFragment extends Fragment implements View.OnClick
         binding.save.setOnClickListener(this);
 
 
-        BlueManager.membearLiveData.observe(this.getViewLifecycleOwner(), new Observer<Boolean>() {
+        BlueManager.memberLiveData.observe(this.getViewLifecycleOwner(), new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean success) {
                 Log.d("CreateFamilyMemberFragment membearLiveData onChanged ");

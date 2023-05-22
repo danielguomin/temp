@@ -80,15 +80,19 @@ public class TempRemindAddFragment extends Fragment implements View.OnClickListe
             case R.id.confirm:
                 // 操作数据库
                 try {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(binding.whole.getValue()).append(".").append(binding.decimal.getValue());
-                    Remind remind = new Remind();
-                    remind.setTemp(sb.toString());
-                    remind.setHigh(binding.high.isChecked());
-                    remind.setLow(binding.low.isChecked());
-                    remind.setOpen(remind.isHigh() ? true : false);
-                    db.getRemindDao().insert(remind);
-                    Navigation.findNavController(v).navigateUp();
+                    if (binding.high.isChecked() || binding.low.isChecked()) {
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(binding.whole.getValue()).append(".").append(binding.decimal.getValue());
+                        Remind remind = new Remind();
+                        remind.setTemp(sb.toString());
+                        remind.setHigh(binding.high.isChecked());
+                        remind.setLow(binding.low.isChecked());
+                        remind.setOpen(binding.high.isChecked());
+                        db.getRemindDao().insert(remind);
+                        Navigation.findNavController(v).navigateUp();
+                    } else {
+                        Toast.makeText(getActivity(), "请选择提醒模式！", Toast.LENGTH_SHORT).show();
+                    }
                 } catch (Exception e) {
                     Toast.makeText(getActivity(), "添加温度重复！", Toast.LENGTH_SHORT).show();
                 }

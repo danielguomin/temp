@@ -66,6 +66,14 @@
             app:exitAnim="@anim/anim_left_out"
             app:popEnterAnim="@anim/anim_left_in"
             app:popExitAnim="@anim/anim_right_out" />
+
+        <action
+            android:id="@+id/action_HomeFragment_to_HistoryListFragment"
+            app:destination="@id/HistoryListFragment"
+            app:enterAnim="@anim/anim_right_in"
+            app:exitAnim="@anim/anim_left_out"
+            app:popEnterAnim="@anim/anim_left_in"
+            app:popExitAnim="@anim/anim_right_out" />
     </fragment>
 
     <fragment
@@ -113,6 +121,30 @@
             app:exitAnim="@anim/anim_left_out"
             app:popEnterAnim="@anim/anim_left_in"
             app:popExitAnim="@anim/anim_right_out" />
+
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/HistoryListFragment"
+        android:name="com.miyuan.smarthome.temp.HistoryListFragment"
+        android:label="history list Fragment"
+        tools:layout="@layout/fragment_history_list">
+        <action
+            android:id="@+id/action_HistoryListFragment_to_HistoryFragment"
+            app:destination="@id/HistoryFragment"
+            app:enterAnim="@anim/anim_right_in"
+            app:exitAnim="@anim/anim_left_out"
+            app:popEnterAnim="@anim/anim_left_in"
+            app:popExitAnim="@anim/anim_right_out" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/HistoryFragment"
+        android:name="com.miyuan.smarthome.temp.HistoryFragment"
+        android:label="history Fragment"
+        tools:layout="@layout/fragment_history">
 
     </fragment>
 

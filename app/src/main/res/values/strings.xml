@@ -6,6 +6,8 @@
     <string name="second_fragment_label">Home Fragment</string>
     <string name="next">Next</string>
     <string name="back">Back</string>
+    <string name="cancel">取消</string>
+    <string name="comfirm">确定</string>
     <string name="previous">Previous</string>
 
     <string name="scan_fail_title">扫描失败</string>
