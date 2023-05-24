@@ -1,10 +1,8 @@
 package com.miyuan.smarthome.temp.db;
 
-import androidx.room.Dao;
-
 import java.io.Serializable;
+import java.util.Arrays;
 
-@Dao
 public class HistoryTemp implements Serializable {
     private int status;
     private long startTime;
@@ -59,5 +57,17 @@ public class HistoryTemp implements Serializable {
 
     public void setTemps(float[] temps) {
         this.temps = temps;
+    }
+
+    @Override
+    public String toString() {
+        return "HistoryTemp{" +
+                "status=" + status +
+                ", startTime=" + startTime +
+                ", memberId=" + memberId +
+                ", step=" + step +
+                ", tempCount=" + tempCount +
+                ", temps=" + Arrays.toString(temps) +
+                '}';
     }
 }

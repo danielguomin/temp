@@ -35,24 +35,21 @@ public class HistoryListFragment extends Fragment implements View.OnClickListene
     private void initView() {
         binding.titlelayout.back.setOnClickListener(this);
         binding.titlelayout.title.setText("历史体温");
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-        binding.members.setLayoutManager(layoutManager);
-        List<Member> members = BlueManager.tempInfoLiveData.getValue().getMembers();
-//        List<Member> members = new ArrayList<>();
-//        for (int i = 0; i < 4; i++) {
-//            Member member = new Member();
-//            member.setName("彤彤" + i);
-//            members.add(member);
-//        }
-        HistoryAdapter memberAdapter = new HistoryAdapter(members);
-        binding.members.setAdapter(memberAdapter);
-        memberAdapter.setOnItemClickListerner(new HistoryAdapter.OnItemClickListerner() {
-            @Override
-            public void onItemClick(int position) {
-                Navigation.findNavController(getView()).navigate(R.id.action_HistoryListFragment_to_HistoryFragment);
-            }
-        });
+        if (BlueManager.tempInfoLiveData != null && BlueManager.tempInfoLiveData.getValue() != null) {
+            LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+            binding.members.setLayoutManager(layoutManager);
+            List<Member> members = BlueManager.tempInfoLiveData.getValue().getMembers();
+            HistoryAdapter memberAdapter = new HistoryAdapter(members);
+            binding.members.setAdapter(memberAdapter);
+            memberAdapter.setOnItemClickListerner(new HistoryAdapter.OnItemClickListerner() {
+                @Override
+                public void onItemClick(int position) {
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("memberId", members.get(position).getMemberId());
+                    Navigation.findNavController(getView()).navigate(R.id.action_HistoryListFragment_to_HistoryFragment, bundle);
+                }
+            });
+        }
     }
 
     @Override

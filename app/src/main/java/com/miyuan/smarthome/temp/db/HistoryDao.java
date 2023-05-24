@@ -14,6 +14,9 @@ public interface HistoryDao {
     @Query("SELECT * FROM history")
     List<History> getAll();
 
+    @Query("SELECT * FROM history WHERE deviceId = :deviceId AND memberId =:memberId ORDER BY time ASC")
+    List<History> getAll(String deviceId, int memberId);
+
     @Insert
     void insert(History history);
 

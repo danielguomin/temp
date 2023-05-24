@@ -1,7 +1,6 @@
 package com.miyuan.smarthome.temp;
 
 import android.graphics.Color;
-import android.graphics.DashPathEffect;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -41,9 +40,11 @@ import com.miyuan.smarthome.temp.db.Member;
 import com.miyuan.smarthome.temp.db.TempDataBase;
 import com.miyuan.smarthome.temp.db.TempInfo;
 import com.miyuan.smarthome.temp.log.Log;
+import com.miyuan.smarthome.temp.utils.TimeUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class HomeFragment extends Fragment implements View.OnClickListener, OnChartGestureListener, OnChartValueSelectedListener {
@@ -51,7 +52,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
     private FragmentHomeBinding binding;
 
     private TempDataBase db;
+    private List<Entry> entryHistoryList;
+    private List<Entry> currentList;
     private XAxis xAxis;                //X轴
+    private YAxis leftYAxis;            //左侧Y轴
+    private YAxis rightYaxis;           //右侧Y轴
+    private Legend legend;              //图例
 
     Handler handler = new Handler();
     Runnable runnable = new Runnable() {
@@ -61,9 +67,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             handler.postDelayed(this, 10000);
         }
     };
-    private YAxis leftYAxis;            //左侧Y轴
-    private YAxis rightYaxis;           //右侧Y轴
-    private Legend legend;              //图例
 
     @Override
     public View onCreateView(
@@ -144,9 +147,33 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                         TempApplication._currentMemberLiveData.postValue(member);
                     }
                 }
+                // 获取数据库数据
+
+                initUI(info, null);
+
                 // 定时获取实时温度
                 handler.removeCallbacks(runnable);
                 handler.postDelayed(runnable, 0);//启动定时任务
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        List<History> list = db.getHistoryDao().getAll(info.getDeviceId(), info.getMemberId());
+                        entryHistoryList = new ArrayList<>();
+                        for (History history : list) {
+                            if (TimeUtils.isSameDay(new Date(history.getTime()))) {
+                                long start = history.getTime();
+                                String temps1 = history.getTemps();
+                                String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
+                                for (int i = 0; i < temps.length; i++) {
+                                    Entry entry = new Entry(TimeUtils.getSecondForDate(start + i * 10 * 1000), Float.valueOf(temps[i]));
+                                    entryHistoryList.add(entry);
+                                }
+                            }
+                        }
+                        Log.d("entryHistoryList " + entryHistoryList.size());
+                    }
+                }).start();
 
                 handler.postDelayed(new Runnable() {
                     @Override
@@ -154,7 +181,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                         BlueManager.getInstance().send(ProtocolUtils.getHistoryTemp());
                     }
                 }, 1000);
-                initUI(info, null);
             }
         });
 
@@ -171,26 +197,29 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             public void onChanged(List<Float> floats) {
                 Log.d("HomeFragment currentList onChanged " + floats);
                 List<Entry> entryList = new ArrayList<>();
+                if (entryHistoryList != null) {
+                    entryList.addAll(entryHistoryList);
+                }
                 float[] temps = new float[floats.size()];
                 for (int i = 0; i < floats.size(); i++) {
                     temps[i] = floats.get(i);
-                    Entry entry = new Entry(i * 10, floats.get(i));
+                    Entry entry = new Entry(TimeUtils.getSecondForDate(System.currentTimeMillis() + i * 10 * 1000), floats.get(i));
                     entryList.add(entry);
                 }
                 setData(entryList);
-//                History history = new History();
-//                history.setTime(BlueManager.startTime);
-//                history.setMemberId(TempApplication.currentLiveData.getValue().getMemberId());
-//                history.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
-//                history.setTemps(Arrays.toString(temps));
-//                db.getHistoryDao().updateTemps(history);
+                History history = new History();
+                history.setTime(BlueManager.startTime);
+                history.setMemberId(TempApplication.currentLiveData.getValue().getMemberId());
+                history.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+                history.setTemps(Arrays.toString(temps));
+                db.getHistoryDao().updateTemps(history);
             }
         });
 
         BlueManager.historyTempLiveData.observe(getViewLifecycleOwner(), new Observer<HistoryTemp>() {
             @Override
             public void onChanged(HistoryTemp historyTemp) {
-                Log.d("HomeFragment historyTempLiveData onChanged ");
+                Log.d("HomeFragment historyTempLiveData onChanged " + historyTemp);
                 if (historyTemp.getTempCount() > 0) {
                     // 存入数据库
                     History history = new History();
@@ -198,6 +227,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                     history.setMemberId(historyTemp.getMemberId());
                     history.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
                     history.setTemps(Arrays.toString(historyTemp.getTemps()));
+                    dealWithHistory(history);
                     db.getHistoryDao().insert(history);
                 }
             }
@@ -224,8 +254,19 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         });
     }
 
-    private void initChart(LineChart lineChart) {
+    private void dealWithHistory(History history) {
+        if (TimeUtils.isSameDay(new Date(history.getTime()))) {
+            long start = history.getTime();
+            String temps1 = history.getTemps();
+            String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
+            for (int i = 0; i < temps.length; i++) {
+                Entry entry = new Entry(TimeUtils.getSecondForDate(start + i * 10 * 1000), Float.valueOf(temps[i]));
+                entryHistoryList.add(entry);
+            }
+        }
+    }
 
+    private void initChart(LineChart lineChart) {
         /***图表设置***/
         //是否展示网格线
         lineChart.setDrawGridBackground(false);
@@ -235,12 +276,11 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         lineChart.setDragEnabled(false);
         //是否有触摸事件
         lineChart.setTouchEnabled(true);
-        lineChart.setDoubleTapToZoomEnabled(false);
-        lineChart.setScaleEnabled(false);
+        lineChart.setDoubleTapToZoomEnabled(true);
+        lineChart.setScaleEnabled(true);
         //设置XY轴动画效果
         lineChart.animateY(1000);
         lineChart.animateX(1000);
-
         /***XY轴的设置***/
         xAxis = lineChart.getXAxis();
         leftYAxis = lineChart.getAxisLeft();
@@ -249,8 +289,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         //X轴设置显示位置在底部
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setAxisMinimum(0f);
-        xAxis.setLabelCount(10, true);
-//        xAxis.setLabelCount(20);
+        xAxis.setSpaceMin(1);
+        xAxis.setSpaceMax(1);
+        xAxis.setAxisMaximum(24 * 60 * 60);
+//        xAxis.setLabelCount(5, true);
         //保证Y轴从0开始，不然会上移一点
         leftYAxis.setAxisMinimum(35);
         leftYAxis.setAxisMaximum(42);
@@ -263,7 +305,11 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         xAxis.setValueFormatter(new ValueFormatter() {
             @Override
             public String getFormattedValue(float value) {
-                return String.valueOf((int) value) + "分";
+                if (binding.second.isSelected()) {
+                    return (int) (value / 3600) + "分";
+                } else {
+                    return (int) (value / 3600) + "时";
+                }
             }
         });
         leftYAxis.setValueFormatter(new ValueFormatter() {
@@ -330,23 +376,47 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
     }
 
     private void setData(List<Entry> values) {
+        currentList = values;
         LineData data1 = binding.lineChart.getData();
         if (null != data1) {
             binding.lineChart.clear();
         }
+        int currentTime = TimeUtils.getSecondForDate(System.currentTimeMillis());
+        List<Entry> realValue = new ArrayList<>();
+        int min = (int) values.get(0).getX();
+        if (binding.second.isSelected()) {
+            // >= currentTime - 15*60
+            min = currentTime - 15 * 60;
+        } else if (binding.six.isSelected()) {
+            min = currentTime - 3 * 60 * 60;
+        } else if (binding.twelve.isSelected()) {
+            min = currentTime - 6 * 60 * 60;
+        }
+        for (Entry entry : values) {
+            if (entry.getX() >= min) {
+                realValue.add(entry);
+                Log.d("  " + entry.toString());
+            }
+        }
+
+        if (binding.second.isSelected()) {
+            xAxis.setAxisMinimum(0);
+            xAxis.setAxisMaximum(currentTime + 15 * 60);
+        } else {
+            xAxis.setAxisMaximum(24 * 60 * 60);
+            xAxis.setAxisMinimum(min);
+        }
         // 创建一个数据集,并给它一个类型
-        LineDataSet lineDataSet = new LineDataSet(values, "");
+        LineDataSet lineDataSet = new LineDataSet(realValue, "");
         // 在这里设置线
-        lineDataSet.setColor(Color.BLACK);
+        lineDataSet.setColor(Color.parseColor("#FF2BAC69"));
+        lineDataSet.setDrawCircles(false);
         lineDataSet.setCircleColor(Color.BLACK);
-        lineDataSet.setCircleRadius(1f);
+        lineDataSet.setCircleRadius(2f);
         lineDataSet.setDrawCircleHole(false);
-        lineDataSet.setValueTextSize(9f);
-        lineDataSet.setDrawFilled(true);
-        lineDataSet.setFormLineWidth(1f);
-        lineDataSet.setFormLineDashEffect(new DashPathEffect(new float[]{10f, 5f}, 0f));
-        lineDataSet.setFormSize(15.f);
-        lineDataSet.setFillColor(Color.parseColor("#FF2BAC69"));
+        lineDataSet.setValueTextSize(0);
+        lineDataSet.setDrawFilled(false);
+        lineDataSet.setFormLineWidth(0f);
         ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
         //添加数据集
         dataSets.add(lineDataSet);
@@ -395,9 +465,9 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 }
                 break;
             case R.id.history:
-                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_HistoryListFragment);
                 if (null != tempInfo && tempInfo.getMemberCount() > 0) {
                     Log.d("HomeFragment onClick go HistoryListFragment");
+                    Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_HistoryListFragment);
                 }
                 break;
             case R.id.remind:
@@ -411,32 +481,39 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 binding.six.setSelected(false);
                 binding.twelve.setSelected(false);
                 binding.twenty.setSelected(false);
+                if (null != currentList) {
+                    setData(currentList);
+                }
                 break;
             case R.id.six:
                 binding.second.setSelected(false);
                 binding.six.setSelected(true);
                 binding.twelve.setSelected(false);
                 binding.twenty.setSelected(false);
+                if (null != currentList) {
+                    setData(currentList);
+                }
                 break;
             case R.id.twelve:
                 binding.second.setSelected(false);
                 binding.six.setSelected(false);
                 binding.twelve.setSelected(true);
                 binding.twenty.setSelected(false);
+                if (null != currentList) {
+                    setData(currentList);
+                }
                 break;
             case R.id.twenty:
                 binding.second.setSelected(false);
                 binding.six.setSelected(false);
                 binding.twelve.setSelected(false);
                 binding.twenty.setSelected(true);
+                if (null != currentList) {
+                    setData(currentList);
+                }
                 break;
             case R.id.record:
-                List<Float> floats1 = new ArrayList<>();
-                floats1.add(36.5f);
-                floats1.add(36.1f);
-                floats1.add(36.2f);
-                BlueManager._currentList.postValue(floats1);
-//                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
+                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
                 break;
         }
     }
@@ -496,11 +573,9 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
 
     @Override
     public void onValueSelected(Entry e, Highlight h) {
-
     }
 
     @Override
     public void onNothingSelected() {
-
     }
 }

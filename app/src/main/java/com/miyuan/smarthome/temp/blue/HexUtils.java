@@ -196,6 +196,26 @@ public class HexUtils {
         return s;
     }
 
+    /**
+     * @param
+     * @return 长整型
+     * @方法功能 字节数组和长整型的转换
+     */
+    public static long byteTo4Long(byte[] b) {
+        long s = 0;
+        long s0 = b[0] & 0xff;// 最低位
+        long s1 = b[1] & 0xff;
+        long s2 = b[2] & 0xff;
+        long s3 = b[3] & 0xff;
+        s0 <<= 24;
+        s1 <<= 16;
+        s2 <<= 8;
+        s3 <<= 0;
+        s = s0 | s1 | s2 | s3;
+        return s;
+    }
+
+
     public static char[] encodeHex(byte[] data) {
         return encodeHex(data, true);
     }

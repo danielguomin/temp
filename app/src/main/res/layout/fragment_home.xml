@@ -60,9 +60,9 @@
 
             <View
                 android:id="@+id/history"
-                android:layout_width="16.67dp"
-                android:layout_height="16.67dp"
-                android:layout_marginTop="9.67dp"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginTop="6.67dp"
                 android:layout_marginRight="22dp"
                 android:background="@drawable/history"
                 app:layout_constraintRight_toRightOf="parent"
@@ -70,20 +70,20 @@
 
             <View
                 android:id="@+id/remind"
-                android:layout_width="17dp"
-                android:layout_height="16.67dp"
-                android:layout_marginTop="9.67dp"
-                android:layout_marginRight="7.67dp"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginTop="6.67dp"
+                android:layout_marginRight="10dp"
                 android:background="@drawable/remind"
                 app:layout_constraintRight_toLeftOf="@id/history"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <View
                 android:id="@+id/share"
-                android:layout_width="16.67dp"
-                android:layout_height="16.67dp"
-                android:layout_marginTop="9.67dp"
-                android:layout_marginRight="8dp"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginTop="6.67dp"
+                android:layout_marginRight="10dp"
                 android:background="@drawable/share"
                 app:layout_constraintRight_toLeftOf="@id/remind"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -529,9 +529,9 @@
             android:id="@+id/lineChart"
             android:layout_width="match_parent"
             android:layout_height="163.67dp"
-            android:layout_marginLeft="22dp"
+            android:layout_marginLeft="5dp"
             android:layout_marginTop="20dp"
-            android:layout_marginRight="22dp"
+            android:layout_marginRight="5dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/record" />

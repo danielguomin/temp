@@ -6,7 +6,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
+import com.miyuan.smarthome.temp.blue.BlueManager;
 import com.miyuan.smarthome.temp.databinding.FragmentScanFailBinding;
 
 public class ScanFailFragment extends Fragment implements View.OnClickListener {
@@ -40,6 +42,8 @@ public class ScanFailFragment extends Fragment implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.retry:
+                BlueManager.getInstance().startScan();
+                Navigation.findNavController(getView()).navigateUp();
                 break;
         }
     }

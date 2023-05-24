@@ -32,6 +32,7 @@ import com.miyuan.smarthome.temp.db.TempInfo;
 import com.miyuan.smarthome.temp.log.Log;
 import com.miyuan.smarthome.temp.utils.SingleLiveData;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,7 +69,6 @@ public class BlueManager {
     private Handler mMainHandler = new Handler(Looper.getMainLooper());
     private HandlerThread mWorkerThread;
     private Handler mHandler;
-
     private static SingleLiveData<Integer> _connectStatusLiveData = new SingleLiveData<>();
     public static LiveData<Integer> connectStatusLiveData = _connectStatusLiveData;
     private static SingleLiveData<TempInfo> _tempInfoLiveData = new SingleLiveData<>();
@@ -291,6 +291,13 @@ public class BlueManager {
         startScan();
     }
 
+    private Runnable stopRunable = new Runnable() {
+        @Override
+        public void run() {
+            stopScan(false);
+        }
+    };
+
     public synchronized void startScan() {
         if (null == mBluetoothAdapter || isScaning) {
             return;
@@ -305,12 +312,7 @@ public class BlueManager {
 
         mBluetoothAdapter.startLeScan(leScanCallback);
 
-        mMainHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                stopScan(false);
-            }
-        }, 1000 * 60);
+        mMainHandler.postDelayed(stopRunable, 1000 * 60);
 
     }
 
@@ -590,67 +592,71 @@ public class BlueManager {
         if (cr != result[result.length - 1]) {
             result = null;
         } else {
-            try {
-                byte[] content = new byte[result.length - 1];
-                System.arraycopy(result, 0, content, 0, content.length); // 去掉校验码
-                Log.d("content  " + HexUtils.formatHexString(content));
-                if (content[0] == 00) {
-                    if (content[1] == 01) { // Box状态
-                        TempInfo info = new TempInfo();
-                        info.setDeviceId(HexUtils.formatHexString(Arrays.copyOfRange(content, 4, 16)));
-                        info.setDeviceVersion(new String(Arrays.copyOfRange(content, 16, 28)));
-                        info.setCharging(HexUtils.byteToInt(content[28]));
-                        info.setMemberId(HexUtils.byteToInt(content[29]));
-                        int memberCount = HexUtils.byteToInt(content[30]);
-                        info.setMemberCount(memberCount);
-                        List<Member> members = new ArrayList<>();
-                        int start = 31;
-                        for (int i = 0; i < memberCount; i++) {
-                            Member member = new Member();
-                            member.setMemberId(HexUtils.byteToInt(content[start++]));
-                            int length = HexUtils.byteToInt(content[start++]);
-                            member.setLength(length);
+//            try {
+            byte[] content = new byte[result.length - 1];
+            System.arraycopy(result, 0, content, 0, content.length); // 去掉校验码
+            Log.d("content  " + HexUtils.formatHexString(content));
+            if (content[0] == 00) {
+                if (content[1] == 01) { // Box状态
+                    TempInfo info = new TempInfo();
+                    info.setDeviceId(HexUtils.formatHexString(Arrays.copyOfRange(content, 4, 16)));
+                    info.setDeviceVersion(new String(Arrays.copyOfRange(content, 16, 28)));
+                    info.setCharging(HexUtils.byteToInt(content[28]));
+                    info.setMemberId(HexUtils.byteToInt(content[29]));
+                    int memberCount = HexUtils.byteToInt(content[30]);
+                    info.setMemberCount(memberCount);
+                    List<Member> members = new ArrayList<>();
+                    int start = 31;
+                    for (int i = 0; i < memberCount; i++) {
+                        Member member = new Member();
+                        member.setMemberId(HexUtils.byteToInt(content[start++]));
+                        int length = HexUtils.byteToInt(content[start++]);
+                        member.setLength(length);
+                        try {
                             member.setName(new String(Arrays.copyOfRange(content, start, start + length), "GBK"));
-                            start += length;
-                            members.add(member);
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
                         }
-                        info.setMembers(members);
-                        info.setOrginal(content);
-                        _tempInfoLiveData.postValue(info);
-                    } else if (content[1] == 02) { // 实时温度
-                        CurrentTemp temp = new CurrentTemp();
-                        temp.setCharging(HexUtils.byteToInt(content[4]));
-                        temp.setStatus(HexUtils.byteToInt(content[5]));
-                        temp.setMemberId(HexUtils.byteToInt(content[6]));
-                        float t = (HexUtils.byteToInt(content[7]) + 170) / 10.0f;
-                        temp.setTemp(t);
-                        _currentTempLiveData.postValue(temp);
-                        currentTempList.add(t);
-                        _currentList.postValue(currentTempList);
-                    } else if (content[1] == 03) { // 历史温度
-                        HistoryTemp historyTemp = new HistoryTemp();
-                        historyTemp.setStatus(HexUtils.byteToInt(content[4]));
-                        if (startTime == 0) {
-                            startTime = HexUtils.byteToLong(Arrays.copyOfRange(content, 5, 9));
-                        }
-                        historyTemp.setStartTime(HexUtils.byteToLong(Arrays.copyOfRange(content, 5, 9)));
-                        historyTemp.setMemberId(HexUtils.byteToInt(content[9]));
-                        historyTemp.setStep(HexUtils.byteToInt(content[10]));
-                        int count = HexUtils.byteToInt(content[11]);
-                        historyTemp.setTempCount(count);
-                        float[] temps = new float[count];
-                        for (int i = 12; i < count; i++) {
-                            temps[i - 12] = (HexUtils.byteToInt(content[6]) + 170) / 10.0f;
-                        }
-                        historyTemp.setTemps(temps);
-                        _historyTempLiveData.postValue(historyTemp);
-                    } else if (content[1] == 05) { // 修改成员信息
-                        _memberLiveData.postValue(HexUtils.byteToInt(content[4]) == 1);
+                        start += length;
+                        members.add(member);
                     }
+                    info.setMembers(members);
+                    info.setOrginal(content);
+                    _tempInfoLiveData.postValue(info);
+                } else if (content[1] == 02) { // 实时温度
+                    CurrentTemp temp = new CurrentTemp();
+                    temp.setCharging(HexUtils.byteToInt(content[4]));
+                    temp.setStatus(HexUtils.byteToInt(content[5]));
+                    temp.setMemberId(HexUtils.byteToInt(content[6]));
+                    float t = (HexUtils.byteToInt(content[7]) + 170) / 10.0f;
+                    temp.setTemp(t);
+                    _currentTempLiveData.postValue(temp);
+                    currentTempList.add(t);
+                    _currentList.postValue(currentTempList);
+                } else if (content[1] == 03) { // 历史温度
+                    HistoryTemp historyTemp = new HistoryTemp();
+                    historyTemp.setStatus(HexUtils.byteToInt(content[4]));
+                    if (startTime == 0) {
+                        startTime = HexUtils.byteTo4Long(Arrays.copyOfRange(content, 5, 9)) * 1000;
+                    }
+                    historyTemp.setStartTime(HexUtils.byteTo4Long(Arrays.copyOfRange(content, 5, 9)) * 1000);
+                    historyTemp.setMemberId(HexUtils.byteToInt(content[9]));
+                    historyTemp.setStep(HexUtils.byteToInt(content[10]));
+                    int count = HexUtils.byteToInt(content[11]);
+                    historyTemp.setTempCount(count);
+                    float[] temps = new float[count];
+                    for (int i = 0; i <= count - 1; i++) {
+                        temps[i] = (HexUtils.byteToInt(content[12 + i]) + 170) / 10.0f;
+                    }
+                    historyTemp.setTemps(temps);
+                    _historyTempLiveData.postValue(historyTemp);
+                } else if (content[1] == 05) { // 修改成员信息
+                    _memberLiveData.postValue(HexUtils.byteToInt(content[4]) == 1);
                 }
-            } catch (Exception e) {
-                Log.d(Log.toString(e));
             }
+//            } catch (Exception e) {
+//                Log.d(Log.toString(e));
+//            }
         }
     }
 
@@ -670,6 +676,7 @@ public class BlueManager {
             switch (msg.what) {
                 case STOP_SCAN_AND_CONNECT:
                     final String address = (String) msg.obj;
+                    mMainHandler.removeCallbacks(stopRunable);
                     mMainHandler.post(new Runnable() {
                         @Override
                         public void run() {

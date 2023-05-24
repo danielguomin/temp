@@ -146,6 +146,10 @@
         android:label="history Fragment"
         tools:layout="@layout/fragment_history">
 
+        <argument
+            android:name="memberId"
+            app:argType="integer" />
+
     </fragment>
 
 
