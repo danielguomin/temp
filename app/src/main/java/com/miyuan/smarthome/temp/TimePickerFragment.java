@@ -5,7 +5,6 @@ import android.app.Dialog;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TimePicker;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -57,8 +56,7 @@ public class TimePickerFragment extends DialogFragment implements View.OnClickLi
             case R.id.confirm:
                 String hour = tp.getHour() < 10 ? "0" + tp.getHour() : tp.getHour() + "";
                 String minute = tp.getMinute() < 10 ? "0" + tp.getMinute() : tp.getMinute() + "";
-                _timeLiveData.setValue(hour + ":" + minute);
-                Toast.makeText(getActivity(), hour + ":" + minute, Toast.LENGTH_SHORT).show();
+                _timeLiveData.setValue(hour + ":" + minute + ":00");
                 dismiss();
                 break;
         }

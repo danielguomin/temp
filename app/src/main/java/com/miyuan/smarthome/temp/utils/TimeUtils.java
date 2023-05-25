@@ -3,6 +3,7 @@ package com.miyuan.smarthome.temp.utils;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class TimeUtils {
 
@@ -12,6 +13,8 @@ public class TimeUtils {
     public static final String DEFAULT_H = "HH";
 
     private static SimpleDateFormat sdf = new SimpleDateFormat(DEFAULT_YMD);
+    private static SimpleDateFormat sdfTime = new SimpleDateFormat(DEFAULT_HMS);
+    private static SimpleDateFormat sdfNormal = new SimpleDateFormat(DEFAULT_YMD + " " + DEFAULT_HMS);
 
     /**
      * 判断日期是不是今天
@@ -28,6 +31,21 @@ public class TimeUtils {
         String day = sdf.format(date);
 
         return nowDay.equals(day);
+    }
+
+
+    public static String getNormal() {
+        return sdfNormal.format(new Date());
+    }
+
+    public static String getHourStr(Date date) {
+        sdfTime.setTimeZone(TimeZone.getDefault());
+        return sdfTime.format(date);
+    }
+
+    public static String getHourStrForSecond(Date date) {
+        sdfTime.setTimeZone(TimeZone.getTimeZone("GMT+00:00"));
+        return sdfTime.format(date);
     }
 
     public static boolean isSameDay(Date date, Date other) {

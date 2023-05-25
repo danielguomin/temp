@@ -242,9 +242,9 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/high"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="40°C"
                         android:textColor="#FFFF0000"
                         android:textSize="15sp" />
 
@@ -266,9 +266,9 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/high_time"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="21:38:20"
                         android:textColor="#FFFF0000"
                         android:textSize="15sp" />
 
@@ -290,9 +290,9 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/high_time_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="05时25分"
                         android:textColor="#FFFF0000"
                         android:textSize="15sp" />
 
@@ -315,9 +315,10 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/high_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="3次"
+                        android:text="0"
                         android:textColor="#FFFF0000"
                         android:textSize="15sp" />
 
@@ -346,9 +347,9 @@
                     android:paddingTop="8dp">
 
                     <TextView
+                        android:id="@+id/measure"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="12时03分"
                         android:textColor="#FFFF0000"
                         android:textSize="15sp" />
 
@@ -371,9 +372,9 @@
                     android:paddingTop="8dp">
 
                     <TextView
+                        android:id="@+id/low_time_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="03时03分"
                         android:textColor="#FFFF0000"
                         android:textSize="15sp" />
 
@@ -396,9 +397,9 @@
                     android:paddingTop="8dp">
 
                     <TextView
+                        android:id="@+id/normal_time_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="03时08分"
                         android:textColor="#FFFF0000"
                         android:textSize="15sp" />
 
@@ -421,9 +422,10 @@
                     android:paddingTop="8dp">
 
                     <TextView
+                        android:id="@+id/nusre_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="2次"
+                        android:text="0"
                         android:textColor="#FFFF0000"
                         android:textSize="15sp" />
 
@@ -455,6 +457,19 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@id/statistics" />
 
+        <TextView
+            android:id="@+id/two"
+            android:layout_width="32.33dp"
+            android:layout_height="16.33dp"
+            android:layout_marginLeft="11.33dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/time_bg"
+            android:gravity="center"
+            android:text="2时"
+            android:textColor="@color/black"
+            android:textSize="11.67sp"
+            app:layout_constraintBaseline_toBaselineOf="@id/second"
+            app:layout_constraintLeft_toRightOf="@id/second" />
 
         <TextView
             android:id="@+id/six"
@@ -466,8 +481,8 @@
             android:text="6时"
             android:textColor="@color/black"
             android:textSize="11.67sp"
-            app:layout_constraintBaseline_toBaselineOf="@id/second"
-            app:layout_constraintLeft_toRightOf="@id/second" />
+            app:layout_constraintBaseline_toBaselineOf="@id/two"
+            app:layout_constraintLeft_toRightOf="@id/two" />
 
 
         <TextView

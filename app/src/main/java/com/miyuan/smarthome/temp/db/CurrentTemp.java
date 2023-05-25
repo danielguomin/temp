@@ -39,4 +39,5 @@ public class CurrentTemp implements Serializable {
     public void setTemp(float temp) {
         this.temp = temp;
     }
+
 }

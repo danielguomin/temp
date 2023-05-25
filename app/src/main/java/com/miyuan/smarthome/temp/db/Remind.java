@@ -17,6 +17,8 @@ public class Remind {
 
     private boolean low = false;
 
+    private boolean lock = false;
+
     @Ignore
     private boolean choice = false;
 
@@ -58,5 +60,13 @@ public class Remind {
 
     public void setChoice(boolean choice) {
         this.choice = choice;
+    }
+
+    public boolean isLock() {
+        return lock;
+    }
+
+    public void setLock(boolean lock) {
+        this.lock = lock;
     }
 }

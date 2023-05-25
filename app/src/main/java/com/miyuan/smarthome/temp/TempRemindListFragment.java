@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
@@ -24,6 +25,7 @@ public class TempRemindListFragment extends Fragment implements View.OnClickList
     private RemindAdapter remindAdapter;
     private TempDataBase db;
     private List<Remind> reminds;
+    private float[] lockTemps = new float[]{37.3f, 38.5f, 39.5f};
 
     @Override
     public View onCreateView(
@@ -47,6 +49,17 @@ public class TempRemindListFragment extends Fragment implements View.OnClickList
         binding.reminds.setAdapter(remindAdapter);
         db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
         reminds = db.getRemindDao().getAll();
+        if (reminds.size() < 3) {
+            for (int i = 0; i < lockTemps.length; i++) {
+                Remind remind = new Remind();
+                remind.setLock(true);
+                remind.setHigh(true);
+                remind.setOpen(true);
+                remind.setTemp(String.valueOf(lockTemps[i]));
+                reminds.add(remind);
+            }
+            db.getRemindDao().insert(reminds);
+        }
         binding.edit.setVisibility(reminds.size() > 0 ? View.VISIBLE : View.INVISIBLE);
         remindAdapter.setmList(reminds);
         remindAdapter.setOnItemClickListerner(new RemindAdapter.OnItemClickListerner() {
@@ -55,6 +68,10 @@ public class TempRemindListFragment extends Fragment implements View.OnClickList
                 if (binding.edit.isSelected()) {
                     // 编辑模式
                     Remind remind = reminds.get(position);
+                    if (remind.isLock()) {
+                        Toast.makeText(getActivity(), "默认提示数据无法删除！", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     remind.setChoice(!remind.isChoice());
                 }
                 remindAdapter.notifyItemChanged(position);
@@ -97,7 +114,7 @@ public class TempRemindListFragment extends Fragment implements View.OnClickList
             case R.id.confirm:
                 List<Remind> delete = new ArrayList<>();
                 for (Remind remind : reminds) {
-                    if (remind.isChoice()) {
+                    if (remind.isChoice() && !remind.isLock()) {
                         delete.add(remind);
                     }
                 }

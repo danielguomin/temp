@@ -1,5 +1,8 @@
 package com.miyuan.smarthome.temp;
 
+import static com.miyuan.smarthome.temp.TempApplication.HIGH_TEMP_DIVIDER;
+import static com.miyuan.smarthome.temp.TempApplication.LOW_TEMP_DIVIDER;
+
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -33,7 +36,10 @@ import com.miyuan.smarthome.temp.utils.TimeUtils;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 public class HistoryFragment extends Fragment implements View.OnClickListener, DatePicker.OnDateChangedListener {
 
@@ -46,19 +52,11 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
     private YAxis leftYAxis;            //左侧Y轴
     private YAxis rightYaxis;           //右侧Y轴
     private Legend legend;              //图例
-
-    @Override
-    public View onCreateView(
-            LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState
-    ) {
-            binding = FragmentHistoryBinding.inflate(inflater, container, false);
-            initView();
-            initChart(binding.lineChart);
-            db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
-            getHistory();
-        return binding.getRoot();
-    }
+    private final static int COUNT = 10;
+    boolean[] dpHigh = new boolean[COUNT];
+    boolean[] dpLow = new boolean[COUNT];
+    Queue<Float> checkQueue = new LinkedList<>();
+    boolean high = false;
 
     private void getHistory() {
         int memberId = getArguments().getInt("memberId");
@@ -68,25 +66,7 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         isSameDay(new Date(System.currentTimeMillis()));
     }
 
-    private void isSameDay(Date date) {
-        if (historyList == null || historyList.size() <= 0) {
-            return;
-        }
-        entryList = new ArrayList<>();
-        for (History history : historyList) {
-            if (TimeUtils.isSameDay(new Date(history.getTime()), date)) {
-                Log.d("isSameDay ");
-                long start = history.getTime();
-                String temps1 = history.getTemps();
-                String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
-                for (int i = 0; i < temps.length; i++) {
-                    Entry entry = new Entry(TimeUtils.getSecondForDate(start + i * 10), Float.valueOf(temps[i]));
-                    entryList.add(entry);
-                }
-            }
-        }
-        setData(entryList);
-    }
+    private long startTime = 0;
 
     private void initView() {
         binding.titlelayout.back.setOnClickListener(this);
@@ -193,11 +173,80 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         binding.lineChart.invalidate();
     }
 
+    private float highTemp = 0;
+    private long highTime = 0;
+    private int highCount = 0;
+    private int lowCount = 0;
+    private int normalCount = 0;
+
+    @Override
+    public View onCreateView(
+            LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState
+    ) {
+        binding = FragmentHistoryBinding.inflate(inflater, container, false);
+        initView();
+        initChart(binding.lineChart);
+        db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
+        getHistory();
+        return binding.getRoot();
+    }
+
+    private void isSameDay(Date date) {
+        if (historyList == null || historyList.size() <= 0) {
+            return;
+        }
+        entryList = new ArrayList<>();
+        for (History history : historyList) {
+            if (startTime == 0) {
+                startTime = history.getTime();
+                binding.measure.setText(TimeUtils.getHourStr(new Date(startTime)));
+            }
+            if (TimeUtils.isSameDay(new Date(history.getTime()), date)) {
+                long start = history.getTime();
+                String temps1 = history.getTemps();
+                String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
+                for (int i = 0; i < temps.length; i++) {
+                    Float temp = Float.valueOf(temps[i]);
+                    if (temp > highTemp) {
+                        highTemp = temp;
+                        highTime = startTime + i * 10;
+                    }
+                    Entry entry = new Entry(TimeUtils.getSecondForDate(start + i * 10), temp);
+                    entryList.add(entry);
+                }
+            }
+        }
+        binding.high.setText(String.valueOf(highCount));
+        binding.highTime.setText(TimeUtils.getHourStr(new Date(Long.valueOf(highTime))));
+        setData(entryList);
+    }
+
     private void setData(List<Entry> values) {
         LineData data1 = binding.lineChart.getData();
         if (null != data1) {
             binding.lineChart.clear();
         }
+        for (Entry entry : values) {
+            float y = entry.getY();
+            if (y <= LOW_TEMP_DIVIDER) {
+                normalCount += 10;
+            } else if (y >= HIGH_TEMP_DIVIDER) {
+                highCount += 10;
+            } else {
+                lowCount += 10;
+            }
+            if (checkQueue.size() >= COUNT) {
+                checkQueue.poll();
+            }
+            checkQueue.offer(y);
+            check();
+        }
+        binding.highTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(highCount * 1000)));
+        binding.lowTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(lowCount * 1000)));
+        binding.normalTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(normalCount * 1000)));
+
+
         xAxis.setAxisMaximum(24 * 60 * 60);
         // 创建一个数据集,并给它一个类型
         LineDataSet lineDataSet = new LineDataSet(values, "");
@@ -218,6 +267,32 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         //谁知数据
         binding.lineChart.setData(data);
         setChartFillDrawable(getContext().getDrawable(R.drawable.linechart_bg));
+    }
+
+    private void check() {
+        Iterator<Float> iterator = checkQueue.iterator();
+        int i = 0;
+        while (iterator.hasNext()) {
+            if (i == 0) {
+                dpHigh[i] = iterator.next().floatValue() >= HIGH_TEMP_DIVIDER;
+                dpLow[i] = iterator.next().floatValue() < HIGH_TEMP_DIVIDER;
+            } else {
+                dpHigh[i] = dpHigh[i - 1] && iterator.next().floatValue() >= HIGH_TEMP_DIVIDER;
+                dpLow[i] = dpLow[i - 1] && iterator.next().floatValue() < HIGH_TEMP_DIVIDER;
+            }
+            i++;
+        }
+        if (dpLow[checkQueue.size() - 1]) {
+            high = false;
+        }
+        if (dpHigh[checkQueue.size() - 1]) {
+            if (high) {
+                return;
+            }
+            high = true;
+            highCount++;
+        }
+        binding.highCount.setText(String.valueOf(highCount));
     }
 
     /**

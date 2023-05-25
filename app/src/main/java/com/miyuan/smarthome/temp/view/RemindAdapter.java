@@ -55,11 +55,10 @@ public class RemindAdapter extends
         if (edit) {
             holder.status.setVisibility(View.GONE);
             holder.choice.setVisibility(View.VISIBLE);
-            holder.choice.setBackgroundResource(remind.isChoice() ? R.drawable.choice : R.drawable.unchoice);
+            holder.choice.setBackgroundResource(remind.isLock() ? R.drawable.prohibit : remind.isChoice() ? R.drawable.choice : R.drawable.unchoice);
         } else {
             holder.choice.setVisibility(View.GONE);
             holder.status.setVisibility(View.VISIBLE);
-            boolean b = remind.isOpen();
             holder.status.setChecked(remind.isHigh() || remind.isLow());
             holder.temp.setTextColor((remind.isHigh() || remind.isLow()) ? Color.BLACK : Color.GRAY);
         }
@@ -78,10 +77,14 @@ public class RemindAdapter extends
         holder.status.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
+                if (edit) {
                     holder.temp.setTextColor(Color.BLACK);
                 } else {
-                    holder.temp.setTextColor(Color.GRAY);
+                    if (isChecked) {
+                        holder.temp.setTextColor(Color.BLACK);
+                    } else {
+                        holder.temp.setTextColor(Color.GRAY);
+                    }
                 }
                 Remind temp = mList.get((Integer) holder.status.getTag());
                 if (temp.isOpen()) {

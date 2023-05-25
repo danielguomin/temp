@@ -23,6 +23,9 @@ public class TempApplication extends Application {
     public static SingleLiveData<Member> _currentMemberLiveData = new SingleLiveData<>();
     public static LiveData<Member> currentLiveData = _currentMemberLiveData;
 
+    public static float HIGH_TEMP_DIVIDER = 38f;
+    public static float LOW_TEMP_DIVIDER = 37.3f;
+
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);

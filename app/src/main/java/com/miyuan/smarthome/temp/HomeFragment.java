@@ -1,5 +1,8 @@
 package com.miyuan.smarthome.temp;
 
+import static com.miyuan.smarthome.temp.TempApplication.HIGH_TEMP_DIVIDER;
+import static com.miyuan.smarthome.temp.TempApplication.LOW_TEMP_DIVIDER;
+
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
@@ -16,6 +19,7 @@ import androidx.navigation.Navigation;
 import androidx.room.Room;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.XAxis;
@@ -37,6 +41,7 @@ import com.miyuan.smarthome.temp.db.CurrentTemp;
 import com.miyuan.smarthome.temp.db.History;
 import com.miyuan.smarthome.temp.db.HistoryTemp;
 import com.miyuan.smarthome.temp.db.Member;
+import com.miyuan.smarthome.temp.db.Nurse;
 import com.miyuan.smarthome.temp.db.TempDataBase;
 import com.miyuan.smarthome.temp.db.TempInfo;
 import com.miyuan.smarthome.temp.log.Log;
@@ -45,7 +50,10 @@ import com.miyuan.smarthome.temp.utils.TimeUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 public class HomeFragment extends Fragment implements View.OnClickListener, OnChartGestureListener, OnChartValueSelectedListener {
 
@@ -58,6 +66,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
     private YAxis leftYAxis;            //左侧Y轴
     private YAxis rightYaxis;           //右侧Y轴
     private Legend legend;              //图例
+
+    private final static int COUNT = 10;
+    boolean[] dpHigh = new boolean[COUNT];
+    boolean[] dpLow = new boolean[COUNT];
 
     Handler handler = new Handler();
     Runnable runnable = new Runnable() {
@@ -82,12 +94,80 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         return binding.getRoot();
     }
 
+    Queue<Float> checkQueue = new LinkedList<>();
+
+    private void dealWithHistory(History history) {
+        if (TimeUtils.isSameDay(new Date(history.getTime()))) {
+            long start = history.getTime();
+            String temps1 = history.getTemps();
+            String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
+            for (int i = 0; i < temps.length; i++) {
+                Entry entry = new Entry(TimeUtils.getSecondForDate(start + i * 10 * 1000), Float.valueOf(temps[i]));
+                entryHistoryList.add(entry);
+            }
+        }
+    }
+
+    private long currentFirstTime;
+
+
+    /**
+     * 设置高限制线
+     *
+     * @param high
+     */
+    public void setHightLimitLine(float high) {
+        LimitLine hightLimit = new LimitLine(high, "38.5");
+        hightLimit.setTextSize(10f);
+        hightLimit.setLineColor(Color.parseColor("#FFFFA326"));
+        hightLimit.setTextColor(Color.parseColor("#FFFFA326"));
+        hightLimit.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_TOP);
+        leftYAxis.addLimitLine(hightLimit);
+        binding.lineChart.invalidate();
+    }
+
+    /**
+     * 设置低限制线
+     *
+     * @param low
+     */
+    public void setLowLimitLine(float low) {
+        LimitLine hightLimit = new LimitLine(low, "37.3");
+        hightLimit.setLineColor(Color.parseColor("#FFFFDE00"));
+        hightLimit.setTextColor(Color.parseColor("#FFFFDE00"));
+        hightLimit.setTextSize(10f);
+        hightLimit.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_TOP);
+        leftYAxis.addLimitLine(hightLimit);
+        binding.lineChart.invalidate();
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        handler.post(runnable);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        handler.removeCallbacks(runnable);
+    }
+
+    private int nurselCount = 0;
+    private int highTimeCount = 0;
+    private int lowTimeCount = 0;
+    private int normalTimeCount = 0;
+    private int highCount = 0;
+    private boolean high = false;
+
     private void initView() {
         binding.history.setOnClickListener(this);
         binding.remind.setOnClickListener(this);
         binding.share.setOnClickListener(this);
         binding.record.setOnClickListener(this);
         binding.second.setOnClickListener(this);
+        binding.two.setOnClickListener(this);
         binding.second.setSelected(true);
         binding.six.setOnClickListener(this);
         binding.twelve.setOnClickListener(this);
@@ -161,17 +241,21 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                         List<History> list = db.getHistoryDao().getAll(info.getDeviceId(), info.getMemberId());
                         entryHistoryList = new ArrayList<>();
                         for (History history : list) {
-                            if (TimeUtils.isSameDay(new Date(history.getTime()))) {
-                                long start = history.getTime();
-                                String temps1 = history.getTemps();
-                                String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
-                                for (int i = 0; i < temps.length; i++) {
-                                    Entry entry = new Entry(TimeUtils.getSecondForDate(start + i * 10 * 1000), Float.valueOf(temps[i]));
-                                    entryHistoryList.add(entry);
-                                }
-                            }
+                            dealWithHistory(history);
                         }
                         Log.d("entryHistoryList " + entryHistoryList.size());
+                        List<Nurse> nurseList = db.getNurseDao().getAll();
+                        for (Nurse nurse : nurseList) {
+                            if (TimeUtils.isSameDay(new Date(nurse.getTime()))) {
+                                nurselCount++;
+                            }
+                        }
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                binding.nusreCount.setText(String.valueOf(nurselCount));
+                            }
+                        });
                     }
                 }).start();
 
@@ -206,13 +290,23 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                     Entry entry = new Entry(TimeUtils.getSecondForDate(System.currentTimeMillis() + i * 10 * 1000), floats.get(i));
                     entryList.add(entry);
                 }
+                if (currentFirstTime == 0) {
+                    currentFirstTime = System.currentTimeMillis();
+                    binding.measure.setText(TimeUtils.getHourStr(new Date(currentFirstTime)));
+                }
                 setData(entryList);
                 History history = new History();
-                history.setTime(BlueManager.startTime);
                 history.setMemberId(TempApplication.currentLiveData.getValue().getMemberId());
                 history.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
                 history.setTemps(Arrays.toString(temps));
-                db.getHistoryDao().updateTemps(history);
+                history.setTime(currentFirstTime);
+                if (!TimeUtils.isSameDay(new Date(currentFirstTime))) {
+                    currentFirstTime = System.currentTimeMillis();
+                    history.setTime(currentFirstTime);
+                    db.getHistoryDao().insert(history);
+                } else {
+                    db.getHistoryDao().updateTemps(history);
+                }
             }
         });
 
@@ -252,18 +346,15 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 binding.name.setText(member.getName());
             }
         });
-    }
 
-    private void dealWithHistory(History history) {
-        if (TimeUtils.isSameDay(new Date(history.getTime()))) {
-            long start = history.getTime();
-            String temps1 = history.getTemps();
-            String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
-            for (int i = 0; i < temps.length; i++) {
-                Entry entry = new Entry(TimeUtils.getSecondForDate(start + i * 10 * 1000), Float.valueOf(temps[i]));
-                entryHistoryList.add(entry);
+        BlueManager.highLiveData.observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                String[] split = s.split("#");
+                binding.high.setText(split[0]);
+                binding.highTime.setText(TimeUtils.getHourStr(new Date(Long.valueOf(split[1]))));
             }
-        }
+        });
     }
 
     private void initChart(LineChart lineChart) {
@@ -272,6 +363,9 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         lineChart.setDrawGridBackground(false);
         //是否显示边界
         lineChart.setDrawBorders(true);
+        Description description = new Description();
+        description.setEnabled(false);
+        lineChart.setDescription(description);
         //是否可以拖动
         lineChart.setDragEnabled(false);
         //是否有触摸事件
@@ -331,50 +425,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         legend.setDrawInside(false);
     }
 
-
-    /**
-     * 设置高限制线
-     *
-     * @param high
-     */
-    public void setHightLimitLine(float high) {
-        LimitLine hightLimit = new LimitLine(high, "38.5");
-        hightLimit.setTextSize(10f);
-        hightLimit.setLineColor(Color.parseColor("#FFFFA326"));
-        hightLimit.setTextColor(Color.parseColor("#FFFFA326"));
-        hightLimit.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_TOP);
-        leftYAxis.addLimitLine(hightLimit);
-        binding.lineChart.invalidate();
-    }
-
-    /**
-     * 设置低限制线
-     *
-     * @param low
-     */
-    public void setLowLimitLine(float low) {
-        LimitLine hightLimit = new LimitLine(low, "37.3");
-        hightLimit.setLineColor(Color.parseColor("#FFFFDE00"));
-        hightLimit.setTextColor(Color.parseColor("#FFFFDE00"));
-        hightLimit.setTextSize(10f);
-        hightLimit.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_TOP);
-        leftYAxis.addLimitLine(hightLimit);
-        binding.lineChart.invalidate();
-    }
-
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        handler.post(runnable);
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        handler.removeCallbacks(runnable);
-    }
-
     private void setData(List<Entry> values) {
         currentList = values;
         LineData data1 = binding.lineChart.getData();
@@ -386,21 +436,40 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         int min = (int) values.get(0).getX();
         if (binding.second.isSelected()) {
             // >= currentTime - 15*60
-            min = currentTime - 15 * 60;
+            min = currentTime - (15 * 60);
+        } else if (binding.two.isSelected()) {
+            min = currentTime - 1 * 60 * 60;
         } else if (binding.six.isSelected()) {
             min = currentTime - 3 * 60 * 60;
         } else if (binding.twelve.isSelected()) {
             min = currentTime - 6 * 60 * 60;
         }
         for (Entry entry : values) {
+            float y = entry.getY();
             if (entry.getX() >= min) {
                 realValue.add(entry);
             }
+            if (checkQueue.size() >= COUNT) {
+                checkQueue.poll();
+            }
+            checkQueue.offer(y);
+            check();
+            if (y <= LOW_TEMP_DIVIDER) {
+                normalTimeCount += 10;
+            } else if (y >= HIGH_TEMP_DIVIDER) {
+                highTimeCount += 10;
+            } else {
+                lowTimeCount += 10;
+            }
         }
+        binding.highCount.setText(String.valueOf(highCount));
+        binding.highTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(highTimeCount * 1000)));
+        binding.lowTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(lowTimeCount * 1000)));
+        binding.normalTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(normalTimeCount * 1000)));
 
         if (binding.second.isSelected()) {
-            xAxis.setAxisMinimum(0);
-            xAxis.setAxisMaximum(currentTime + 15 * 60);
+            xAxis.setAxisMinimum(min);
+            xAxis.setAxisMaximum(currentTime + 60 * 60);
         } else {
             xAxis.setAxisMaximum(24 * 60 * 60);
             xAxis.setAxisMinimum(min);
@@ -424,6 +493,32 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         //谁知数据
         binding.lineChart.setData(data);
         setChartFillDrawable(getContext().getDrawable(R.drawable.linechart_bg));
+    }
+
+    private void check() {
+        Iterator<Float> iterator = checkQueue.iterator();
+        int i = 0;
+        while (iterator.hasNext()) {
+            if (i == 0) {
+                dpHigh[i] = iterator.next().floatValue() >= HIGH_TEMP_DIVIDER;
+                dpLow[i] = iterator.next().floatValue() < HIGH_TEMP_DIVIDER;
+            } else {
+                dpHigh[i] = dpHigh[i - 1] && iterator.next().floatValue() >= HIGH_TEMP_DIVIDER;
+                dpLow[i] = dpLow[i - 1] && iterator.next().floatValue() < HIGH_TEMP_DIVIDER;
+            }
+            i++;
+        }
+        if (dpLow[checkQueue.size() - 1]) {
+            high = false;
+        }
+        if (dpHigh[checkQueue.size() - 1]) {
+            if (high) {
+                return;
+            }
+            high = true;
+            highCount++;
+        }
+        binding.highCount.setText(String.valueOf(highCount));
     }
 
     /**
@@ -477,6 +572,17 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 break;
             case R.id.second:
                 binding.second.setSelected(true);
+                binding.two.setSelected(false);
+                binding.six.setSelected(false);
+                binding.twelve.setSelected(false);
+                binding.twenty.setSelected(false);
+                if (null != currentList) {
+                    setData(currentList);
+                }
+                break;
+            case R.id.two:
+                binding.second.setSelected(false);
+                binding.two.setSelected(true);
                 binding.six.setSelected(false);
                 binding.twelve.setSelected(false);
                 binding.twenty.setSelected(false);
@@ -486,6 +592,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 break;
             case R.id.six:
                 binding.second.setSelected(false);
+                binding.two.setSelected(false);
                 binding.six.setSelected(true);
                 binding.twelve.setSelected(false);
                 binding.twenty.setSelected(false);
@@ -495,6 +602,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 break;
             case R.id.twelve:
                 binding.second.setSelected(false);
+                binding.two.setSelected(false);
                 binding.six.setSelected(false);
                 binding.twelve.setSelected(true);
                 binding.twenty.setSelected(false);
@@ -504,6 +612,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 break;
             case R.id.twenty:
                 binding.second.setSelected(false);
+                binding.two.setSelected(false);
                 binding.six.setSelected(false);
                 binding.twelve.setSelected(false);
                 binding.twenty.setSelected(true);
@@ -512,7 +621,34 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 }
                 break;
             case R.id.record:
-                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
+//                List<Float> floats1 = new ArrayList<>();
+//                floats1.add(36.5f);
+//                floats1.add(36.1f);
+//                floats1.add(36.2f);
+//                floats1.add(36.3f);
+//                floats1.add(36.4f);
+//                floats1.add(36.5f);
+//                floats1.add(36.6f);
+//                floats1.add(36.7f);
+//                floats1.add(36.8f);
+//                floats1.add(36.9f);
+//                floats1.add(37.0f);
+//                floats1.add(37.1f);
+//                floats1.add(37.2f);
+//                floats1.add(37.3f);
+//                floats1.add(37.4f);
+//                floats1.add(37.5f);
+//                floats1.add(37.6f);
+//                floats1.add(37.7f);
+//                floats1.add(36.8f);
+//                floats1.add(36.9f);
+//                floats1.add(37.9f);
+//                floats1.add(36.1f);
+//                floats1.add(36.2f);
+//                BlueManager._currentList.postValue(floats1);
+                if (null != tempInfo && tempInfo.getMemberCount() > 0) {
+                    Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
+                }
                 break;
         }
     }

@@ -31,11 +31,13 @@ import com.miyuan.smarthome.temp.db.Member;
 import com.miyuan.smarthome.temp.db.TempInfo;
 import com.miyuan.smarthome.temp.log.Log;
 import com.miyuan.smarthome.temp.utils.SingleLiveData;
+import com.miyuan.smarthome.temp.utils.TimeUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -77,12 +79,17 @@ public class BlueManager {
     public static LiveData<CurrentTemp> currentTempLiveData = _currentTempLiveData;
     private static SingleLiveData<HistoryTemp> _historyTempLiveData = new SingleLiveData<>();
     public static LiveData<HistoryTemp> historyTempLiveData = _historyTempLiveData;
-    public static long startTime = 0;
+    //    public static long startTime = 0;
     public static SingleLiveData<List<Float>> _currentList = new SingleLiveData<>();
     public static LiveData<List<Float>> currentList = _currentList;
     private static SingleLiveData<Boolean> _memberLiveData = new SingleLiveData<>();
     public static LiveData<Boolean> memberLiveData = _memberLiveData;
     private List<Float> currentTempList = new ArrayList<>();
+
+    private static SingleLiveData<String> _highLiveData = new SingleLiveData<>();
+    public static LiveData<String> highLiveData = _highLiveData;
+
+    private static float high = 0;
 
     private int connectStatus;
     private boolean isScaning = false;
@@ -630,23 +637,32 @@ public class BlueManager {
                     temp.setMemberId(HexUtils.byteToInt(content[6]));
                     float t = (HexUtils.byteToInt(content[7]) + 170) / 10.0f;
                     temp.setTemp(t);
+                    long time = System.currentTimeMillis();
+                    if (t > high) {
+                        high = t;
+                        _highLiveData.postValue(t + "#" + time);
+                    }
                     _currentTempLiveData.postValue(temp);
                     currentTempList.add(t);
                     _currentList.postValue(currentTempList);
                 } else if (content[1] == 03) { // 历史温度
                     HistoryTemp historyTemp = new HistoryTemp();
                     historyTemp.setStatus(HexUtils.byteToInt(content[4]));
-                    if (startTime == 0) {
-                        startTime = HexUtils.byteTo4Long(Arrays.copyOfRange(content, 5, 9)) * 1000;
-                    }
-                    historyTemp.setStartTime(HexUtils.byteTo4Long(Arrays.copyOfRange(content, 5, 9)) * 1000);
+                    long time = HexUtils.byteTo4Long(Arrays.copyOfRange(content, 5, 9)) * 1000;
+                    boolean isSameDay = TimeUtils.isSameDay(new Date(time));
+                    historyTemp.setStartTime(time);
                     historyTemp.setMemberId(HexUtils.byteToInt(content[9]));
                     historyTemp.setStep(HexUtils.byteToInt(content[10]));
-                    int count = HexUtils.byteToInt(content[11]);
+                    int count = HexUtils.byteToShort(Arrays.copyOfRange(content, 11, 13));
                     historyTemp.setTempCount(count);
                     float[] temps = new float[count];
                     for (int i = 0; i <= count - 1; i++) {
-                        temps[i] = (HexUtils.byteToInt(content[12 + i]) + 170) / 10.0f;
+                        float temp = (HexUtils.byteToInt(content[13 + i]) + 170) / 10.0f;
+                        temps[i] = temp;
+                        if (temp > high && isSameDay) {
+                            high = temp;
+                            _highLiveData.postValue(temp + "#" + time + i * 10);
+                        }
                     }
                     historyTemp.setTemps(temps);
                     _historyTempLiveData.postValue(historyTemp);
