@@ -25,10 +25,8 @@ public class HistoryListFragment extends Fragment implements View.OnClickListene
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        if (binding == null) {
             binding = FragmentHistoryListBinding.inflate(inflater, container, false);
             initView();
-        }
         return binding.getRoot();
     }
 

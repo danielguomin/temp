@@ -1,6 +1,7 @@
 package com.miyuan.smarthome.temp;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,10 +25,9 @@ public class CreateFamilyMemberFragment extends Fragment implements View.OnClick
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        if (binding == null) {
-            binding = FragmentCreateFamilyMemberBinding.inflate(inflater, container, false);
-            initView();
-        }
+        binding = FragmentCreateFamilyMemberBinding.inflate(inflater, container, false);
+        initView();
+
         return binding.getRoot();
     }
 
@@ -69,6 +69,10 @@ public class CreateFamilyMemberFragment extends Fragment implements View.OnClick
                 break;
             case R.id.save:
                 String name = binding.name.getText().toString().trim();
+                if (TextUtils.isEmpty(name)) {
+                    Toast.makeText(getActivity(), "请输入成员名称！", Toast.LENGTH_SHORT).show();
+                    break;
+                }
                 Log.d("CreateFamilyMemberFragment onClick send updateMember");
                 BlueManager.getInstance().send(ProtocolUtils.updateMember(true, BlueManager.tempInfoLiveData.getValue().getMemberCount() + 1, name));
                 break;

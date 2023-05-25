@@ -296,7 +296,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         //保证Y轴从0开始，不然会上移一点
         leftYAxis.setAxisMinimum(35);
         leftYAxis.setAxisMaximum(42);
-        leftYAxis.setLabelCount(5);
+//        leftYAxis.setLabelCount(5);
         leftYAxis.setSpaceMax(1);
         leftYAxis.setSpaceMin(1);
         setHightLimitLine(38.5f);
@@ -395,7 +395,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         for (Entry entry : values) {
             if (entry.getX() >= min) {
                 realValue.add(entry);
-                Log.d("  " + entry.toString());
             }
         }
 

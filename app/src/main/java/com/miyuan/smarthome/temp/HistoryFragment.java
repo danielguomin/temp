@@ -52,13 +52,11 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        if (binding == null) {
             binding = FragmentHistoryBinding.inflate(inflater, container, false);
             initView();
             initChart(binding.lineChart);
             db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
             getHistory();
-        }
         return binding.getRoot();
     }
 
@@ -74,12 +72,10 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         if (historyList == null || historyList.size() <= 0) {
             return;
         }
-        List<History> result = new ArrayList<>();
         entryList = new ArrayList<>();
         for (History history : historyList) {
             if (TimeUtils.isSameDay(new Date(history.getTime()), date)) {
                 Log.d("isSameDay ");
-                result.add(history);
                 long start = history.getTime();
                 String temps1 = history.getTemps();
                 String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
@@ -116,8 +112,8 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         lineChart.setDragEnabled(false);
         //是否有触摸事件
         lineChart.setTouchEnabled(true);
-        lineChart.setDoubleTapToZoomEnabled(false);
-        lineChart.setScaleEnabled(false);
+        lineChart.setDoubleTapToZoomEnabled(true);
+        lineChart.setScaleEnabled(true);
         //设置XY轴动画效果
         lineChart.animateY(1000);
         lineChart.animateX(1000);
@@ -129,11 +125,10 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         //X轴设置显示位置在底部
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setAxisMinimum(0f);
+        xAxis.setSpaceMin(1);
+        xAxis.setSpaceMax(1);
         xAxis.setAxisMaximum(24 * 60 * 60);
-//        xAxis.setSpaceMin(1);
-//        xAxis.setSpaceMax(1);
-        xAxis.setAxisMaximum(24 * 60 * 60);
-        xAxis.setLabelCount(5, true);
+//        xAxis.setLabelCount(5, true);
         //保证Y轴从0开始，不然会上移一点
         leftYAxis.setAxisMinimum(35);
         leftYAxis.setAxisMaximum(42);
@@ -203,14 +198,12 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         if (null != data1) {
             binding.lineChart.clear();
         }
-        int currentTime = TimeUtils.getSecondForDate(System.currentTimeMillis());
-        List<Entry> realValue = new ArrayList<>();
+        xAxis.setAxisMaximum(24 * 60 * 60);
         // 创建一个数据集,并给它一个类型
-        LineDataSet lineDataSet = new LineDataSet(realValue, "");
+        LineDataSet lineDataSet = new LineDataSet(values, "");
         // 在这里设置线
         lineDataSet.setColor(Color.parseColor("#FF2BAC69"));
-        lineDataSet.setDrawCircles(true);
-        lineDataSet.setColor(Color.BLACK);
+        lineDataSet.setDrawCircles(false);
         lineDataSet.setCircleColor(Color.BLACK);
         lineDataSet.setCircleRadius(2f);
         lineDataSet.setDrawCircleHole(false);

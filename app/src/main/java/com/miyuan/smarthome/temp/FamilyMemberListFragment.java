@@ -30,10 +30,8 @@ public class FamilyMemberListFragment extends Fragment implements View.OnClickLi
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        if (binding == null) {
             binding = FragmentFamilyMemberListBinding.inflate(inflater, container, false);
             initView();
-        }
         return binding.getRoot();
     }
 

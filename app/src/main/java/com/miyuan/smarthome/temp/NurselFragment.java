@@ -25,10 +25,8 @@ public class NurselFragment extends Fragment implements View.OnClickListener {
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        if (binding == null) {
             binding = FragmentNurseBinding.inflate(inflater, container, false);
             initView();
-        }
         return binding.getRoot();
     }
 
