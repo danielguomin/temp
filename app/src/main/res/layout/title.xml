@@ -8,8 +8,8 @@
 
     <View
         android:id="@+id/back"
-        android:layout_width="6.33dp"
-        android:layout_height="11.33dp"
+        android:layout_width="12.66dp"
+        android:layout_height="22.66dp"
         android:layout_marginLeft="21.67dp"
         android:background="@drawable/back"
         app:layout_constraintBottom_toBottomOf="parent"

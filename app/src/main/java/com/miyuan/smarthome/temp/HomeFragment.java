@@ -97,7 +97,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
     Queue<Float> checkQueue = new LinkedList<>();
 
     private void dealWithHistory(History history) {
-        if (TimeUtils.isSameDay(new Date(history.getTime()))) {
+        if (TimeUtils.isSameDay(new Date(history.getTime())) || TimeUtils.isYesterday(new Date(history.getTime()))) {
             long start = history.getTime();
             String temps1 = history.getTemps();
             String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
@@ -235,29 +235,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 handler.removeCallbacks(runnable);
                 handler.postDelayed(runnable, 0);//启动定时任务
 
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        List<History> list = db.getHistoryDao().getAll(info.getDeviceId(), info.getMemberId());
-                        entryHistoryList = new ArrayList<>();
-                        for (History history : list) {
-                            dealWithHistory(history);
-                        }
-                        Log.d("entryHistoryList " + entryHistoryList.size());
-                        List<Nurse> nurseList = db.getNurseDao().getAll();
-                        for (Nurse nurse : nurseList) {
-                            if (TimeUtils.isSameDay(new Date(nurse.getTime()))) {
-                                nurselCount++;
-                            }
-                        }
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                binding.nusreCount.setText(String.valueOf(nurselCount));
-                            }
-                        });
-                    }
-                }).start();
+                getHistory(info);
 
                 handler.postDelayed(new Runnable() {
                     @Override
@@ -355,6 +333,32 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 binding.highTime.setText(TimeUtils.getHourStr(new Date(Long.valueOf(split[1]))));
             }
         });
+    }
+
+    private void getHistory(TempInfo info) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                List<History> list = db.getHistoryDao().getAll(info.getDeviceId(), info.getMemberId());
+                entryHistoryList = new ArrayList<>();
+                for (History history : list) {
+                    dealWithHistory(history);
+                }
+                Log.d("entryHistoryList " + entryHistoryList.size());
+                List<Nurse> nurseList = db.getNurseDao().getAll();
+                for (Nurse nurse : nurseList) {
+                    if (TimeUtils.isSameDay(new Date(nurse.getTime()))) {
+                        nurselCount++;
+                    }
+                }
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        binding.nusreCount.setText(String.valueOf(nurselCount));
+                    }
+                });
+            }
+        }).start();
     }
 
     private void initChart(LineChart lineChart) {
@@ -499,12 +503,13 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         Iterator<Float> iterator = checkQueue.iterator();
         int i = 0;
         while (iterator.hasNext()) {
+            Float next = iterator.next();
             if (i == 0) {
-                dpHigh[i] = iterator.next().floatValue() >= HIGH_TEMP_DIVIDER;
-                dpLow[i] = iterator.next().floatValue() < HIGH_TEMP_DIVIDER;
+                dpHigh[i] = next.floatValue() >= HIGH_TEMP_DIVIDER;
+                dpLow[i] = next.floatValue() < HIGH_TEMP_DIVIDER;
             } else {
-                dpHigh[i] = dpHigh[i - 1] && iterator.next().floatValue() >= HIGH_TEMP_DIVIDER;
-                dpLow[i] = dpLow[i - 1] && iterator.next().floatValue() < HIGH_TEMP_DIVIDER;
+                dpHigh[i] = dpHigh[i - 1] && next.floatValue() >= HIGH_TEMP_DIVIDER;
+                dpLow[i] = dpLow[i - 1] && next.floatValue() < HIGH_TEMP_DIVIDER;
             }
             i++;
         }
@@ -569,6 +574,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_TempRemindListFragment);
                 break;
             case R.id.share:
+                if (null != tempInfo && tempInfo.getMemberCount() > 0) {
+                    Log.d("HomeFragment onClick go ShareFragment");
+                    Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_ShareFragment);
+                }
                 break;
             case R.id.second:
                 binding.second.setSelected(true);

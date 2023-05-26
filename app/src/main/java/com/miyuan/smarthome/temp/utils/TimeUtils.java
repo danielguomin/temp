@@ -16,6 +16,8 @@ public class TimeUtils {
     private static SimpleDateFormat sdfTime = new SimpleDateFormat(DEFAULT_HMS);
     private static SimpleDateFormat sdfNormal = new SimpleDateFormat(DEFAULT_YMD + " " + DEFAULT_HMS);
 
+    private static Calendar calendar = Calendar.getInstance();
+
     /**
      * 判断日期是不是今天
      *
@@ -30,6 +32,14 @@ public class TimeUtils {
 
         String day = sdf.format(date);
 
+        return nowDay.equals(day);
+    }
+
+    public static boolean isYesterday(Date date) {
+        calendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH) - 1);
+        Date yesterday = calendar.getTime();
+        String nowDay = sdf.format(yesterday);
+        String day = sdf.format(date);
         return nowDay.equals(day);
     }
 
@@ -69,7 +79,6 @@ public class TimeUtils {
      * @return
      */
     public static int getHour(long date) {
-        Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date(date));
         return calendar.get(Calendar.HOUR_OF_DAY);
     }
@@ -81,7 +90,6 @@ public class TimeUtils {
      * @return
      */
     public static int getSecondForDate(long date) {
-        Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date(date));
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minute = calendar.get(Calendar.MINUTE);
@@ -90,7 +98,6 @@ public class TimeUtils {
     }
 
     public static int getSecondForCurrentHour(long date) {
-        Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date(date));
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         return hour * 3600;
@@ -102,7 +109,6 @@ public class TimeUtils {
      * @return
      */
     public static int getSecondForCurrentHour() {
-        Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date(System.currentTimeMillis()));
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         return hour * 3600;

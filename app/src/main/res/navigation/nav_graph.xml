@@ -74,6 +74,14 @@
             app:exitAnim="@anim/anim_left_out"
             app:popEnterAnim="@anim/anim_left_in"
             app:popExitAnim="@anim/anim_right_out" />
+
+        <action
+            android:id="@+id/action_HomeFragment_to_ShareFragment"
+            app:destination="@id/ShareFragment"
+            app:enterAnim="@anim/anim_right_in"
+            app:exitAnim="@anim/anim_left_out"
+            app:popEnterAnim="@anim/anim_left_in"
+            app:popExitAnim="@anim/anim_right_out" />
     </fragment>
 
     <fragment
@@ -193,5 +201,43 @@
             app:popExitAnim="@anim/anim_right_out" />
 
     </fragment>
+
+
+    <fragment
+        android:id="@+id/ShareFragment"
+        android:name="com.miyuan.smarthome.temp.ShareFragment"
+        android:label="share Fragment"
+        tools:layout="@layout/fragment_share">
+
+        <action
+            android:id="@+id/action_ShareFragment_to_ShareDeviceFragment"
+            app:destination="@id/ShareDeviceFragment"
+            app:enterAnim="@anim/anim_right_in"
+            app:exitAnim="@anim/anim_left_out"
+            app:popEnterAnim="@anim/anim_left_in"
+            app:popExitAnim="@anim/anim_right_out" />
+
+        <action
+            android:id="@+id/action_ShareFragment_to_ViewShareDeviceFragment"
+            app:destination="@id/ViewShareDeviceFragment"
+            app:enterAnim="@anim/anim_right_in"
+            app:exitAnim="@anim/anim_left_out"
+            app:popEnterAnim="@anim/anim_left_in"
+            app:popExitAnim="@anim/anim_right_out" />
+
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/ShareDeviceFragment"
+        android:name="com.miyuan.smarthome.temp.ShareDeviceFragment"
+        android:label="share device Fragment"
+        tools:layout="@layout/fragment_share" />
+
+    <fragment
+        android:id="@+id/ViewShareDeviceFragment"
+        android:name="com.miyuan.smarthome.temp.ViewShareDeviceFragment"
+        android:label="share device Fragment"
+        tools:layout="@layout/fragment_share" />
 
 </navigation>

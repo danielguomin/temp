@@ -105,7 +105,7 @@ public class BatteryView extends View {
         float top = fontMetrics.top;//为基线到字体上边框的距离,即上图中的top
         float bottom = fontMetrics.bottom;//为基线到字体下边框的距离,即上图中的bottom
         int baseLineY = (int) (height / 2 - top / 2 - bottom / 2);//基线中间点的y轴计算公式
-        canvas.drawText(String.valueOf(mPower), width / 2, baseLineY, paint);
+        canvas.drawText(String.valueOf(mPower + "%"), width / 2, baseLineY, paint);
     }
 
     /**

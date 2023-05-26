@@ -8,19 +8,19 @@ import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
-import com.miyuan.smarthome.temp.databinding.FragmentDeviceShareBinding;
+import com.miyuan.smarthome.temp.databinding.FragmentShareBinding;
 
 public class ShareFragment extends Fragment implements View.OnClickListener {
 
-    private FragmentDeviceShareBinding binding;
+    private FragmentShareBinding binding;
 
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-            binding = FragmentDeviceShareBinding.inflate(inflater, container, false);
-            initView();
+        binding = FragmentShareBinding.inflate(inflater, container, false);
+        initView();
         return binding.getRoot();
     }
 
@@ -44,8 +44,10 @@ public class ShareFragment extends Fragment implements View.OnClickListener {
                 Navigation.findNavController(v).navigateUp();
                 break;
             case R.id.share_layout:
+                Navigation.findNavController(v).navigate(R.id.action_ShareFragment_to_ShareDeviceFragment);
                 break;
             case R.id.show_layout:
+                Navigation.findNavController(v).navigate(R.id.action_ShareFragment_to_ViewShareDeviceFragment);
                 break;
         }
     }

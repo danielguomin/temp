@@ -16,27 +16,41 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="23dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="20dp"
         android:layout_marginEnd="23dp"
-        android:text="@string/scan_fail_reson"
         android:textColor="#FF020202"
         android:textSize="15sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/titlelayout" />
 
+    <TextView
+        android:id="@+id/deviceID"
+        android:layout_width="match_parent"
+        android:layout_height="61dp"
+        android:layout_marginLeft="23dp"
+        android:layout_marginTop="60dp"
+        android:layout_marginRight="23dp"
+        android:background="@drawable/device_tv_bg"
+        android:gravity="center"
+        android:textColor="#FF020202"
+        android:textSize="15sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/content" />
+
 
     <Button
-        android:id="@+id/retry"
+        android:id="@+id/copy"
         android:layout_width="134dp"
         android:layout_height="38dp"
         android:layout_marginTop="60dp"
         android:background="@drawable/time_selected_bg"
-        android:text="重新扫描"
+        android:text="复制共享码"
         android:textColor="@color/white"
         android:textSize="15sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/content" />
+        app:layout_constraintTop_toBottomOf="@id/deviceID" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
