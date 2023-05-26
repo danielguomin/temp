@@ -245,6 +245,7 @@
                         android:id="@+id/high"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:text="0"
                         android:textColor="#FFFF0000"
                         android:textSize="15sp" />
 
@@ -269,6 +270,7 @@
                         android:id="@+id/high_time"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:text="00:00:00"
                         android:textColor="#FFFF0000"
                         android:textSize="15sp" />
 
@@ -293,6 +295,7 @@
                         android:id="@+id/high_time_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:text="00:00:00"
                         android:textColor="#FFFF0000"
                         android:textSize="15sp" />
 
@@ -350,6 +353,7 @@
                         android:id="@+id/measure"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:text="00:00:00"
                         android:textColor="#FFFF0000"
                         android:textSize="15sp" />
 
@@ -375,6 +379,7 @@
                         android:id="@+id/low_time_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:text="00:00:00"
                         android:textColor="#FFFF0000"
                         android:textSize="15sp" />
 
@@ -400,6 +405,7 @@
                         android:id="@+id/normal_time_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:text="00:00:00"
                         android:textColor="#FFFF0000"
                         android:textSize="15sp" />
 
