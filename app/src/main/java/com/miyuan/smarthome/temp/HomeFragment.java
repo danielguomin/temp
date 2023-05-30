@@ -185,10 +185,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
 
         BlueManager.getInstance().init(getActivity());
 
-//        if (BlueManager.getInstance().isConnected()) {
-//            binding.scanlayout.setVisibility(View.GONE);
-//            binding.tempLayout.setVisibility(View.VISIBLE);
-//        }
+        if (BlueManager.getInstance().isConnected()) {
+            binding.scanlayout.setVisibility(View.GONE);
+            binding.tempLayout.setVisibility(View.VISIBLE);
+        }
 
         BlueManager.connectStatusLiveData.observe(getViewLifecycleOwner(), new Observer<Integer>() {
             @Override
@@ -670,7 +670,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             pointer.setPivotX(pointer.getWidth() / 2);
             pointer.setPivotY(pointer.getHeight());
             float from = pointer.getRotation();
-            float to = 180 * (t - lastTemp) / 8f;
+            float to = 180 * (t - lastTemp) / 8f + from;
             ValueAnimator valueAnimator = ValueAnimator.ofFloat(from, to);
             valueAnimator.setTarget(pointer);
             valueAnimator.setDuration(500).start();
@@ -681,6 +681,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                     pointer.setRotation(value);
                 }
             });
+            lastTemp = t;
 
         }
     }
