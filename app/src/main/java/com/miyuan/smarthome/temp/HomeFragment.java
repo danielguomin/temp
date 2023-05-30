@@ -3,6 +3,7 @@ package com.miyuan.smarthome.temp;
 import static com.miyuan.smarthome.temp.TempApplication.HIGH_TEMP_DIVIDER;
 import static com.miyuan.smarthome.temp.TempApplication.LOW_TEMP_DIVIDER;
 
+import android.animation.ValueAnimator;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
@@ -70,6 +71,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
     private final static int COUNT = 10;
     boolean[] dpHigh = new boolean[COUNT];
     boolean[] dpLow = new boolean[COUNT];
+
+    private float lastTemp = 38f;
 
     Handler handler = new Handler();
     Runnable runnable = new Runnable() {
@@ -182,10 +185,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
 
         BlueManager.getInstance().init(getActivity());
 
-        if (BlueManager.getInstance().isConnected()) {
-            binding.scanlayout.setVisibility(View.GONE);
-            binding.tempLayout.setVisibility(View.VISIBLE);
-        }
+//        if (BlueManager.getInstance().isConnected()) {
+//            binding.scanlayout.setVisibility(View.GONE);
+//            binding.tempLayout.setVisibility(View.VISIBLE);
+//        }
 
         BlueManager.connectStatusLiveData.observe(getViewLifecycleOwner(), new Observer<Integer>() {
             @Override
@@ -292,7 +295,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         BlueManager.historyTempLiveData.observe(getViewLifecycleOwner(), new Observer<HistoryTemp>() {
             @Override
             public void onChanged(HistoryTemp historyTemp) {
-                Log.d("HomeFragment historyTempLiveData onChanged " + historyTemp);
+                Log.d("HomeFragment historyTempLiveData onChanged ");
                 if (historyTemp.getTempCount() > 0) {
                     // 存入数据库
                     History history = new History();
@@ -302,6 +305,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                     history.setTemps(Arrays.toString(historyTemp.getTemps()));
                     dealWithHistory(history);
                     db.getHistoryDao().insert(history);
+                    if (historyTemp.getStatus() == 1)
+                        BlueManager.getInstance().send(ProtocolUtils.getHistoryTemp());
                 }
             }
         });
@@ -630,31 +635,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 }
                 break;
             case R.id.record:
-//                List<Float> floats1 = new ArrayList<>();
-//                floats1.add(36.5f);
-//                floats1.add(36.1f);
-//                floats1.add(36.2f);
-//                floats1.add(36.3f);
-//                floats1.add(36.4f);
-//                floats1.add(36.5f);
-//                floats1.add(36.6f);
-//                floats1.add(36.7f);
-//                floats1.add(36.8f);
-//                floats1.add(36.9f);
-//                floats1.add(37.0f);
-//                floats1.add(37.1f);
-//                floats1.add(37.2f);
-//                floats1.add(37.3f);
-//                floats1.add(37.4f);
-//                floats1.add(37.5f);
-//                floats1.add(37.6f);
-//                floats1.add(37.7f);
-//                floats1.add(36.8f);
-//                floats1.add(36.9f);
-//                floats1.add(37.9f);
-//                floats1.add(36.1f);
-//                floats1.add(36.2f);
-//                BlueManager._currentList.postValue(floats1);
                 if (null != tempInfo && tempInfo.getMemberCount() > 0) {
                     Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
                 }
@@ -668,8 +648,40 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             binding.charging.setPower(info.getCharging());
         }
         if (temp != null) {
-            binding.temp.setText(String.valueOf(temp.getTemp()));
+            float t = temp.getTemp();
+            binding.temp.setText(String.valueOf(t));
+            //#08BE62
+            if (t <= 37.3f) {
+                binding.temp.setTextColor(Color.parseColor("#FF08BE62"));
+                binding.tempUnit.setTextColor(Color.parseColor("#FF08BE62"));
+            } else if (t > 37.4f && t < 38.5) {
+                binding.temp.setTextColor(Color.parseColor("#FFFFDE00"));
+                binding.tempUnit.setTextColor(Color.parseColor("#FFFFDE00"));
+            } else if (t >= 38.5 && t <= 39.5) {
+                binding.temp.setTextColor(Color.parseColor("#FFFF9C01"));
+                binding.tempUnit.setTextColor(Color.parseColor("#FFFF9C01"));
+            } else {
+                binding.temp.setTextColor(Color.parseColor("#FFFF0101"));
+                binding.tempUnit.setTextColor(Color.parseColor("#FFFF0101"));
+            }
             binding.charging.setPower(temp.getCharging());
+
+            View pointer = binding.pointer;
+            pointer.setPivotX(pointer.getWidth() / 2);
+            pointer.setPivotY(pointer.getHeight());
+            float from = pointer.getRotation();
+            float to = 180 * (t - lastTemp) / 8f;
+            ValueAnimator valueAnimator = ValueAnimator.ofFloat(from, to);
+            valueAnimator.setTarget(pointer);
+            valueAnimator.setDuration(500).start();
+            valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    float value = (float) animation.getAnimatedValue();
+                    pointer.setRotation(value);
+                }
+            });
+
         }
     }
 
