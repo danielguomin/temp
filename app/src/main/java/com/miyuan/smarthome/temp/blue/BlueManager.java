@@ -301,6 +301,7 @@ public class BlueManager {
     private Runnable stopRunable = new Runnable() {
         @Override
         public void run() {
+            Log.d(" stopScan false");
             stopScan(false);
         }
     };

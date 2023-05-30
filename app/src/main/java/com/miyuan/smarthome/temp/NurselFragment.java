@@ -55,10 +55,6 @@ public class NurselFragment extends Fragment implements View.OnClickListener {
         binding.medicine.setSelected(true);
         binding.physical.setOnClickListener(this);
         binding.other.setOnClickListener(this);
-        binding.spirit.setOnClickListener(this);
-        binding.appetite.setOnClickListener(this);
-        binding.cooling.setOnClickListener(this);
-        binding.dose.setOnClickListener(this);
         binding.record.addTextChangedListener(new TextWatcher() {
             private CharSequence temp;
             private int selectionStart;
@@ -133,31 +129,28 @@ public class NurselFragment extends Fragment implements View.OnClickListener {
                 binding.physical.setSelected(false);
                 binding.other.setSelected(true);
                 break;
-            case R.id.spirit:
-                binding.spirit.setSelected(!binding.spirit.isSelected());
-                break;
-            case R.id.appetite:
-                binding.appetite.setSelected(!binding.appetite.isSelected());
-                break;
-            case R.id.cooling:
-                binding.cooling.setSelected(!binding.cooling.isSelected());
-                break;
-            case R.id.dose:
-                binding.dose.setSelected(!binding.dose.isSelected());
-                break;
             case R.id.save:
                 String content = binding.record.getText().toString();
                 if (TextUtils.isEmpty(content)) {
                     Toast.makeText(getActivity(), "请输入内容！", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Nurse nurse = new Nurse();
-                nurse.setTime(nurselTime);
-                nurse.setType(nurselType);
-                nurse.setContent(content);
-                nurse.setMemberId(TempApplication.currentLiveData.getValue().getMemberId());
-                nurse.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
-                db.getNurseDao().insert(nurse);
+                binding.save.setEnabled(false);
+                try {
+                    Nurse nurse = new Nurse();
+                    nurse.setTime(nurselTime);
+                    nurse.setType(nurselType);
+                    nurse.setContent(content);
+                    nurse.setMemberId(1);
+                    nurse.setMemberId(TempApplication.currentLiveData.getValue().getMemberId());
+                    nurse.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+                    db.getNurseDao().insert(nurse);
+                    Toast.makeText(getActivity(), "保存成功！", Toast.LENGTH_SHORT).show();
+                    Navigation.findNavController(v).navigateUp();
+                } catch (Exception e) {
+                    binding.save.setEnabled(true);
+                    Toast.makeText(getActivity(), "保存失败！", Toast.LENGTH_SHORT).show();
+                }
                 break;
         }
     }

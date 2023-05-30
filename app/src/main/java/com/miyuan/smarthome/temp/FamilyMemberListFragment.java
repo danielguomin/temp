@@ -30,8 +30,10 @@ public class FamilyMemberListFragment extends Fragment implements View.OnClickLi
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
+        if (binding == null) {
             binding = FragmentFamilyMemberListBinding.inflate(inflater, container, false);
             initView();
+        }
         return binding.getRoot();
     }
 
@@ -63,7 +65,7 @@ public class FamilyMemberListFragment extends Fragment implements View.OnClickLi
                 memberAdapter.notifyDataSetChanged();
             }
         });
-        BlueManager.tempInfoLiveData.observe(this.getViewLifecycleOwner(), new Observer<TempInfo>() {
+        BlueManager.tempInfoLiveData.observe(getActivity(), new Observer<TempInfo>() {
             @Override
             public void onChanged(TempInfo tempInfo) {
                 Log.d("FamilyMemberListFragment onChanged send updateMember");
@@ -77,7 +79,7 @@ public class FamilyMemberListFragment extends Fragment implements View.OnClickLi
             }
         });
 
-        BlueManager.memberLiveData.observe(this.getViewLifecycleOwner(), new Observer<Boolean>() {
+        BlueManager.memberLiveData.observe(getViewLifecycleOwner(), new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean success) {
                 Log.d("FamilyMemberListFragment membearLiveData onChanged ");

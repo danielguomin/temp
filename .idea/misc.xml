@@ -3,6 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/btn.xml" value="0.214" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/btn_bg.xml" value="0.2395" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/cancel_btn_bg.xml" value="0.189" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/cicle_bg.xml" value="0.193" />
@@ -17,6 +18,7 @@
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/scan_bg.xml" value="0.288" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/shape_reverse_triangle.xml" value="0.193" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/time_bg.xml" value="0.226" />
+        <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/time_disable_bg.xml" value="0.214" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/time_seleced_bg.xml" value="0.226" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/time_selected_bg.xml" value="0.288" />
         <entry key="..\:/Users/guomin/AndroidStudioProjects/Temp/app/src/main/res/drawable/time_unselected_bg.xml" value="0.226" />

@@ -85,12 +85,13 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        Log.d("HomeFragment onCreateView");
-        Log.d(System.currentTimeMillis() + "");
-        binding = FragmentHomeBinding.inflate(inflater, container, false);
-        initView();
-        initChart(binding.lineChart);
-        db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
+        if (binding == null) {
+            Log.d("HomeFragment onCreateView");
+            binding = FragmentHomeBinding.inflate(inflater, container, false);
+            initView();
+            initChart(binding.lineChart);
+            db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
+        }
         return binding.getRoot();
     }
 
@@ -186,15 +187,15 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             binding.tempLayout.setVisibility(View.VISIBLE);
         }
 
-        BlueManager.connectStatusLiveData.observe(getViewLifecycleOwner(), new Observer<Integer>() {
+        BlueManager.connectStatusLiveData.observe(getActivity(), new Observer<Integer>() {
             @Override
             public void onChanged(Integer integer) {
                 Log.d("HomeFragment connectStatusLiveData onChanged " + integer);
                 switch (integer) {
                     case BoxEvent.BLUE_CONNECTED:
+                        Log.d("HomeFragment onChanged send ");
                         binding.scanlayout.setVisibility(View.GONE);
                         binding.tempLayout.setVisibility(View.VISIBLE);
-                        Log.d("HomeFragment onChanged send ");
                         BlueManager.getInstance().send(ProtocolUtils.getTempStatus(System.currentTimeMillis()));
                         break;
                     case BoxEvent.BLUE_SCAN_FAILED:
@@ -206,7 +207,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             }
         });
 
-        BlueManager.tempInfoLiveData.observe(getViewLifecycleOwner(), new Observer<TempInfo>() {
+        BlueManager.tempInfoLiveData.observe(getActivity(), new Observer<TempInfo>() {
             @Override
             public void onChanged(TempInfo info) {
                 Log.d("HomeFragment tempInfoLiveData onChanged ");
@@ -246,7 +247,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             }
         });
 
-        BlueManager.currentTempLiveData.observe(getViewLifecycleOwner(), new Observer<CurrentTemp>() {
+        BlueManager.currentTempLiveData.observe(getActivity(), new Observer<CurrentTemp>() {
             @Override
             public void onChanged(CurrentTemp temp) {
                 Log.d("HomeFragment currentTempLiveData onChanged ");
@@ -254,7 +255,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             }
         });
 
-        BlueManager.currentList.observe(getViewLifecycleOwner(), new Observer<List<Float>>() {
+        BlueManager.currentList.observe(getActivity(), new Observer<List<Float>>() {
             @Override
             public void onChanged(List<Float> floats) {
                 Log.d("HomeFragment currentList onChanged " + floats);
@@ -288,7 +289,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             }
         });
 
-        BlueManager.historyTempLiveData.observe(getViewLifecycleOwner(), new Observer<HistoryTemp>() {
+        BlueManager.historyTempLiveData.observe(getActivity(), new Observer<HistoryTemp>() {
             @Override
             public void onChanged(HistoryTemp historyTemp) {
                 Log.d("HomeFragment historyTempLiveData onChanged " + historyTemp);
@@ -305,13 +306,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             }
         });
 
-        BlueManager.memberLiveData.observe(getViewLifecycleOwner(), new Observer<Boolean>() {
+        BlueManager.memberLiveData.observe(getActivity(), new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean success) {
                 Log.d("HomeFragment memberLiveData onChanged ");
                 if (success) {
-                    Navigation.findNavController(getView()).navigateUp();
-                    Log.d("FamilyMemberListFragment onChanged send getTempStatus");
+                    Log.d("HomeFragment memberLiveData onChanged send getTempStatus");
                     BlueManager.getInstance().send(ProtocolUtils.getTempStatus(System.currentTimeMillis()));
                 }
             }
@@ -321,11 +321,11 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             @Override
             public void onChanged(Member member) {
                 Log.d("HomeFragment currentLiveData onChanged ");
-                binding.name.setText(member.getName());
+                binding.name.setText(member.getName() + "的体温");
             }
         });
 
-        BlueManager.highLiveData.observe(getViewLifecycleOwner(), new Observer<String>() {
+        BlueManager.highLiveData.observe(getActivity(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
                 String[] split = s.split("#");
@@ -546,7 +546,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         if (null != tempInfo && tempInfo.getMemberId() != 0) {
             for (Member member : tempInfo.getMembers()) {
                 if (member.getMemberId() == tempInfo.getMemberId()) {
-                    binding.name.setText(member.getName());
+                    binding.name.setText(member.getName() + "的体温");
                 }
             }
         }
