@@ -20,8 +20,10 @@ public class DisclaimerFragment extends Fragment implements View.OnClickListener
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
+        if (binding == null) {
             binding = FragmentDisclaimerBinding.inflate(inflater, container, false);
-            initView();
+        }
+        initView();
         return binding.getRoot();
     }
 

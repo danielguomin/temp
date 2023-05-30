@@ -19,7 +19,9 @@ public class ShareFragment extends Fragment implements View.OnClickListener {
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        binding = FragmentShareBinding.inflate(inflater, container, false);
+        if (binding == null) {
+            binding = FragmentShareBinding.inflate(inflater, container, false);
+        }
         initView();
         return binding.getRoot();
     }

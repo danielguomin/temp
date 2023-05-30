@@ -25,7 +25,9 @@ public class TempRemindAddFragment extends Fragment implements View.OnClickListe
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        binding = FragmentTempRemindAddBinding.inflate(inflater, container, false);
+        if (binding == null) {
+            binding = FragmentTempRemindAddBinding.inflate(inflater, container, false);
+        }
         initView();
         return binding.getRoot();
     }

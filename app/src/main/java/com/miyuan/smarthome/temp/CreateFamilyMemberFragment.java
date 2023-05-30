@@ -25,9 +25,10 @@ public class CreateFamilyMemberFragment extends Fragment implements View.OnClick
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        binding = FragmentCreateFamilyMemberBinding.inflate(inflater, container, false);
+        if (binding == null) {
+            binding = FragmentCreateFamilyMemberBinding.inflate(inflater, container, false);
+        }
         initView();
-
         return binding.getRoot();
     }
 
@@ -38,7 +39,7 @@ public class CreateFamilyMemberFragment extends Fragment implements View.OnClick
         binding.save.setOnClickListener(this);
 
 
-        BlueManager.memberLiveData.observe(getActivity(), new Observer<Boolean>() {
+        BlueManager.memberLiveData.observe(getViewLifecycleOwner(), new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean success) {
                 Log.d("CreateFamilyMemberFragment membearLiveData onChanged ");

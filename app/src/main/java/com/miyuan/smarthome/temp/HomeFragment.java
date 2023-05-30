@@ -88,10 +88,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         if (binding == null) {
             Log.d("HomeFragment onCreateView");
             binding = FragmentHomeBinding.inflate(inflater, container, false);
-            initView();
-            initChart(binding.lineChart);
             db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
         }
+        initView();
+        initChart(binding.lineChart);
         return binding.getRoot();
     }
 
@@ -187,7 +187,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             binding.tempLayout.setVisibility(View.VISIBLE);
         }
 
-        BlueManager.connectStatusLiveData.observe(getActivity(), new Observer<Integer>() {
+        BlueManager.connectStatusLiveData.observe(getViewLifecycleOwner(), new Observer<Integer>() {
             @Override
             public void onChanged(Integer integer) {
                 Log.d("HomeFragment connectStatusLiveData onChanged " + integer);
@@ -207,7 +207,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             }
         });
 
-        BlueManager.tempInfoLiveData.observe(getActivity(), new Observer<TempInfo>() {
+        BlueManager.tempInfoLiveData.observe(getViewLifecycleOwner(), new Observer<TempInfo>() {
             @Override
             public void onChanged(TempInfo info) {
                 Log.d("HomeFragment tempInfoLiveData onChanged ");
@@ -247,7 +247,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             }
         });
 
-        BlueManager.currentTempLiveData.observe(getActivity(), new Observer<CurrentTemp>() {
+        BlueManager.currentTempLiveData.observe(getViewLifecycleOwner(), new Observer<CurrentTemp>() {
             @Override
             public void onChanged(CurrentTemp temp) {
                 Log.d("HomeFragment currentTempLiveData onChanged ");
@@ -255,7 +255,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             }
         });
 
-        BlueManager.currentList.observe(getActivity(), new Observer<List<Float>>() {
+        BlueManager.currentList.observe(getViewLifecycleOwner(), new Observer<List<Float>>() {
             @Override
             public void onChanged(List<Float> floats) {
                 Log.d("HomeFragment currentList onChanged " + floats);
@@ -289,7 +289,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             }
         });
 
-        BlueManager.historyTempLiveData.observe(getActivity(), new Observer<HistoryTemp>() {
+        BlueManager.historyTempLiveData.observe(getViewLifecycleOwner(), new Observer<HistoryTemp>() {
             @Override
             public void onChanged(HistoryTemp historyTemp) {
                 Log.d("HomeFragment historyTempLiveData onChanged " + historyTemp);
@@ -306,7 +306,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             }
         });
 
-        BlueManager.memberLiveData.observe(getActivity(), new Observer<Boolean>() {
+        BlueManager.memberLiveData.observe(getViewLifecycleOwner(), new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean success) {
                 Log.d("HomeFragment memberLiveData onChanged ");
@@ -325,7 +325,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             }
         });
 
-        BlueManager.highLiveData.observe(getActivity(), new Observer<String>() {
+        BlueManager.highLiveData.observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
                 String[] split = s.split("#");
@@ -574,10 +574,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_TempRemindListFragment);
                 break;
             case R.id.share:
-                if (null != tempInfo && tempInfo.getMemberCount() > 0) {
-                    Log.d("HomeFragment onClick go ShareFragment");
-                    Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_ShareFragment);
-                }
+                // if (null != tempInfo && tempInfo.getMemberCount() > 0) {
+                Log.d("HomeFragment onClick go ShareFragment");
+                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_ShareFragment);
+                // }
                 break;
             case R.id.second:
                 binding.second.setSelected(true);

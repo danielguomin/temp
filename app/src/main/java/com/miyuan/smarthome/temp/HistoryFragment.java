@@ -184,11 +184,13 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        binding = FragmentHistoryBinding.inflate(inflater, container, false);
-        initView();
+        if (binding == null) {
+            binding = FragmentHistoryBinding.inflate(inflater, container, false);
+            db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
+        }
         initChart(binding.lineChart);
-        db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
         getHistory();
+        initView();
         return binding.getRoot();
     }
 

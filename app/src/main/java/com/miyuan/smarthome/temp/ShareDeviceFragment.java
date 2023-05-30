@@ -25,7 +25,9 @@ public class ShareDeviceFragment extends Fragment implements View.OnClickListene
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        binding = FragmentShareDeviceBinding.inflate(inflater, container, false);
+        if (binding == null) {
+            binding = FragmentShareDeviceBinding.inflate(inflater, container, false);
+        }
         initView();
         return binding.getRoot();
     }

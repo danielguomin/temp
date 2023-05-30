@@ -20,8 +20,10 @@ public class ScanFailFragment extends Fragment implements View.OnClickListener {
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
+        if (binding == null) {
             binding = FragmentScanFailBinding.inflate(inflater, container, false);
-            initView();
+        }
+        initView();
         return binding.getRoot();
     }
 

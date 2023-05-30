@@ -39,9 +39,11 @@ public class NurselFragment extends Fragment implements View.OnClickListener {
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        binding = FragmentNurseBinding.inflate(inflater, container, false);
+        if (binding == null) {
+            binding = FragmentNurseBinding.inflate(inflater, container, false);
+            db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
+        }
         initView();
-        db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
         return binding.getRoot();
     }
 
