@@ -671,7 +671,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             pointer.setPivotY(pointer.getHeight());
             float from = pointer.getRotation();
             float to = 180 * (t - lastTemp) / 8f + from;
-            Log.d("from  = " + from + "  to = " + to);
+            Log.d("lastTemp = " + lastTemp + "from  = " + from + "  to = " + to);
             ValueAnimator valueAnimator = ValueAnimator.ofFloat(from, to);
             valueAnimator.setTarget(pointer);
             valueAnimator.setDuration(500).start();
