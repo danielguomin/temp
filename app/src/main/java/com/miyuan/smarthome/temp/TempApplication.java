@@ -26,6 +26,8 @@ public class TempApplication extends Application {
     public static float HIGH_TEMP_DIVIDER = 38f;
     public static float LOW_TEMP_DIVIDER = 37.3f;
 
+    public static Context context;
+
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
@@ -75,6 +77,7 @@ public class TempApplication extends Application {
         super.onCreate();
         MMKV.initialize(this);
         registerUncaughtException();
+        context = this;
     }
 
     public void registerUncaughtException() {

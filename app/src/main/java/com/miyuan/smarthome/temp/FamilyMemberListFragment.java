@@ -25,6 +25,8 @@ public class FamilyMemberListFragment extends Fragment implements View.OnClickLi
 
     private FragmentFamilyMemberListBinding binding;
 
+    private List<Member> members;
+
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
@@ -44,7 +46,7 @@ public class FamilyMemberListFragment extends Fragment implements View.OnClickLi
         binding.add.setOnClickListener(this);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         binding.members.setLayoutManager(layoutManager);
-        List<Member> members = BlueManager.tempInfoLiveData.getValue().getMembers();
+        members = BlueManager.tempInfoLiveData.getValue().getMembers();
         for (Member member : members) {
             if (member.getMemberId() == BlueManager.tempInfoLiveData.getValue().getMemberId()) {
                 member.setChoice(true);
@@ -69,12 +71,13 @@ public class FamilyMemberListFragment extends Fragment implements View.OnClickLi
             @Override
             public void onChanged(TempInfo tempInfo) {
                 Log.d("FamilyMemberListFragment onChanged send updateMember");
-                List<Member> members = tempInfo.getMembers();
+                members = tempInfo.getMembers();
                 for (Member member : members) {
                     if (member.getMemberId() == tempInfo.getMemberId()) {
                         member.setChoice(true);
                     }
                 }
+                memberAdapter.setmList(members);
                 memberAdapter.notifyDataSetChanged();
             }
         });

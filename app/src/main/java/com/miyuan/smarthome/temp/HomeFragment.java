@@ -654,7 +654,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             if (t <= 37.3f) {
                 binding.temp.setTextColor(Color.parseColor("#FF08BE62"));
                 binding.tempUnit.setTextColor(Color.parseColor("#FF08BE62"));
-            } else if (t > 37.4f && t < 38.5) {
+            } else if (t > 37.3f && t < 38.5) {
                 binding.temp.setTextColor(Color.parseColor("#FFFFDE00"));
                 binding.tempUnit.setTextColor(Color.parseColor("#FFFFDE00"));
             } else if (t >= 38.5 && t <= 39.5) {
@@ -671,6 +671,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             pointer.setPivotY(pointer.getHeight());
             float from = pointer.getRotation();
             float to = 180 * (t - lastTemp) / 8f + from;
+            Log.d("from  = " + from + "  to = " + to);
             ValueAnimator valueAnimator = ValueAnimator.ofFloat(from, to);
             valueAnimator.setTarget(pointer);
             valueAnimator.setDuration(500).start();
