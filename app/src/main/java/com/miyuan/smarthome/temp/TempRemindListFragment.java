@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.room.Room;
@@ -14,6 +15,7 @@ import androidx.room.Room;
 import com.miyuan.smarthome.temp.databinding.FragmentTempRemindListBinding;
 import com.miyuan.smarthome.temp.db.Remind;
 import com.miyuan.smarthome.temp.db.TempDataBase;
+import com.miyuan.smarthome.temp.log.Log;
 import com.miyuan.smarthome.temp.view.RemindAdapter;
 
 import java.util.ArrayList;
@@ -57,7 +59,7 @@ public class TempRemindListFragment extends Fragment implements View.OnClickList
                 remind.setLock(true);
                 remind.setHigh(true);
                 remind.setOpen(true);
-                remind.setTemp(String.valueOf(lockTemps[i]));
+                remind.setTemp(lockTemps[i]);
                 reminds.add(remind);
             }
             db.getRemindDao().insert(reminds);
@@ -67,16 +69,30 @@ public class TempRemindListFragment extends Fragment implements View.OnClickList
         remindAdapter.setOnItemClickListerner(new RemindAdapter.OnItemClickListerner() {
             @Override
             public void onItemClick(int position) {
-                if (binding.edit.isSelected()) {
-                    // 编辑模式
-                    Remind remind = reminds.get(position);
-                    if (remind.isLock()) {
-                        Toast.makeText(getActivity(), "默认提示数据无法删除！", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    remind.setChoice(!remind.isChoice());
+                // 编辑模式
+                Remind remind = reminds.get(position);
+                if (remind.isLock()) {
+                    Toast.makeText(getActivity(), "默认提示数据无法编辑！", Toast.LENGTH_SHORT).show();
+                    return;
                 }
-                remindAdapter.notifyItemChanged(position);
+                if (binding.edit.isSelected()) {
+                    remind.setChoice(!remind.isChoice());
+                    remindAdapter.notifyItemChanged(position);
+                } else {
+                    TempPickerFragment.getInstance(reminds.get(position)).show(getParentFragmentManager(), "");
+                }
+            }
+        });
+        TempPickerFragment.tempLiveData.observe(getViewLifecycleOwner(), new Observer<Remind>() {
+            @Override
+            public void onChanged(Remind remind) {
+                try {
+                    Log.d(remind.toString());
+                    db.getRemindDao().update(remind);
+                    remindAdapter.notifyDataSetChanged();
+                } catch (Exception e) {
+                    Toast.makeText(getActivity(), "更新失败！", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

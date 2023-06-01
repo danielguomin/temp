@@ -84,7 +84,7 @@ public class TempRemindAddFragment extends Fragment implements View.OnClickListe
                         StringBuilder sb = new StringBuilder();
                         sb.append(binding.whole.getValue()).append(".").append(binding.decimal.getValue());
                         Remind remind = new Remind();
-                        remind.setTemp(sb.toString());
+                        remind.setTemp(Float.valueOf(sb.toString()));
                         remind.setHigh(binding.high.isChecked());
                         remind.setLow(binding.low.isChecked());
                         remind.setOpen(binding.high.isChecked());

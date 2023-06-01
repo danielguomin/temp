@@ -43,9 +43,12 @@ import com.miyuan.smarthome.temp.db.History;
 import com.miyuan.smarthome.temp.db.HistoryTemp;
 import com.miyuan.smarthome.temp.db.Member;
 import com.miyuan.smarthome.temp.db.Nurse;
+import com.miyuan.smarthome.temp.db.Remind;
+import com.miyuan.smarthome.temp.db.RemindDao;
 import com.miyuan.smarthome.temp.db.TempDataBase;
 import com.miyuan.smarthome.temp.db.TempInfo;
 import com.miyuan.smarthome.temp.log.Log;
+import com.miyuan.smarthome.temp.utils.TTSManager;
 import com.miyuan.smarthome.temp.utils.TimeUtils;
 
 import java.util.ArrayList;
@@ -73,6 +76,11 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
     boolean[] dpLow = new boolean[COUNT];
 
     private float lastTemp = 38f;
+
+    private List<Remind> reminds;
+
+    private Float[] highReminds = new Float[]{};
+    private Float[] lowReminds = new Float[]{};
 
     Handler handler = new Handler();
     Runnable runnable = new Runnable() {
@@ -188,6 +196,26 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         if (BlueManager.getInstance().isConnected()) {
             binding.scanlayout.setVisibility(View.GONE);
             binding.tempLayout.setVisibility(View.VISIBLE);
+        }
+
+        reminds = db.getRemindDao().getAll();
+        List<Float> highReminds = new ArrayList<>();
+        List<Float> lowReminds = new ArrayList<>();
+
+        for (Remind remind : reminds) {
+            if (remind.isOpen() && remind.isHigh()) {
+                highReminds.add(remind.getTemp());
+            } else if (!remind.isOpen() && remind.isLow()) {
+                lowReminds.add(remind.getTemp());
+            }
+        }
+        if (null != highReminds && highReminds.size() > 0) {
+            highReminds.toArray(this.highReminds);
+            Arrays.sort(this.highReminds);
+        }
+        if (null != lowReminds && lowReminds.size() > 0) {
+            lowReminds.toArray(this.lowReminds);
+            Arrays.sort(this.lowReminds);
         }
 
         BlueManager.connectStatusLiveData.observe(getViewLifecycleOwner(), new Observer<Integer>() {
@@ -650,41 +678,78 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         if (temp != null) {
             float t = temp.getTemp();
             binding.temp.setText(String.valueOf(t));
-            //#08BE62
-            if (t <= 37.3f) {
-                binding.temp.setTextColor(Color.parseColor("#FF08BE62"));
-                binding.tempUnit.setTextColor(Color.parseColor("#FF08BE62"));
-            } else if (t > 37.3f && t < 38.5) {
-                binding.temp.setTextColor(Color.parseColor("#FFFFDE00"));
-                binding.tempUnit.setTextColor(Color.parseColor("#FFFFDE00"));
-            } else if (t >= 38.5 && t <= 39.5) {
-                binding.temp.setTextColor(Color.parseColor("#FFFF9C01"));
-                binding.tempUnit.setTextColor(Color.parseColor("#FFFF9C01"));
-            } else {
-                binding.temp.setTextColor(Color.parseColor("#FFFF0101"));
-                binding.tempUnit.setTextColor(Color.parseColor("#FFFF0101"));
-            }
             binding.charging.setPower(temp.getCharging());
-
-            View pointer = binding.pointer;
-            pointer.setPivotX(pointer.getWidth() / 2);
-            pointer.setPivotY(pointer.getHeight());
-            float from = pointer.getRotation();
-            float to = 180 * (t - lastTemp) / 8f + from;
-            Log.d("lastTemp = " + lastTemp + "from  = " + from + "  to = " + to);
-            ValueAnimator valueAnimator = ValueAnimator.ofFloat(from, to);
-            valueAnimator.setTarget(pointer);
-            valueAnimator.setDuration(500).start();
-            valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator animation) {
-                    float value = (float) animation.getAnimatedValue();
-                    pointer.setRotation(value);
-                }
-            });
-            lastTemp = t;
-
+            dealWithPointer(t);
+            checkNotify(t);
         }
+    }
+
+    private float currentRemind = 0;
+    private long notifyTime = 0;
+
+    private void checkNotify(float temp) {
+
+        if (highReminds != null && highReminds.length > 0) {
+            for (int i = highReminds.length - 1; i <= 0; i--) {
+                float higher = highReminds[i];
+                if (temp >= highReminds[i]) {
+                    if (currentRemind == higher || (System.currentTimeMillis() - notifyTime) < 10 * 60 * 1000) {
+                        return;
+                    }
+                    currentRemind = higher;
+                    notifyTime = System.currentTimeMillis();
+                    // 播报
+                    TTSManager.getInstance().speek("当前体温高于所设的温度提醒" + higher + "°C，请注意查看护理!");
+                }
+            }
+        } else if (lowReminds != null && lowReminds.length > 0) {
+            for (int i = 0; i < lowReminds.length; i++) {
+                float low = lowReminds[i];
+                if (temp <= low) {
+                    if (currentRemind == low || (System.currentTimeMillis() - notifyTime) < 10 * 60 * 1000) {
+                        return;
+                    }
+                    currentRemind = low;
+                    notifyTime = System.currentTimeMillis();
+                    // 播报
+                    TTSManager.getInstance().speek("当前体温低于所设的温度提醒" + low + "°C，请注意查看护理!");
+                }
+            }
+        }
+    }
+
+    private void dealWithPointer(float t) {
+        //#08BE62
+        if (t <= 37.3f) {
+            binding.temp.setTextColor(Color.parseColor("#FF08BE62"));
+            binding.tempUnit.setTextColor(Color.parseColor("#FF08BE62"));
+        } else if (t > 37.4f && t < 38.5) {
+            binding.temp.setTextColor(Color.parseColor("#FFFFDE00"));
+            binding.tempUnit.setTextColor(Color.parseColor("#FFFFDE00"));
+        } else if (t >= 38.5 && t <= 39.5) {
+            binding.temp.setTextColor(Color.parseColor("#FFFF9C01"));
+            binding.tempUnit.setTextColor(Color.parseColor("#FFFF9C01"));
+        } else {
+            binding.temp.setTextColor(Color.parseColor("#FFFF0101"));
+            binding.tempUnit.setTextColor(Color.parseColor("#FFFF0101"));
+        }
+
+        View pointer = binding.pointer;
+        pointer.setPivotX(pointer.getWidth() / 2);
+        pointer.setPivotY(pointer.getHeight());
+        float from = pointer.getRotation();
+        float to = 180 * (t - lastTemp) / 8f + from;
+        ValueAnimator valueAnimator = ValueAnimator.ofFloat(from, to);
+        valueAnimator.setTarget(pointer);
+        valueAnimator.setDuration(500).start();
+        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float value = (float) animation.getAnimatedValue();
+                pointer.setRotation(value);
+            }
+        });
+        lastTemp = t;
     }
 
     @Override

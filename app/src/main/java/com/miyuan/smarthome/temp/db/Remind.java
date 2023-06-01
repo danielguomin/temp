@@ -7,9 +7,10 @@ import androidx.room.PrimaryKey;
 
 @Entity
 public class Remind {
-    @NonNull
-    @PrimaryKey
-    private String temp;
+    @PrimaryKey(autoGenerate = true)
+    private int id;
+
+    private float temp;
 
     private boolean open;
 
@@ -22,11 +23,19 @@ public class Remind {
     @Ignore
     private boolean choice = false;
 
-    public String getTemp() {
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public float getTemp() {
         return temp;
     }
 
-    public void setTemp(String temp) {
+    public void setTemp(float temp) {
         this.temp = temp;
     }
 
@@ -68,5 +77,17 @@ public class Remind {
 
     public void setLock(boolean lock) {
         this.lock = lock;
+    }
+
+    @Override
+    public String toString() {
+        return "Remind{" +
+                "temp=" + temp +
+                ", open=" + open +
+                ", high=" + high +
+                ", low=" + low +
+                ", lock=" + lock +
+                ", choice=" + choice +
+                '}';
     }
 }

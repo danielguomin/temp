@@ -67,9 +67,7 @@ public class RemindAdapter extends
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (edit) {
-                        onItemClickListerner.onItemClick(position);
-                    }
+                    onItemClickListerner.onItemClick(position);
                 }
             });
         }

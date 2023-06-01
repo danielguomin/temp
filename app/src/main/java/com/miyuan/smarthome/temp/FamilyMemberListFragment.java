@@ -57,14 +57,7 @@ public class FamilyMemberListFragment extends Fragment implements View.OnClickLi
         memberAdapter.setOnItemClickListerner(new MemberAdapter.OnItemClickListerner() {
             @Override
             public void onItemClick(int position) {
-                for (int i = 0; i < members.size(); i++) {
-                    if (position == i) {
-                        TempApplication._currentMemberLiveData.setValue(members.get(i));
-                    }
-                    members.get(i).setChoice(position == i);
-                }
-                BlueManager.getInstance().send(ProtocolUtils.updateMember(false, members.get(position).getMemberId(), ""));
-                memberAdapter.notifyDataSetChanged();
+                ChangeMemberFragment.newInstance(position).show(getParentFragmentManager(), "");
             }
         });
         BlueManager.tempInfoLiveData.observe(getViewLifecycleOwner(), new Observer<TempInfo>() {
@@ -93,6 +86,23 @@ public class FamilyMemberListFragment extends Fragment implements View.OnClickLi
                     BlueManager.getInstance().send(ProtocolUtils.getTempStatus(System.currentTimeMillis()));
                 } else {
                     Toast.makeText(getActivity(), "操作失败，请重试！", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        ChangeMemberFragment.confirmLiveData.observe(getViewLifecycleOwner(), new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer integer) {
+                int position = integer;
+                if (position != -1) {
+                    for (int i = 0; i < members.size(); i++) {
+                        if (position == i) {
+                            TempApplication._currentMemberLiveData.setValue(members.get(i));
+                        }
+                        members.get(i).setChoice(position == i);
+                    }
+                    BlueManager.getInstance().send(ProtocolUtils.updateMember(false, members.get(position).getMemberId(), ""));
+                    memberAdapter.notifyDataSetChanged();
                 }
             }
         });
