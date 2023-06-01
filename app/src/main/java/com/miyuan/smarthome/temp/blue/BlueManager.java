@@ -307,6 +307,7 @@ public class BlueManager {
     };
 
     public synchronized void startScan() {
+        Log.d("startScan");
         if (null == mBluetoothAdapter || isScaning) {
             return;
         }

@@ -1,8 +1,5 @@
 package com.miyuan.smarthome.temp;
 
-import static com.miyuan.smarthome.temp.TempApplication.HIGH_TEMP_DIVIDER;
-import static com.miyuan.smarthome.temp.TempApplication.LOW_TEMP_DIVIDER;
-
 import android.animation.ValueAnimator;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
@@ -44,7 +41,6 @@ import com.miyuan.smarthome.temp.db.HistoryTemp;
 import com.miyuan.smarthome.temp.db.Member;
 import com.miyuan.smarthome.temp.db.Nurse;
 import com.miyuan.smarthome.temp.db.Remind;
-import com.miyuan.smarthome.temp.db.RemindDao;
 import com.miyuan.smarthome.temp.db.TempDataBase;
 import com.miyuan.smarthome.temp.db.TempInfo;
 import com.miyuan.smarthome.temp.log.Log;
@@ -58,6 +54,10 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+
+import static com.miyuan.smarthome.temp.TempApplication.HIGH_TEMP_DIVIDER;
+import static com.miyuan.smarthome.temp.TempApplication.LOW_TEMP_DIVIDER;
+import static com.miyuan.smarthome.temp.blue.BlueManager._currentList;
 
 public class HomeFragment extends Fragment implements View.OnClickListener, OnChartGestureListener, OnChartValueSelectedListener {
 
@@ -100,6 +100,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             Log.d("HomeFragment onCreateView");
             binding = FragmentHomeBinding.inflate(inflater, container, false);
             db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
+            BlueManager.getInstance().init(getActivity());
         }
         initView();
         initChart(binding.lineChart);
@@ -190,8 +191,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         binding.scan.setImageResource(R.drawable.scan_bg);
         AnimationDrawable drawable = (AnimationDrawable) binding.scan.getDrawable();
         drawable.start();
-
-        BlueManager.getInstance().init(getActivity());
 
         if (BlueManager.getInstance().isConnected()) {
             binding.scanlayout.setVisibility(View.GONE);
@@ -404,7 +403,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         description.setEnabled(false);
         lineChart.setDescription(description);
         //是否可以拖动
-        lineChart.setDragEnabled(false);
+        lineChart.setDragEnabled(true);
         //是否有触摸事件
         lineChart.setTouchEnabled(true);
         lineChart.setDoubleTapToZoomEnabled(true);
@@ -412,6 +411,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         //设置XY轴动画效果
         lineChart.animateY(1000);
         lineChart.animateX(1000);
+        lineChart.setDrawBorders(false);
+        lineChart.setDragXEnabled(true);
         /***XY轴的设置***/
         xAxis = lineChart.getXAxis();
         leftYAxis = lineChart.getAxisLeft();
@@ -420,16 +421,15 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         //X轴设置显示位置在底部
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setAxisMinimum(0f);
-        xAxis.setSpaceMin(1);
-        xAxis.setSpaceMax(1);
+//        xAxis.setSpaceMin(1);
+//        xAxis.setSpaceMax(1);
         xAxis.setAxisMaximum(24 * 60 * 60);
 //        xAxis.setLabelCount(5, true);
         //保证Y轴从0开始，不然会上移一点
         leftYAxis.setAxisMinimum(35);
         leftYAxis.setAxisMaximum(42);
-//        leftYAxis.setLabelCount(5);
-        leftYAxis.setSpaceMax(1);
-        leftYAxis.setSpaceMin(1);
+//        leftYAxis.setSpaceMax(1);
+//        leftYAxis.setSpaceMin(1);
         setHightLimitLine(38.5f);
         setLowLimitLine(37.3f);
 
@@ -446,7 +446,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         leftYAxis.setValueFormatter(new ValueFormatter() {
             @Override
             public String getFormattedValue(float value) {
-                return String.valueOf(value) + "°C";
+
+                return (float) Math.round(value * 10) / 10 + "°C";
             }
         });
         /***折线图例 标签 设置***/
@@ -513,6 +514,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         }
         // 创建一个数据集,并给它一个类型
         LineDataSet lineDataSet = new LineDataSet(realValue, "");
+        lineDataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
         // 在这里设置线
         lineDataSet.setColor(Color.parseColor("#FF2BAC69"));
         lineDataSet.setDrawCircles(false);
@@ -546,15 +548,15 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             }
             i++;
         }
-        if (dpLow[checkQueue.size() - 1]) {
-            high = false;
-        }
         if (dpHigh[checkQueue.size() - 1]) {
             if (high) {
                 return;
             }
             high = true;
             highCount++;
+        }
+        if (dpLow[checkQueue.size() - 1]) {
+            high = false;
         }
         binding.highCount.setText(String.valueOf(highCount));
     }
@@ -663,7 +665,30 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 }
                 break;
             case R.id.record:
-                if (null != tempInfo && tempInfo.getMemberCount() > 0) {
+//                List<Float> list = new ArrayList<>();
+//                list.add(36.5f);
+//                list.add(36.6f);
+//                list.add(36.7f);
+//                list.add(36.8f);
+//                list.add(36.9f);
+//                list.add(37.0f);
+//                list.add(37.1f);
+//                list.add(37.2f);
+//                list.add(37.3f);
+//                list.add(37.4f);
+//                list.add(37.5f);
+//                list.add(37.6f);
+//                list.add(37.7f);
+//                list.add(37.8f);
+//                list.add(37.9f);
+//                list.add(38.5f);
+//                list.add(38.6f);
+//                list.add(38.7f);
+//                list.add(38.8f);
+//                list.add(38.9f);
+//                _currentList.postValue(list);
+                if (null != tempInfo
+                        && tempInfo.getMemberCount() > 0) {
                     Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
                 }
                 break;
