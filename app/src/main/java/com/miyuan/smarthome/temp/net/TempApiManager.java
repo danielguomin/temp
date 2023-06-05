@@ -4,10 +4,14 @@ import android.util.Base64;
 
 import androidx.annotation.NonNull;
 
+import com.miyuan.smarthome.temp.db.History;
+import com.miyuan.smarthome.temp.db.Nurse;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -16,6 +20,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.Flowable;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
@@ -69,6 +74,34 @@ public class TempApiManager {
         RequestBody requestBody = new FormBody.Builder().add("params", encrypt(params)).build();
         return iTempApi.updateRealTemp(requestBody);
     }
+
+    public Flowable<Response<List<History>>> getRealTemp(String params){
+        RequestBody requestBody = new FormBody.Builder().add("params", encrypt(params)).build();
+        return iTempApi.getRealTemp(requestBody);
+    }
+
+
+    public Flowable<Response<String>> updateNurseInfo(String params){
+        RequestBody requestBody = new FormBody.Builder().add("params", encrypt(params)).build();
+        return iTempApi.updateNurseInfo(requestBody);
+    }
+
+    public Flowable<Response<List<Nurse>>> getNurseInfo(String params){
+        RequestBody requestBody = new FormBody.Builder().add("params", encrypt(params)).build();
+        return iTempApi.getNurseInfo(requestBody);
+    }
+
+
+    public Flowable<Response<String>> updateHistory(String params){
+        RequestBody requestBody = new FormBody.Builder().add("params", encrypt(params)).build();
+        return iTempApi.updateHistory(requestBody);
+    }
+
+    public Flowable<Response<List<History>>> getHistory(String params){
+        RequestBody requestBody = new FormBody.Builder().add("params", encrypt(params)).build();
+        return iTempApi.getHistory(requestBody);
+    }
+
 
     private RequestBody getRequestBody(@NonNull Map<String, String> map) {
         JSONObject requestData = new JSONObject();

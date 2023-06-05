@@ -3,15 +3,15 @@ package com.miyuan.smarthome.temp.db;
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
 
-@Entity(primaryKeys = {"deviceId", "memberId", "time"})
+@Entity(primaryKeys = {"deviceID", "memberID", "time"})
 public class History {
 
     private long time;
 
     @NonNull
-    private String deviceId;
+    private String deviceID;
 
-    private int memberId;
+    private int memberID;
 
     private String temps;
 
@@ -23,20 +23,20 @@ public class History {
         this.time = time;
     }
 
-    public String getDeviceId() {
-        return deviceId;
+    public int getMemberID() {
+        return memberID;
     }
 
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
+    public void setMemberID(int memberID) {
+        this.memberID = memberID;
     }
 
-    public int getMemberId() {
-        return memberId;
+    public void setDeviceID(String deviceID) {
+        this.deviceID = deviceID;
     }
 
-    public void setMemberId(int memberId) {
-        this.memberId = memberId;
+    public String getDeviceID() {
+        return deviceID;
     }
 
     public String getTemps() {
@@ -51,9 +51,10 @@ public class History {
     public String toString() {
         return "History{" +
                 "time=" + time +
-                ", deviceId='" + deviceId + '\'' +
-                ", memberId=" + memberId +
+                ", deviceID='" + deviceID + '\'' +
+                ", memberID=" + memberID +
                 ", temps='" + temps + '\'' +
                 '}';
     }
 }
+

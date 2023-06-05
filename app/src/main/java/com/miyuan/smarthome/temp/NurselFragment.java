@@ -18,6 +18,9 @@ import com.miyuan.smarthome.temp.blue.BlueManager;
 import com.miyuan.smarthome.temp.databinding.FragmentNurseBinding;
 import com.miyuan.smarthome.temp.db.Nurse;
 import com.miyuan.smarthome.temp.db.TempDataBase;
+import com.miyuan.smarthome.temp.log.Log;
+import com.miyuan.smarthome.temp.net.Response;
+import com.miyuan.smarthome.temp.net.TempApiManager;
 import com.miyuan.smarthome.temp.utils.TimeUtils;
 
 import java.sql.Timestamp;
@@ -147,8 +150,30 @@ public class NurselFragment extends Fragment implements View.OnClickListener {
                     nurse.setMemberId(TempApplication.currentLiveData.getValue().getMemberId());
                     nurse.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
                     db.getNurseDao().insert(nurse);
-                    Toast.makeText(getActivity(), "保存成功！", Toast.LENGTH_SHORT).show();
-                    Navigation.findNavController(v).navigateUp();
+
+                    Gson gson = new Gson();
+
+                    TempApiManager.getInstance().updateNurseInfo(gson.toJson(nurse))
+                            .subscribeOn(Schedulers.io())
+                            .unsubscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Consumer<Response<String>>() {
+                                @Override
+                                public void accept(Response<String> response) throws Exception {
+                                    if (response.getStatus().equals("000")) {
+                                        Toast.makeText(getActivity(), "保存成功！", Toast.LENGTH_SHORT).show();
+                                        Navigation.findNavController(v).navigateUp();
+                                    } else {
+                                        Toast.makeText(getActivity(), "保存失败！", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            }, new Consumer<Throwable>() {
+                                @Override
+                                public void accept(Throwable throwable) throws Exception {
+                                    Log.d(throwable.getMessage());
+                                    Toast.makeText(getActivity(), "保存失败！", Toast.LENGTH_SHORT).show();
+                                }
+                            });
                 } catch (Exception e) {
                     binding.save.setEnabled(true);
                     Toast.makeText(getActivity(), "保存失败！", Toast.LENGTH_SHORT).show();

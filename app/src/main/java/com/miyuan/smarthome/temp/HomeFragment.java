@@ -61,6 +61,7 @@ import java.util.Queue;
 import static com.miyuan.smarthome.temp.TempApplication.HIGH_TEMP_DIVIDER;
 import static com.miyuan.smarthome.temp.TempApplication.LOW_TEMP_DIVIDER;
 import static com.miyuan.smarthome.temp.blue.BlueManager._currentList;
+
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -80,6 +81,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
     private final static int COUNT = 10;
     boolean[] dpHigh = new boolean[COUNT];
     boolean[] dpLow = new boolean[COUNT];
+    Gson gson = new Gson();
 
     private float lastTemp = 38f;
 
@@ -311,10 +313,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 }
                 setData(entryList);
                 History history = new History();
-                history.setMemberId(1);
+                history.setMemberID(2);
 //                history.setMemberId(TempApplication.currentLiveData.getValue().getMemberId());
 //                history.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
-                history.setDeviceId("XXXXXXXXXXXXXXX");
+                history.setDeviceID("XXXXXXXXXXXXXXX1");
                 history.setTemps(Arrays.toString(temps));
                 history.setTime(currentFirstTime);
                 if (!TimeUtils.isSameDay(new Date(currentFirstTime))) {
@@ -325,14 +327,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                     db.getHistoryDao().updateTemps(history);
                 }
 
-//                Map<String, String> request = new HashMap<>();
-//                request.put("devicesID", history.getDeviceId());
-//                request.put("memberID", String.valueOf(history.getMemberId()));
-//                request.put("time", String.valueOf(history.getTime()));
-//                request.put("temps", history.getTemps());
-
-                Gson gson = new Gson();
-                gson.toJson(history);
 
                 TempApiManager.getInstance().updateRealTemp(gson.toJson(history))
                         .subscribeOn(Schedulers.io())
@@ -361,13 +355,29 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                     // 存入数据库
                     History history = new History();
                     history.setTime(historyTemp.getStartTime());
-                    history.setMemberId(historyTemp.getMemberId());
-                    history.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+                    history.setMemberID(historyTemp.getMemberId());
+                    history.setDeviceID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
                     history.setTemps(Arrays.toString(historyTemp.getTemps()));
                     dealWithHistory(history);
                     db.getHistoryDao().insert(history);
                     if (historyTemp.getStatus() == 1)
                         BlueManager.getInstance().send(ProtocolUtils.getHistoryTemp());
+                    TempApiManager.getInstance().updateHistory(gson.toJson(history))
+                            .subscribeOn(Schedulers.io())
+                            .unsubscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Consumer<Response<String>>() {
+                                @Override
+                                public void accept(Response<String> stringResponse) throws Exception {
+                                    stringResponse.getDatas();
+                                    Log.d(stringResponse.toString());
+                                }
+                            }, new Consumer<Throwable>() {
+                                @Override
+                                public void accept(Throwable throwable) throws Exception {
+                                    Log.d(throwable.getMessage());
+                                }
+                            });
                 }
             }
         });
@@ -724,9 +734,9 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 floats1.add(36.1f);
                 floats1.add(36.2f);
                 BlueManager._currentList.postValue(floats1);
-               if (null != tempInfo && tempInfo.getMemberCount() > 0) {
-                   Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
-               }
+                if (null != tempInfo && tempInfo.getMemberCount() > 0) {
+                    Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
+                }
                 break;
         }
     }
