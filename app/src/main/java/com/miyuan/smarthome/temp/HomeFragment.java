@@ -31,6 +31,7 @@ import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.listener.ChartTouchListener;
 import com.github.mikephil.charting.listener.OnChartGestureListener;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+import com.google.gson.Gson;
 import com.miyuan.smarthome.temp.blue.BlueManager;
 import com.miyuan.smarthome.temp.blue.BoxEvent;
 import com.miyuan.smarthome.temp.blue.ProtocolUtils;
@@ -44,6 +45,8 @@ import com.miyuan.smarthome.temp.db.Remind;
 import com.miyuan.smarthome.temp.db.TempDataBase;
 import com.miyuan.smarthome.temp.db.TempInfo;
 import com.miyuan.smarthome.temp.log.Log;
+import com.miyuan.smarthome.temp.net.Response;
+import com.miyuan.smarthome.temp.net.TempApiManager;
 import com.miyuan.smarthome.temp.utils.TTSManager;
 import com.miyuan.smarthome.temp.utils.TimeUtils;
 
@@ -58,6 +61,9 @@ import java.util.Queue;
 import static com.miyuan.smarthome.temp.TempApplication.HIGH_TEMP_DIVIDER;
 import static com.miyuan.smarthome.temp.TempApplication.LOW_TEMP_DIVIDER;
 import static com.miyuan.smarthome.temp.blue.BlueManager._currentList;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
 public class HomeFragment extends Fragment implements View.OnClickListener, OnChartGestureListener, OnChartValueSelectedListener {
 
@@ -305,8 +311,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 }
                 setData(entryList);
                 History history = new History();
-                history.setMemberId(TempApplication.currentLiveData.getValue().getMemberId());
-                history.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+                history.setMemberId(1);
+//                history.setMemberId(TempApplication.currentLiveData.getValue().getMemberId());
+//                history.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+                history.setDeviceId("XXXXXXXXXXXXXXX");
                 history.setTemps(Arrays.toString(temps));
                 history.setTime(currentFirstTime);
                 if (!TimeUtils.isSameDay(new Date(currentFirstTime))) {
@@ -316,6 +324,32 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 } else {
                     db.getHistoryDao().updateTemps(history);
                 }
+
+//                Map<String, String> request = new HashMap<>();
+//                request.put("devicesID", history.getDeviceId());
+//                request.put("memberID", String.valueOf(history.getMemberId()));
+//                request.put("time", String.valueOf(history.getTime()));
+//                request.put("temps", history.getTemps());
+
+                Gson gson = new Gson();
+                gson.toJson(history);
+
+                TempApiManager.getInstance().updateRealTemp(gson.toJson(history))
+                        .subscribeOn(Schedulers.io())
+                        .unsubscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Consumer<Response<String>>() {
+                            @Override
+                            public void accept(Response<String> stringResponse) throws Exception {
+                                stringResponse.getDatas();
+                                Log.d(stringResponse.toString());
+                            }
+                        }, new Consumer<Throwable>() {
+                            @Override
+                            public void accept(Throwable throwable) throws Exception {
+                                Log.d(throwable.getMessage());
+                            }
+                        });
             }
         });
 
@@ -665,32 +699,34 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 }
                 break;
             case R.id.record:
-//                List<Float> list = new ArrayList<>();
-//                list.add(36.5f);
-//                list.add(36.6f);
-//                list.add(36.7f);
-//                list.add(36.8f);
-//                list.add(36.9f);
-//                list.add(37.0f);
-//                list.add(37.1f);
-//                list.add(37.2f);
-//                list.add(37.3f);
-//                list.add(37.4f);
-//                list.add(37.5f);
-//                list.add(37.6f);
-//                list.add(37.7f);
-//                list.add(37.8f);
-//                list.add(37.9f);
-//                list.add(38.5f);
-//                list.add(38.6f);
-//                list.add(38.7f);
-//                list.add(38.8f);
-//                list.add(38.9f);
-//                _currentList.postValue(list);
-                if (null != tempInfo
-                        && tempInfo.getMemberCount() > 0) {
-                    Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
-                }
+                List<Float> floats1 = new ArrayList<>();
+                floats1.add(36.5f);
+                floats1.add(36.1f);
+                floats1.add(36.2f);
+                floats1.add(36.3f);
+                floats1.add(36.4f);
+                floats1.add(36.5f);
+                floats1.add(36.6f);
+                floats1.add(36.7f);
+                floats1.add(36.8f);
+                floats1.add(36.9f);
+                floats1.add(37.0f);
+                floats1.add(37.1f);
+                floats1.add(37.2f);
+                floats1.add(37.3f);
+                floats1.add(37.4f);
+                floats1.add(37.5f);
+                floats1.add(37.6f);
+                floats1.add(37.7f);
+                floats1.add(36.8f);
+                floats1.add(36.9f);
+                floats1.add(37.9f);
+                floats1.add(36.1f);
+                floats1.add(36.2f);
+                BlueManager._currentList.postValue(floats1);
+               if (null != tempInfo && tempInfo.getMemberCount() > 0) {
+                   Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
+               }
                 break;
         }
     }
