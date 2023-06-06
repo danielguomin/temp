@@ -26,6 +26,12 @@ import com.miyuan.smarthome.temp.utils.TimeUtils;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
 public class NurselFragment extends Fragment implements View.OnClickListener {
 
@@ -150,10 +156,13 @@ public class NurselFragment extends Fragment implements View.OnClickListener {
                     nurse.setMemberId(TempApplication.currentLiveData.getValue().getMemberId());
                     nurse.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
                     db.getNurseDao().insert(nurse);
-
-                    Gson gson = new Gson();
-
-                    TempApiManager.getInstance().updateNurseInfo(gson.toJson(nurse))
+                    Map<String, String> params = new HashMap<>();
+                    params.put("devicesID", nurse.getDeviceId());
+                    params.put("memberID", String.valueOf(nurse.getMemberId()));
+                    params.put("time", String.valueOf(nurse.getTime()));
+                    params.put("type", String.valueOf(nurse.getType()));
+                    params.put("content", nurse.getContent());
+                    TempApiManager.getInstance().updateNurseInfo(params)
                             .subscribeOn(Schedulers.io())
                             .unsubscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
