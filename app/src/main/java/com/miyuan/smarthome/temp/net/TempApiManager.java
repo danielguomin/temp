@@ -20,7 +20,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import io.reactivex.Flowable;
-import io.reactivex.rxjava3.core.Flowable;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
@@ -70,36 +69,26 @@ public class TempApiManager {
         return iTempApi.updateRealTemp(getRequestBody(params));
     }
 
-    public Flowable<Response<String>> updateRealTemp(String params) {
-        RequestBody requestBody = new FormBody.Builder().add("params", encrypt(params)).build();
-        return iTempApi.updateRealTemp(requestBody);
-    }
-
-    public Flowable<Response<List<History>>> getRealTemp(String params){
-        RequestBody requestBody = new FormBody.Builder().add("params", encrypt(params)).build();
-        return iTempApi.getRealTemp(requestBody);
+    public Flowable<Response<List<History>>> getRealTemp(@NonNull Map<String, String> params) {
+        return iTempApi.getRealTemp(getRequestBody(params));
     }
 
 
-    public Flowable<Response<String>> updateNurseInfo(String params){
-        RequestBody requestBody = new FormBody.Builder().add("params", encrypt(params)).build();
-        return iTempApi.updateNurseInfo(requestBody);
+    public Flowable<Response<String>> updateNurseInfo(@NonNull Map<String, String> params) {
+        return iTempApi.updateNurseInfo(getRequestBody(params));
     }
 
-    public Flowable<Response<List<Nurse>>> getNurseInfo(String params){
-        RequestBody requestBody = new FormBody.Builder().add("params", encrypt(params)).build();
-        return iTempApi.getNurseInfo(requestBody);
+    public Flowable<Response<List<Nurse>>> getNurseInfo(@NonNull Map<String, String> params) {
+        return iTempApi.getNurseInfo(getRequestBody(params));
     }
 
 
-    public Flowable<Response<String>> updateHistory(String params){
-        RequestBody requestBody = new FormBody.Builder().add("params", encrypt(params)).build();
-        return iTempApi.updateHistory(requestBody);
+    public Flowable<Response<String>> updateHistory(@NonNull Map<String, String> params) {
+        return iTempApi.updateHistory(getRequestBody(params));
     }
 
-    public Flowable<Response<List<History>>> getHistory(String params){
-        RequestBody requestBody = new FormBody.Builder().add("params", encrypt(params)).build();
-        return iTempApi.getHistory(requestBody);
+    public Flowable<Response<List<History>>> getHistory(@NonNull Map<String, String> params) {
+        return iTempApi.getHistory(getRequestBody(params));
     }
 
 

@@ -1,5 +1,8 @@
 package com.miyuan.smarthome.temp;
 
+import static com.miyuan.smarthome.temp.TempApplication.HIGH_TEMP_DIVIDER;
+import static com.miyuan.smarthome.temp.TempApplication.LOW_TEMP_DIVIDER;
+
 import android.animation.ValueAnimator;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
@@ -31,7 +34,6 @@ import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.listener.ChartTouchListener;
 import com.github.mikephil.charting.listener.OnChartGestureListener;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.google.gson.Gson;
 import com.miyuan.smarthome.temp.blue.BlueManager;
 import com.miyuan.smarthome.temp.blue.BoxEvent;
 import com.miyuan.smarthome.temp.blue.ProtocolUtils;
@@ -53,14 +55,12 @@ import com.miyuan.smarthome.temp.utils.TimeUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
-
-import static com.miyuan.smarthome.temp.TempApplication.HIGH_TEMP_DIVIDER;
-import static com.miyuan.smarthome.temp.TempApplication.LOW_TEMP_DIVIDER;
-import static com.miyuan.smarthome.temp.blue.BlueManager._currentList;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
@@ -81,7 +81,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
     private final static int COUNT = 10;
     boolean[] dpHigh = new boolean[COUNT];
     boolean[] dpLow = new boolean[COUNT];
-    Gson gson = new Gson();
 
     private float lastTemp = 38f;
 
@@ -326,9 +325,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 } else {
                     db.getHistoryDao().updateTemps(history);
                 }
-
-
-                TempApiManager.getInstance().updateRealTemp(gson.toJson(history))
+                Map<String, String> params = new HashMap<>();
+                params.put("devicesID", history.getDeviceID());
+                params.put("memberID", String.valueOf(history.getMemberID()));
+                params.put("time", String.valueOf(history.getTime()));
+                params.put("temps", history.getTemps());
+                TempApiManager.getInstance().updateRealTemp(params)
                         .subscribeOn(Schedulers.io())
                         .unsubscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -362,7 +364,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                     db.getHistoryDao().insert(history);
                     if (historyTemp.getStatus() == 1)
                         BlueManager.getInstance().send(ProtocolUtils.getHistoryTemp());
-                    TempApiManager.getInstance().updateHistory(gson.toJson(history))
+                    Map<String, String> params = new HashMap<>();
+                    params.put("devicesID", history.getDeviceID());
+                    params.put("memberID", String.valueOf(history.getMemberID()));
+                    params.put("time", String.valueOf(history.getTime()));
+                    params.put("temps", history.getTemps());
+                    TempApiManager.getInstance().updateHistory(params)
                             .subscribeOn(Schedulers.io())
                             .unsubscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
