@@ -82,12 +82,14 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
     boolean[] dpHigh = new boolean[COUNT];
     boolean[] dpLow = new boolean[COUNT];
 
-    private float lastTemp = 38f;
+    private float lastTemp = 34;
 
     private List<Remind> reminds;
 
     private Float[] highReminds = new Float[]{};
     private Float[] lowReminds = new Float[]{};
+    private boolean[] charging = new boolean[3];
+    private Map<Float, Boolean> remindTag = new HashMap<>();
 
     Handler handler = new Handler();
     Runnable runnable = new Runnable() {
@@ -194,7 +196,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         binding.twenty.setOnClickListener(this);
         binding.triangle.setOnClickListener(this);
         binding.name.setOnClickListener(this);
-
         binding.scan.setImageResource(R.drawable.scan_bg);
         AnimationDrawable drawable = (AnimationDrawable) binding.scan.getDrawable();
         drawable.start();
@@ -203,16 +204,21 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             binding.scanlayout.setVisibility(View.GONE);
             binding.tempLayout.setVisibility(View.VISIBLE);
         }
-
+        lastTemp = 34;
         reminds = db.getRemindDao().getAll();
         List<Float> highReminds = new ArrayList<>();
         List<Float> lowReminds = new ArrayList<>();
-
+        if (!remindTag.containsKey(35f)) {
+            remindTag.put(35f, false);
+        }
         for (Remind remind : reminds) {
             if (remind.isOpen() && remind.isHigh()) {
                 highReminds.add(remind.getTemp());
             } else if (!remind.isOpen() && remind.isLow()) {
                 lowReminds.add(remind.getTemp());
+            }
+            if (!remindTag.containsKey(remind.getTemp())) {
+                remindTag.put(remind.getTemp(), false);
             }
         }
         if (null != highReminds && highReminds.size() > 0) {
@@ -265,7 +271,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                         TempApplication._currentMemberLiveData.postValue(member);
                     }
                 }
-                // 获取数据库数据
 
                 initUI(info, null);
 
@@ -278,6 +283,9 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
+                        if (!charging[2]) {
+                            TTSManager.getInstance().speek("正在获取历史体温数据，请勿关闭APP");
+                        }
                         BlueManager.getInstance().send(ProtocolUtils.getHistoryTemp());
                     }
                 }, 1000);
@@ -312,10 +320,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 }
                 setData(entryList);
                 History history = new History();
-                history.setMemberID(2);
-//                history.setMemberId(TempApplication.currentLiveData.getValue().getMemberId());
-//                history.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
-                history.setDeviceID("XXXXXXXXXXXXXXX1");
+//                history.setMemberID(2);
+                history.setMemberID(TempApplication.currentLiveData.getValue().getMemberId());
+                history.setDeviceID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+//                history.setDeviceID("XXXXXXXXXXXXXXX1");
                 history.setTemps(Arrays.toString(temps));
                 history.setTime(currentFirstTime);
                 if (!TimeUtils.isSameDay(new Date(currentFirstTime))) {
@@ -323,7 +331,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                     history.setTime(currentFirstTime);
                     db.getHistoryDao().insert(history);
                 } else {
-                    db.getHistoryDao().updateTemps(history);
+                    db.getHistoryDao().update(history);
                 }
                 Map<String, String> params = new HashMap<>();
                 params.put("devicesID", history.getDeviceID());
@@ -336,9 +344,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Consumer<Response<String>>() {
                             @Override
-                            public void accept(Response<String> stringResponse) throws Exception {
-                                stringResponse.getDatas();
-                                Log.d(stringResponse.toString());
+                            public void accept(Response<String> response) throws Exception {
+                                Log.d(response.toString());
+                                if ("000".equals(response.getStatus())) {
+                                    history.setUpdated(true);
+                                    db.getHistoryDao().update(history);
+                                }
                             }
                         }, new Consumer<Throwable>() {
                             @Override
@@ -362,8 +373,11 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                     history.setTemps(Arrays.toString(historyTemp.getTemps()));
                     dealWithHistory(history);
                     db.getHistoryDao().insert(history);
-                    if (historyTemp.getStatus() == 1)
+                    if (historyTemp.getStatus() == 1) {
                         BlueManager.getInstance().send(ProtocolUtils.getHistoryTemp());
+                    } else {
+                        TTSManager.getInstance().speek("历史体温数据获取完成");
+                    }
                     Map<String, String> params = new HashMap<>();
                     params.put("devicesID", history.getDeviceID());
                     params.put("memberID", String.valueOf(history.getMemberID()));
@@ -375,9 +389,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new Consumer<Response<String>>() {
                                 @Override
-                                public void accept(Response<String> stringResponse) throws Exception {
-                                    stringResponse.getDatas();
-                                    Log.d(stringResponse.toString());
+                                public void accept(Response<String> response) throws Exception {
+                                    Log.d(response.toString());
+                                    if ("000".equals(response.getStatus())) {
+                                        history.setUpdated(true);
+                                        db.getHistoryDao().update(history);
+                                    }
                                 }
                             }, new Consumer<Throwable>() {
                                 @Override
@@ -416,6 +433,16 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 binding.highTime.setText(TimeUtils.getHourStr(new Date(Long.valueOf(split[1]))));
             }
         });
+    }
+
+    private void checkCharging(int charging) {
+        if (charging <= 20 && this.charging[0] == false) {
+            this.charging[0] = true;
+            TTSManager.getInstance().speek("当前测温设备电量低于20%，请确认备用电池是否满电");
+        } else if (charging <= 40 && this.charging[1] == false) {
+            this.charging[1] = true;
+            TTSManager.getInstance().speek("当前测温设备电量低于40%，请确认备用电池是否满电");
+        }
     }
 
     private void getHistory(TempInfo info) {
@@ -705,6 +732,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                     setData(currentList);
                 }
                 break;
+
             case R.id.twenty:
                 binding.second.setSelected(false);
                 binding.two.setSelected(false);
@@ -716,31 +744,31 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 }
                 break;
             case R.id.record:
-                List<Float> floats1 = new ArrayList<>();
-                floats1.add(36.5f);
-                floats1.add(36.1f);
-                floats1.add(36.2f);
-                floats1.add(36.3f);
-                floats1.add(36.4f);
-                floats1.add(36.5f);
-                floats1.add(36.6f);
-                floats1.add(36.7f);
-                floats1.add(36.8f);
-                floats1.add(36.9f);
-                floats1.add(37.0f);
-                floats1.add(37.1f);
-                floats1.add(37.2f);
-                floats1.add(37.3f);
-                floats1.add(37.4f);
-                floats1.add(37.5f);
-                floats1.add(37.6f);
-                floats1.add(37.7f);
-                floats1.add(36.8f);
-                floats1.add(36.9f);
-                floats1.add(37.9f);
-                floats1.add(36.1f);
-                floats1.add(36.2f);
-                BlueManager._currentList.postValue(floats1);
+//                List<Float> floats1 = new ArrayList<>();
+//                floats1.add(36.5f);
+//                floats1.add(36.1f);
+//                floats1.add(36.2f);
+//                floats1.add(36.3f);
+//                floats1.add(36.4f);
+//                floats1.add(36.5f);
+//                floats1.add(36.6f);
+//                floats1.add(36.7f);
+//                floats1.add(36.8f);
+//                floats1.add(36.9f);
+//                floats1.add(37.0f);
+//                floats1.add(37.1f);
+//                floats1.add(37.2f);
+//                floats1.add(37.3f);
+//                floats1.add(37.4f);
+//                floats1.add(37.5f);
+//                floats1.add(37.6f);
+//                floats1.add(37.7f);
+//                floats1.add(36.8f);
+//                floats1.add(36.9f);
+//                floats1.add(37.9f);
+//                floats1.add(36.1f);
+//                floats1.add(36.2f);
+//                BlueManager._currentList.postValue(floats1);
                 if (null != tempInfo && tempInfo.getMemberCount() > 0) {
                     Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
                 }
@@ -752,59 +780,78 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         updateName();
         if (info != null) {
             binding.charging.setPower(info.getCharging());
+            checkCharging(info.getCharging());
         }
         if (temp != null) {
             float t = temp.getTemp();
             binding.temp.setText(String.valueOf(t));
             binding.charging.setPower(temp.getCharging());
             dealWithPointer(t);
+            checkCharging(temp.getCharging());
             checkNotify(t);
         }
     }
 
     private float currentRemind = 0;
-    private long notifyTime = 0;
 
     private void checkNotify(float temp) {
 
-        if (highReminds != null && highReminds.length > 0) {
-            for (int i = highReminds.length - 1; i <= 0; i--) {
-                float higher = highReminds[i];
-                if (temp >= highReminds[i]) {
-                    if (currentRemind == higher || (System.currentTimeMillis() - notifyTime) < 10 * 60 * 1000) {
-                        return;
+        if (temp <= 35) {
+            if (currentRemind == 35 || remindTag.get(35f)) {
+                return;
+            }
+            // 播报
+            binding.hint.setVisibility(View.VISIBLE);
+            binding.hinttag.setVisibility(View.VISIBLE);
+            binding.hint.setText("目前获取温度较低，确认设备正常贴在腋下");
+            remindTag.put(35f, true);
+            TTSManager.getInstance().speek("目前获取温度较低，确认设备正常贴在腋下");
+            return;
+        } else {
+            binding.hint.setVisibility(View.INVISIBLE);
+            binding.hinttag.setVisibility(View.INVISIBLE);
+            if (highReminds != null && highReminds.length > 0) {
+                for (int i = highReminds.length - 1; i <= 0; i--) {
+                    float higher = highReminds[i];
+                    if (temp >= highReminds[i]) {
+                        if (currentRemind == higher || remindTag.get(higher)) {
+                            return;
+                        }
+                        currentRemind = higher;
+                        remindTag.put(higher, true);
+                        // 播报
+                        TTSManager.getInstance().speek("当前体温高于所设的温度提醒" + higher + "°C，请注意查看护理!");
+                        break;
                     }
-                    currentRemind = higher;
-                    notifyTime = System.currentTimeMillis();
-                    // 播报
-                    TTSManager.getInstance().speek("当前体温高于所设的温度提醒" + higher + "°C，请注意查看护理!");
                 }
             }
-        } else if (lowReminds != null && lowReminds.length > 0) {
-            for (int i = 0; i < lowReminds.length; i++) {
-                float low = lowReminds[i];
-                if (temp <= low) {
-                    if (currentRemind == low || (System.currentTimeMillis() - notifyTime) < 10 * 60 * 1000) {
-                        return;
+            if (lowReminds != null && lowReminds.length > 0) {
+                for (int i = 0; i < lowReminds.length; i++) {
+                    float low = lowReminds[i];
+                    if (temp <= low) {
+                        if (currentRemind == low || remindTag.get(low)) {
+                            return;
+                        }
+                        currentRemind = low;
+                        remindTag.put(low, true);
+                        // 播报
+                        TTSManager.getInstance().speek("当前体温低于所设的温度提醒" + low + "°C，请注意查看护理!");
+                        break;
                     }
-                    currentRemind = low;
-                    notifyTime = System.currentTimeMillis();
-                    // 播报
-                    TTSManager.getInstance().speek("当前体温低于所设的温度提醒" + low + "°C，请注意查看护理!");
                 }
             }
         }
     }
 
-    private void dealWithPointer(float t) {
+    private void dealWithPointer(float temp) {
         //#08BE62
-        if (t <= 37.3f) {
+        if (temp <= 37.3f) {
             binding.temp.setTextColor(Color.parseColor("#FF08BE62"));
             binding.tempUnit.setTextColor(Color.parseColor("#FF08BE62"));
-        } else if (t > 37.4f && t < 38.5) {
+        } else if (temp >= 37.4f && temp < 38) {
             binding.temp.setTextColor(Color.parseColor("#FFFFDE00"));
             binding.tempUnit.setTextColor(Color.parseColor("#FFFFDE00"));
-        } else if (t >= 38.5 && t <= 39.5) {
+        } else if (temp >= 38 && temp <= 39.5) {
             binding.temp.setTextColor(Color.parseColor("#FFFF9C01"));
             binding.tempUnit.setTextColor(Color.parseColor("#FFFF9C01"));
         } else {
@@ -813,11 +860,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
         }
 
         View pointer = binding.pointer;
-        pointer.setPivotX(pointer.getWidth() / 2);
-        pointer.setPivotY(pointer.getHeight());
+        pointer.setPivotX(pointer.getWidth());
+        pointer.setPivotY(pointer.getHeight() / 2);
         float from = pointer.getRotation();
-        float to = 180 * (t - lastTemp) / 8f + from;
-        ValueAnimator valueAnimator = ValueAnimator.ofFloat(from, to);
+        float to = (180 * (temp - lastTemp)) / 8f;
+        Log.d("from = " + from + " to = " + to + " lastTemp = " + lastTemp + " temp =  " + temp);
+        ValueAnimator valueAnimator = ValueAnimator.ofFloat(from, from + to);
         valueAnimator.setTarget(pointer);
         valueAnimator.setDuration(500).start();
         valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -827,7 +875,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
                 pointer.setRotation(value);
             }
         });
-        lastTemp = t;
+        lastTemp = temp;
     }
 
     @Override

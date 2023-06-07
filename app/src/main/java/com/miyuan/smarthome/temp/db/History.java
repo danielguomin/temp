@@ -15,6 +15,8 @@ public class History {
 
     private String temps;
 
+    private boolean updated = false;
+
     public long getTime() {
         return time;
     }
@@ -47,6 +49,15 @@ public class History {
         this.temps = temps;
     }
 
+
+    public boolean isUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(boolean updated) {
+        this.updated = updated;
+    }
+
     @Override
     public String toString() {
         return "History{" +
@@ -54,6 +65,7 @@ public class History {
                 ", deviceID='" + deviceID + '\'' +
                 ", memberID=" + memberID +
                 ", temps='" + temps + '\'' +
+                ", updated=" + updated +
                 '}';
     }
 }

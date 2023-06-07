@@ -8,8 +8,11 @@ import androidx.core.app.ActivityCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.NavGraph;
 import androidx.navigation.Navigation;
+import androidx.room.Room;
 
 import com.miyuan.smarthome.temp.databinding.ActivityMainBinding;
+import com.miyuan.smarthome.temp.db.Remind;
+import com.miyuan.smarthome.temp.db.TempDataBase;
 import com.tencent.mmkv.MMKV;
 
 import java.util.ArrayList;
@@ -20,6 +23,9 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
 
     private List<String> mPermissionList = new ArrayList<>();
+
+    private float[] lockTemps = new float[]{37.3f, 38f, 38.5f, 39f, 39.5f, 40f, 40.5f, 41f, 41.5f, 42};
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +73,29 @@ public class MainActivity extends AppCompatActivity {
                 graph.setStartDestination(R.id.DisclaimerFragment);
             }
             navController.setGraph(graph);
+
+            checkDataBase();
         }
+    }
+
+    private void checkDataBase() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                TempDataBase db = Room.databaseBuilder(MainActivity.this, TempDataBase.class, "database_temp").allowMainThreadQueries().build();
+                List<Remind> reminds = db.getRemindDao().getAll();
+                if (reminds.size() == 0) {
+                    for (int i = 0; i < lockTemps.length; i++) {
+                        Remind remind = new Remind();
+                        remind.setLock(true);
+                        remind.setHigh(true);
+                        remind.setOpen(true);
+                        remind.setTemp(lockTemps[i]);
+                        reminds.add(remind);
+                    }
+                    db.getRemindDao().insert(reminds);
+                }
+            }
+        }).start();
     }
 }

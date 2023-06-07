@@ -27,7 +27,6 @@ public class TempRemindListFragment extends Fragment implements View.OnClickList
     private RemindAdapter remindAdapter;
     private TempDataBase db;
     private List<Remind> reminds;
-    private float[] lockTemps = new float[]{37.3f, 38.5f, 39.5f};
 
     @Override
     public View onCreateView(
@@ -53,17 +52,6 @@ public class TempRemindListFragment extends Fragment implements View.OnClickList
         binding.reminds.setAdapter(remindAdapter);
         db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
         reminds = db.getRemindDao().getAll();
-        if (reminds.size() < 3) {
-            for (int i = 0; i < lockTemps.length; i++) {
-                Remind remind = new Remind();
-                remind.setLock(true);
-                remind.setHigh(true);
-                remind.setOpen(true);
-                remind.setTemp(lockTemps[i]);
-                reminds.add(remind);
-            }
-            db.getRemindDao().insert(reminds);
-        }
         binding.edit.setVisibility(reminds.size() > 0 ? View.VISIBLE : View.INVISIBLE);
         remindAdapter.setmList(reminds);
         remindAdapter.setOnItemClickListerner(new RemindAdapter.OnItemClickListerner() {
