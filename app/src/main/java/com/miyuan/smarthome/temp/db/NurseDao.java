@@ -19,6 +19,9 @@ public interface NurseDao {
     @Insert
     void insert(Nurse nurse);
 
+    @Insert
+    void insert(List<Nurse> nurses);
+
     @Delete
     void delete(Nurse nurse);
 

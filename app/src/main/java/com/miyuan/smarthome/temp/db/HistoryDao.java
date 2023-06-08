@@ -23,6 +23,9 @@ public interface HistoryDao {
     @Insert
     void insert(History history);
 
+    @Insert
+    void insert(List<History> histories);
+
     @Delete
     void delete(History history);
 

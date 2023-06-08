@@ -16,7 +16,7 @@ public interface ITempApi {
     Flowable<Response<String>> updateRealTemp(@Body RequestBody body);
 
     @POST("service/data/getData")
-    Flowable<Response<List<History>>> getRealTemp(@Body RequestBody body);
+    Flowable<Response<History>> getRealTemp(@Body RequestBody body);
 
     @POST("service/checkUp/add")
     Flowable<Response<String>> updateNurseInfo(@Body RequestBody body);

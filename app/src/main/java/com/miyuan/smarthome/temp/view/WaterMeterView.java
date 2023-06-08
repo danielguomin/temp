@@ -20,7 +20,7 @@ import android.widget.Scroller;
 
 import androidx.annotation.Nullable;
 
-import com.miyuan.smarthome.temp.db.Entity;
+import com.miyuan.smarthome.temp.db.Entry;
 import com.miyuan.smarthome.temp.utils.UIUtil;
 
 import java.text.SimpleDateFormat;
@@ -42,9 +42,9 @@ public class WaterMeterView extends View {
     private static SimpleDateFormat sdf = new SimpleDateFormat(DEFAULT);
     private final String[] STYLE0 = new String[]{"0", "5", "10", "15", "20", "25", "30"};
     private final String[] STYLE1 = new String[]{"0", "0:20", "0:40", "1:00", "1:20", "1:40", "2:00"};
-    private final String[] STYLE2 = new String[]{"0", "1", "2", "3", "4", "5", "6"};
-    private final String[] STYLE3 = new String[]{"0", "2", "4", "6", "8", "10", "12"};
-    private final String[] STYLE4 = new String[]{"0", "4", "8", "12", "16", "20", "24"};
+    private final String[] STYLE2 = new String[]{"0", "1:00", "2:00", "3:00", "4:00", "5:00", "6:00"};
+    private final String[] STYLE3 = new String[]{"0", "2:00", "4:00", "6:00", "8:00", "10:00", "12:00"};
+    private final String[] STYLE4 = new String[]{"0", "4:00", "8:00", "12:00", "16:00", "20:00", "24:00"};
     private final int[] DEGRESS = new int[]{35, 36, 37, 38, 39, 40, 41, 42};
     private String[] xaisStr = STYLE0;
     private int currentType = 0;
@@ -161,7 +161,7 @@ public class WaterMeterView extends View {
     /**
      * 数据列表data
      */
-    private List<Entity> list = new ArrayList<>();
+    private List<Entry> list = new ArrayList<>();
     /**
      * 每个月的坐标点集
      */
@@ -383,7 +383,7 @@ public class WaterMeterView extends View {
     /**
      * 更改横坐标
      */
-    public void changeStyle(int type) {
+    public void changeStyle(List<Entry> data, int type) {
         currentType = type;
         switch (type) {
             case 0:
@@ -402,13 +402,14 @@ public class WaterMeterView extends View {
                 xaisStr = STYLE4;
                 break;
         }
+        setData(data);
         invalidate();
     }
 
     /**
      * 公开方法，用于设置元数据
      */
-    public void setData(List<Entity> data, long endTime) {
+    public void setData(List<Entry> data) {
         if (data == null) {
             return;
         }
@@ -421,19 +422,19 @@ public class WaterMeterView extends View {
 
         switch (currentType) {
             case 0:
-                startTime = endTime / 1000 - 30 * 60;
+                startTime = System.currentTimeMillis() / 1000 - 30 * 60;
                 break;
             case 1:
-                startTime = endTime / 1000 - 2 * 60 * 60;
+                startTime = System.currentTimeMillis() / 1000 - 2 * 60 * 60;
                 break;
             case 2:
-                startTime = endTime / 1000 - 6 * 60 * 60;
+                startTime = System.currentTimeMillis() / 1000 - 6 * 60 * 60;
                 break;
             case 3:
-                startTime = endTime / 1000 - 12 * 60 * 60;
+                startTime = System.currentTimeMillis() / 1000 - 12 * 60 * 60;
                 break;
             case 4:
-                startTime = endTime / 1000 - 24 * 60 * 60;
+                startTime = System.currentTimeMillis() / 1000 - 24 * 60 * 60;
                 break;
         }
         calculateGap();
@@ -516,7 +517,7 @@ public class WaterMeterView extends View {
         }
 
 
-        Entity entity = list.get(pointFSelectedPosition);
+        Entry entity = list.get(pointFSelectedPosition);
 
         String textO = "时间：" + sdf.format(entity.getTime());
         String textT = "温度：" + entity.getTemp() + "°C";
@@ -546,6 +547,9 @@ public class WaterMeterView extends View {
     }
 
     private void drawMaxPoint(Canvas canvas) {
+        if (pointFMax == null) {
+            return;
+        }
         canvas.save();
         circlePaint.reset();
 
@@ -667,7 +671,12 @@ public class WaterMeterView extends View {
         float centerX;
         float centerY = viewHeight - itemHeight / 2 + UIUtil.dp2pxF(10f);
         for (int i = 0; i < xaisStr.length; i++) {
-            String text = xaisStr[i] + "分";
+            String text = "";
+            if (currentType != 0) {
+                text = xaisStr[i];
+            } else {
+                text = xaisStr[i] + "分";
+            }
             centerX = itemWidth * 3 / 4 + i * itemWidth;
             Paint.FontMetrics m = textPaint.getFontMetrics();
             canvas.drawText(text, 0, text.length(), centerX, centerY - (m.ascent + m.descent) / 2, textPaint);

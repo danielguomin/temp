@@ -551,12 +551,12 @@
 
         </LinearLayout>
 
-        <com.github.mikephil.charting.charts.LineChart
+        <com.miyuan.smarthome.temp.view.WaterMeterView
             android:id="@+id/lineChart"
             android:layout_width="match_parent"
             android:layout_height="163.67dp"
             android:layout_marginLeft="5dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="10dp"
             android:layout_marginRight="5dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"

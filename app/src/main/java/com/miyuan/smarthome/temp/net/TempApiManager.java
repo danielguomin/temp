@@ -69,7 +69,7 @@ public class TempApiManager {
         return iTempApi.updateRealTemp(getRequestBody(params));
     }
 
-    public Flowable<Response<List<History>>> getRealTemp(@NonNull Map<String, String> params) {
+    public Flowable<Response<History>> getRealTemp(@NonNull Map<String, String> params) {
         return iTempApi.getRealTemp(getRequestBody(params));
     }
 
@@ -86,6 +86,12 @@ public class TempApiManager {
     public Flowable<Response<String>> updateHistory(@NonNull Map<String, String> params) {
         return iTempApi.updateHistory(getRequestBody(params));
     }
+
+    public Flowable<Response<String>> updateHistoryList(String params) {
+        RequestBody requestBody = new FormBody.Builder().add("params", encrypt(params)).build();
+        return iTempApi.updateHistory(requestBody);
+    }
+
 
     public Flowable<Response<List<History>>> getHistory(@NonNull Map<String, String> params) {
         return iTempApi.getHistory(getRequestBody(params));

@@ -1,10 +1,10 @@
 package com.miyuan.smarthome.temp.db;
 
-public class Entity {
+public class Entry {
     private long time;
     private float temp;
 
-    public Entity(long time, float temp) {
+    public Entry(long time, float temp) {
         this.time = time;
         this.temp = temp;
     }

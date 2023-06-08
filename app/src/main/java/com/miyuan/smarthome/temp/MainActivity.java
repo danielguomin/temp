@@ -17,6 +17,8 @@ import com.tencent.mmkv.MMKV;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -25,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
     private List<String> mPermissionList = new ArrayList<>();
 
     private float[] lockTemps = new float[]{37.3f, 38f, 38.5f, 39f, 39.5f, 40f, 40.5f, 41f, 41.5f, 42};
+
+    public static ExecutorService executors = Executors.newCachedThreadPool();
 
 
     @Override
@@ -39,8 +43,6 @@ public class MainActivity extends AppCompatActivity {
         mPermissionList.add(Manifest.permission.ACCESS_COARSE_LOCATION);
         mPermissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
         mPermissionList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-//        }
-
         if (mPermissionList.size() > 0) {
             ActivityCompat.requestPermissions(this, mPermissionList.toArray(new String[0]), 1001);
         }
@@ -79,10 +81,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkDataBase() {
-        new Thread(new Runnable() {
+        TempDataBase db = Room.databaseBuilder(MainActivity.this, TempDataBase.class, "database_temp").allowMainThreadQueries().build();
+        executors.execute(new Runnable() {
             @Override
             public void run() {
-                TempDataBase db = Room.databaseBuilder(MainActivity.this, TempDataBase.class, "database_temp").allowMainThreadQueries().build();
                 List<Remind> reminds = db.getRemindDao().getAll();
                 if (reminds.size() == 0) {
                     for (int i = 0; i < lockTemps.length; i++) {
@@ -96,6 +98,6 @@ public class MainActivity extends AppCompatActivity {
                     db.getRemindDao().insert(reminds);
                 }
             }
-        }).start();
+        });
     }
 }
