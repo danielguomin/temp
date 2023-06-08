@@ -811,7 +811,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnCh
             binding.hint.setVisibility(View.INVISIBLE);
             binding.hinttag.setVisibility(View.INVISIBLE);
             if (highReminds != null && highReminds.length > 0) {
-                for (int i = highReminds.length - 1; i <= 0; i--) {
+                for (int i = highReminds.length - 1; i >= 0; i--) {
                     float higher = highReminds[i];
                     if (temp >= highReminds[i]) {
                         if (currentRemind == higher || remindTag.get(higher)) {
