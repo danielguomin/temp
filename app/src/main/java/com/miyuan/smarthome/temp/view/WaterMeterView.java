@@ -403,7 +403,6 @@ public class WaterMeterView extends View {
                 break;
         }
         setData(data);
-        invalidate();
     }
 
     /**
@@ -436,6 +435,11 @@ public class WaterMeterView extends View {
             case 4:
                 startTime = System.currentTimeMillis() / 1000 - 24 * 60 * 60;
                 break;
+        }
+        for (Entry entity : data) {
+            if (entity.getTime() >= startTime) {
+                list.add(entity);
+            }
         }
         calculateGap();
         initPointFData();
