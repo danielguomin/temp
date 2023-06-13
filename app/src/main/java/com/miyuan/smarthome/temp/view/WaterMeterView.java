@@ -21,6 +21,7 @@ import android.widget.Scroller;
 import androidx.annotation.Nullable;
 
 import com.miyuan.smarthome.temp.db.Entry;
+import com.miyuan.smarthome.temp.log.Log;
 import com.miyuan.smarthome.temp.utils.UIUtil;
 
 import java.text.SimpleDateFormat;
@@ -362,7 +363,7 @@ public class WaterMeterView extends View {
             }
         }
         itemWidth = viewWidth / 7;
-        viewHeight = viewWidth * 4 / 5;
+        viewHeight = viewWidth * 3 / 5;
         itemHeight = viewHeight / 9;
 //        int totalWidth;
 //        totalWidth = itemWidth * 7;
@@ -376,8 +377,8 @@ public class WaterMeterView extends View {
         screenWidth = getResources().getDisplayMetrics().widthPixels;
         screenHeight = getResources().getDisplayMetrics().heightPixels;
         itemWidth = viewWidth / 7;
-        calculateGap();
-        initPointFData();
+//        calculateGap();
+//        initPointFData();
     }
 
     /**
@@ -410,6 +411,7 @@ public class WaterMeterView extends View {
      */
     public void setData(List<Entry> data) {
         if (data == null) {
+            invalidate();
             return;
         }
         //数据清理
@@ -417,7 +419,6 @@ public class WaterMeterView extends View {
         pointFList.clear();
         pointFSelectedPosition = -1;
         pointFSelected = null;
-        this.list = data;
 
         switch (currentType) {
             case 0:
@@ -441,7 +442,7 @@ public class WaterMeterView extends View {
                 list.add(entity);
             }
         }
-        calculateGap();
+//        calculateGap();
         initPointFData();
         invalidate();
     }
@@ -453,12 +454,28 @@ public class WaterMeterView extends View {
         float centerX = 0;
         float centerY = 0;
         pointFList.clear();
+        int dividend = 30 * 60;
+        switch (currentType) {
+            case 0:
+                dividend = 30 * 60;
+                break;
+            case 1:
+                dividend = 2 * 60 * 60;
+                break;
+            case 2:
+                dividend = 6 * 60 * 60;
+                break;
+            case 3:
+                dividend = 12 * 60 * 60;
+                break;
+            case 4:
+                dividend = 24 * 60 * 60;
+                break;
+
+        }
         for (int i = 0; i < list.size(); i++) {
             long time = list.get(i).getTime();
-            if (time < startTime) {
-                continue;
-            }
-            centerX = getXFromTime(time / 1000);
+            centerX = getXFromTime(time / 1000, dividend);
             centerY = getYFromTemp(list.get(i).getTemp());
 //            float dosage = Float.valueOf(list.get(i).getDosage());
 //            centerY = viewHeight - itemWidth - unitVerticalGap * dosage;
@@ -551,7 +568,7 @@ public class WaterMeterView extends View {
     }
 
     private void drawMaxPoint(Canvas canvas) {
-        if (pointFMax == null) {
+        if (pointFMax == null || "".equals(maxTemp)) {
             return;
         }
         canvas.save();
@@ -569,7 +586,7 @@ public class WaterMeterView extends View {
         //画温度
         textPaintDetail.setColor(0XFFFF0000);
         Paint.FontMetrics m = textPaintDetail.getFontMetrics();
-        canvas.drawText(maxTemp, 0, maxTemp.length(), x_point - UIUtil.dp2pxF(11), y_point - UIUtil.dp2pxF(8) - (m.ascent + m.descent) / 2, textPaintDetail);
+        canvas.drawText(maxTemp, 0, maxTemp.length(), x_point - UIUtil.dp2pxF(14), y_point - UIUtil.dp2pxF(8) - (m.ascent + m.descent) / 2, textPaintDetail);
 
         canvas.restore();
     }
@@ -618,17 +635,19 @@ public class WaterMeterView extends View {
         canvas.save();
         //遍历一遍点集合，找到用量最大的点的坐标
         pointFMax = pointFList.get(0);
+        maxTemp = String.valueOf(list.get(0).getTemp()) + "°C".trim();
         for (int i = 0; i < pointFList.size(); i++) {
             if (pointFList.get(i).y < pointFMax.y) {
                 pointFMax = pointFList.get(i);
-                maxTemp = String.valueOf(list.get(i).getTemp());
+                maxTemp = String.valueOf(list.get(i).getTemp()) + "°C".trim();
             }
         }
+        Log.d("maxTemp " + maxTemp);
         //设置抗锯齿
         backGroundPaint.setAntiAlias(true);
         //为Paint设置渐变
-        LinearGradient linearGradient = new LinearGradient(pointFMax.x, pointFMax.y, pointFList.get(0).x, viewHeight - itemWidth, new int[]{
-                0xFFE1F1FF, 0xFFEFF7FF, 0xFFFAFCFF},
+        LinearGradient linearGradient = new LinearGradient(pointFMax.x, pointFMax.y, pointFList.get(0).x, viewHeight - itemHeight, new int[]{
+                0x66E1F1FF, 0x66EFF7FF, 0x66FAFCFF},
                 null, Shader.TileMode.CLAMP);
         backGroundPaint.setShader(linearGradient);
         canvas.drawPath(getCurveAndAliasPath(), backGroundPaint);
@@ -649,6 +668,9 @@ public class WaterMeterView extends View {
             if (i == 0) {
                 curvePath.moveTo(pointFList.get(i).x, pointFList.get(i).y);
             }
+//            } else {
+//                curvePath.lineTo(pointFList.get(i).x, pointFList.get(i).y);
+//            }
             if (i != pointFList.size() - 1) {
                 curvePath.cubicTo((pointFList.get(i).x + pointFList.get(i + 1).x) / 2, pointFList.get(i).y,
                         (pointFList.get(i).x + pointFList.get(i + 1).x) / 2, pointFList.get(i + 1).y,
@@ -668,12 +690,12 @@ public class WaterMeterView extends View {
         textPaint.setColor(colorTextPaint);
         //画横轴
         for (int i = 0; i <= itemYSize + 1; i++) {
-            canvas.drawLine(itemWidth * 3 / 4, viewHeight - itemHeight / 2 - i * itemHeight,
-                    viewWidth - itemWidth / 4, viewHeight - itemHeight / 2 - i * itemHeight, coordinatePaint);
+            canvas.drawLine(itemWidth * 3 / 4, viewHeight - i * itemHeight - itemHeight * 2 / 3,
+                    viewWidth - itemWidth / 4, viewHeight - i * itemHeight - itemHeight * 2 / 3, coordinatePaint);
         }
         //划时间
         float centerX;
-        float centerY = viewHeight - itemHeight / 2 + UIUtil.dp2pxF(10f);
+        float centerY = viewHeight + UIUtil.dp2pxF(10f) - itemHeight * 2 / 3;
         for (int i = 0; i < xaisStr.length; i++) {
             String text = "";
             if (currentType != 0) {
@@ -688,7 +710,7 @@ public class WaterMeterView extends View {
 
         //画纵轴
         for (int i = 0; i < itemYSize; i++) {
-            canvas.drawLine(itemWidth * 3 / 4 + i * itemWidth, itemHeight / 2, itemWidth * 3 / 4 + i * itemWidth, viewHeight - itemHeight / 2, coordinatePaint);
+            canvas.drawLine(itemWidth * 3 / 4 + i * itemWidth, itemHeight * 1 / 3, itemWidth * 3 / 4 + i * itemWidth, viewHeight - itemHeight * 2 / 3, coordinatePaint);
         }
         //画度数
         float centerXNew = itemWidth * 2 / 5;
@@ -698,7 +720,7 @@ public class WaterMeterView extends View {
                 continue;
             }
             String text = DEGRESS[i] + "°C";
-            centerYNew = viewHeight - (i * itemHeight) - itemHeight - itemHeight / 2;
+            centerYNew = viewHeight - (i * itemHeight) - itemHeight - itemHeight * 2 / 3;
             Paint.FontMetrics m = textPaint.getFontMetrics();
             canvas.drawText(text, 0, text.length(), centerXNew, centerYNew - (m.ascent + m.descent) / 2, textPaint);
         }
@@ -733,13 +755,11 @@ public class WaterMeterView extends View {
     }
 
     private float getYFromTemp(float temp) {
-        return viewHeight - (((viewHeight - itemHeight) * (temp - 35f)) / 8f) - itemHeight - itemHeight / 2f;
+        return viewHeight - (((viewHeight - itemHeight) * (temp - 35f)) / 8f) - itemHeight - itemHeight * 2 / 3;
     }
 
-    private float getXFromTime(long time) {
-//        (startTime + 30*60*1000)
-//        time - startTime
-        return ((viewWidth - itemWidth) * (time - startTime)) / 1800 + itemWidth * 3 / 4;
+    private float getXFromTime(long time, int dividend) {
+        return ((viewWidth - itemWidth) * (time - startTime)) / dividend + itemWidth * 3 / 4;
     }
 
     /**

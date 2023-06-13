@@ -31,4 +31,7 @@ public interface HistoryDao {
 
     @Update
     void update(History history);
+
+    @Update
+    void update(List<History> histories);
 }

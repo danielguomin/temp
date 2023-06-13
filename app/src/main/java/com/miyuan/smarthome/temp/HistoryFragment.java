@@ -173,12 +173,6 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         binding.lineChart.invalidate();
     }
 
-    private float highTemp = 0;
-    private long highTime = 0;
-    private int highCount = 0;
-    private int lowCount = 0;
-    private int normalCount = 0;
-
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
@@ -199,10 +193,11 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
             return;
         }
         entryList = new ArrayList<>();
+        float highTemp = 0;
+        long highTime = 0;
         for (History history : historyList) {
             if (startTime == 0) {
                 startTime = history.getTime();
-                binding.measure.setText(TimeUtils.getHourStr(new Date(startTime)));
             }
             if (TimeUtils.isSameDay(new Date(history.getTime()), date)) {
                 long start = history.getTime();
@@ -212,23 +207,24 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
                     Float temp = Float.valueOf(temps[i]);
                     if (temp > highTemp) {
                         highTemp = temp;
-                        highTime = startTime + i * 10;
+                        highTime = start + i * 10 * 1000;
                     }
-                    Entry entry = new Entry(TimeUtils.getSecondForDate(start + i * 10), temp);
+                    Entry entry = new Entry(TimeUtils.getSecondForDate(start + i * 10 / 1000), temp);
                     entryList.add(entry);
                 }
             }
         }
-        binding.high.setText(String.valueOf(highCount));
+        binding.high.setText(String.valueOf(highTemp));
         binding.highTime.setText(TimeUtils.getHourStr(new Date(Long.valueOf(highTime))));
         setData(entryList);
     }
 
     private void setData(List<Entry> values) {
-        LineData data1 = binding.lineChart.getData();
-        if (null != data1) {
-            binding.lineChart.clear();
+        if (values == null) {
+            return;
         }
+        int normalCount = 0, highCount = 0, lowCount = 0;
+        binding.lineChart.clear();
         for (Entry entry : values) {
             float y = entry.getY();
             if (y <= LOW_TEMP_DIVIDER) {
@@ -244,11 +240,14 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
             checkQueue.offer(y);
             check();
         }
-        binding.highTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(highCount * 1000)));
-        binding.lowTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(lowCount * 1000)));
-        binding.normalTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(normalCount * 1000)));
-
-
+        binding.measure.setText(TimeUtils.getHourStrForSecond(new
+                Date(values.size() * 10 * 1000)));
+        binding.highTimeCount.setText(TimeUtils.getHourStrForSecond(new
+                Date(highCount * 1000)));
+        binding.lowTimeCount.setText(TimeUtils.getHourStrForSecond(new
+                Date(lowCount * 1000)));
+        binding.normalTimeCount.setText(TimeUtils.getHourStrForSecond(new
+                Date(normalCount * 1000)));
         xAxis.setAxisMaximum(24 * 60 * 60);
         // 创建一个数据集,并给它一个类型
         LineDataSet lineDataSet = new LineDataSet(values, "");
@@ -268,24 +267,26 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         LineData data = new LineData(dataSets);
         //谁知数据
         binding.lineChart.setData(data);
-        setChartFillDrawable(getContext().getDrawable(R.drawable.linechart_bg));
+
+        setChartFillDrawable(getContext().
+
+                getDrawable(R.drawable.linechart_bg));
     }
 
     private void check() {
         Iterator<Float> iterator = checkQueue.iterator();
         int i = 0;
+        int highCount = 0;
         while (iterator.hasNext()) {
+            Float next = iterator.next();
             if (i == 0) {
-                dpHigh[i] = iterator.next().floatValue() >= HIGH_TEMP_DIVIDER;
-                dpLow[i] = iterator.next().floatValue() < HIGH_TEMP_DIVIDER;
+                dpHigh[i] = next.floatValue() >= HIGH_TEMP_DIVIDER;
+                dpLow[i] = next.floatValue() < HIGH_TEMP_DIVIDER;
             } else {
-                dpHigh[i] = dpHigh[i - 1] && iterator.next().floatValue() >= HIGH_TEMP_DIVIDER;
-                dpLow[i] = dpLow[i - 1] && iterator.next().floatValue() < HIGH_TEMP_DIVIDER;
+                dpHigh[i] = dpHigh[i - 1] && next.floatValue() >= HIGH_TEMP_DIVIDER;
+                dpLow[i] = dpLow[i - 1] && next.floatValue() < HIGH_TEMP_DIVIDER;
             }
             i++;
-        }
-        if (dpLow[checkQueue.size() - 1]) {
-            high = false;
         }
         if (dpHigh[checkQueue.size() - 1]) {
             if (high) {
@@ -293,6 +294,9 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
             }
             high = true;
             highCount++;
+        }
+        if (dpLow[checkQueue.size() - 1]) {
+            high = false;
         }
         binding.highCount.setText(String.valueOf(highCount));
     }

@@ -1,5 +1,8 @@
 package com.miyuan.smarthome.temp;
 
+import static com.miyuan.smarthome.temp.TempApplication.HIGH_TEMP_DIVIDER;
+import static com.miyuan.smarthome.temp.TempApplication.LOW_TEMP_DIVIDER;
+
 import android.animation.ValueAnimator;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
@@ -51,16 +54,13 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
-import static com.miyuan.smarthome.temp.TempApplication.HIGH_TEMP_DIVIDER;
-import static com.miyuan.smarthome.temp.TempApplication.LOW_TEMP_DIVIDER;
-
 public class HomeFragment extends Fragment implements View.OnClickListener {
 
     private FragmentHomeBinding binding;
 
     private TempDataBase db;
     private List<Entry> entryHistoryList;
-    private List<Entry> currentList;
+    private List<Entry> currentList = new ArrayList<>();
 
     private final static int COUNT = 10;
     boolean[] dpHigh = new boolean[COUNT];
@@ -108,7 +108,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             String temps1 = history.getTemps();
             String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
             for (int i = 0; i < temps.length; i++) {
-                Entry entry = new Entry(TimeUtils.getSecondForDate(start + i * 10 * 1000), Float.valueOf(temps[i]));
+                Entry entry = new Entry(start + i * 10 * 1000, Float.valueOf(temps[i]));
                 entryHistoryList.add(entry);
             }
         }
@@ -157,7 +157,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             binding.scanlayout.setVisibility(View.GONE);
             binding.tempLayout.setVisibility(View.VISIBLE);
         }
-        lastTemp = 34;
         reminds = db.getRemindDao().getAll();
         List<Float> highReminds = new ArrayList<>();
         List<Float> lowReminds = new ArrayList<>();
@@ -183,6 +182,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             Arrays.sort(this.lowReminds);
         }
 
+        initPointer();
+
         BlueManager.connectStatusLiveData.observe(getViewLifecycleOwner(), new Observer<Integer>() {
             @Override
             public void onChanged(Integer integer) {
@@ -198,7 +199,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                         Log.d("HomeFragment onChanged go ScanFailFragment");
                         Navigation.findNavController(getView()).navigate(R.id.action_HomeFragment_to_ScanFailFragment);
                         break;
-
                 }
             }
         });
@@ -229,7 +229,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
                 // 定时获取实时温度
                 handler.removeCallbacks(runnable);
-                handler.postDelayed(runnable, 0);//启动定时任务
+                handler.postDelayed(runnable, 1000);//启动定时任务
 
                 getHistory(info);
 
@@ -241,7 +241,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                         }
                         BlueManager.getInstance().send(ProtocolUtils.getHistoryTemp());
                     }
-                }, 1000);
+                }, 0);
             }
         });
 
@@ -256,117 +256,127 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         BlueManager.currentList.observe(getViewLifecycleOwner(), new Observer<List<Float>>() {
             @Override
             public void onChanged(List<Float> floats) {
-                Log.d("HomeFragment currentList onChanged " + floats);
+                Log.d("HomeFragment currentList onChanged " + floats.size());
                 List<Entry> entryList = new ArrayList<>();
                 if (entryHistoryList != null) {
                     entryList.addAll(entryHistoryList);
                 }
-                for (int i = 0; i < floats.size(); i++) {
-                    Entry entry = new Entry(System.currentTimeMillis() - i * 20 * 1000, floats.get(i));
-                    entryList.add(entry);
-                }
+                Log.d("HomeFragment currentList entryHistoryList " + entryHistoryList.size());
+                Log.d("HomeFragment currentList entryList1  " + entryList.size());
+
                 if (currentFirstTime == 0) {
                     currentFirstTime = System.currentTimeMillis();
-                    binding.measure.setText(TimeUtils.getHourStr(new Date(currentFirstTime)));
                 }
+                float[] temps = new float[floats.size()];
+                for (int i = 0; i < floats.size(); i++) {
+                    temps[i] = floats.get(i);
+                    Entry entry = new Entry(currentFirstTime + i * 10 * 1000, floats.get(i));
+                    entryList.add(entry);
+                }
+                Log.d("HomeFragment currentList entryList  " + entryList.size());
                 setData(entryList);
-//                History history = new History();
-////                history.setMemberID(2);
-//                history.setMemberID(TempApplication.currentLiveData.getValue().getMemberId());
-//                history.setDeviceID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
-////                history.setDeviceID("XXXXXXXXXXXXXXX1");
-//                history.setTemps(Arrays.toString(temps));
-//                history.setTime(currentFirstTime);
-//                if (!TimeUtils.isSameDay(new Date(currentFirstTime))) {
-//                    currentFirstTime = System.currentTimeMillis();
-//                    history.setTime(currentFirstTime);
-//                    db.getHistoryDao().insert(history);
-//                } else {
-//                    db.getHistoryDao().update(history);
-//                }
-//                Map<String, String> params = new HashMap<>();
-//                params.put("devicesID", history.getDeviceID());
-//                params.put("memberID", String.valueOf(history.getMemberID()));
-//                params.put("time", String.valueOf(history.getTime()));
-//                params.put("temps", history.getTemps());
-//                TempApiManager.getInstance().updateRealTemp(params)
-//                        .subscribeOn(Schedulers.io())
-//                        .unsubscribeOn(Schedulers.io())
-//                        .observeOn(AndroidSchedulers.mainThread())
-//                        .subscribe(new Consumer<Response<String>>() {
-//                            @Override
-//                            public void accept(Response<String> response) throws Exception {
-//                                Log.d(response.toString());
-//                                if ("000".equals(response.getStatus())) {
-//                                    history.setUpdated(true);
-//                                    db.getHistoryDao().update(history);
-//                                }
-//                            }
-//                        }, new Consumer<Throwable>() {
-//                            @Override
-//                            public void accept(Throwable throwable) throws Exception {
-//                                Log.d(throwable.getMessage());
-//                            }
-//                        });
-            }
-        });
-
-        BlueManager.historyTempLiveData.observe(getViewLifecycleOwner(), new Observer<HistoryTemp>() {
-            @Override
-            public void onChanged(HistoryTemp historyTemp) {
-                Log.d("HomeFragment historyTempLiveData onChanged ");
-                if (historyTemp.getTempCount() > 0) {
-                    // 存入数据库
-                    History history = new History();
-                    history.setTime(historyTemp.getStartTime());
-                    history.setMemberID(historyTemp.getMemberId());
-                    history.setDeviceID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
-                    history.setTemps(Arrays.toString(historyTemp.getTemps()));
-                    dealWithHistory(history);
+                History history = new History();
+                history.setMemberID(TempApplication.currentLiveData.getValue().getMemberId());
+                history.setDeviceID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+                history.setTemps(Arrays.toString(temps));
+                history.setTime(currentFirstTime);
+                if (floats.size() > 0) {
+                    db.getHistoryDao().update(history);
+                } else {
                     db.getHistoryDao().insert(history);
-                    if (historyTemp.getStatus() == 1) {
-                        BlueManager.getInstance().send(ProtocolUtils.getHistoryTemp());
-                    } else {
-                        TTSManager.getInstance().speek("历史体温数据获取完成");
-                    }
-                    Map<String, String> params = new HashMap<>();
-                    params.put("devicesID", history.getDeviceID());
-                    params.put("memberID", String.valueOf(history.getMemberID()));
-                    params.put("time", String.valueOf(history.getTime()));
-                    params.put("temps", history.getTemps());
-                    TempApiManager.getInstance().updateHistory(params)
-                            .subscribeOn(Schedulers.io())
-                            .unsubscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Consumer<Response<String>>() {
-                                @Override
-                                public void accept(Response<String> response) throws Exception {
-                                    Log.d(response.toString());
-                                    if ("000".equals(response.getStatus())) {
-                                        history.setUpdated(true);
-                                        db.getHistoryDao().update(history);
-                                    }
-                                }
-                            }, new Consumer<Throwable>() {
-                                @Override
-                                public void accept(Throwable throwable) throws Exception {
-                                    Log.d(throwable.getMessage());
-                                }
-                            });
                 }
+                Map<String, String> params = new HashMap<>();
+                params.put("devicesID", history.getDeviceID());
+                params.put("memberID", String.valueOf(history.getMemberID()));
+                params.put("time", String.valueOf(history.getTime()));
+                params.put("temps", history.getTemps());
+                TempApiManager.getInstance().updateRealTemp(params)
+                        .subscribeOn(Schedulers.io())
+                        .unsubscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Consumer<Response<String>>() {
+                            @Override
+                            public void accept(Response<String> response) throws Exception {
+                                Log.d(response.toString());
+                                if ("000".equals(response.getStatus())) {
+                                    history.setUpdated(true);
+                                    db.getHistoryDao().update(history);
+                                }
+                            }
+                        }, new Consumer<Throwable>() {
+                            @Override
+                            public void accept(Throwable throwable) throws Exception {
+                                Log.d(throwable.getMessage());
+                            }
+                        });
             }
         });
 
-        BlueManager.memberLiveData.observe(getViewLifecycleOwner(), new Observer<Boolean>() {
-            @Override
-            public void onChanged(Boolean success) {
-                Log.d("HomeFragment memberLiveData onChanged ");
-                if (success) {
-                    Log.d("HomeFragment memberLiveData onChanged send getTempStatus");
-                    BlueManager.getInstance().send(ProtocolUtils.getTempStatus(System.currentTimeMillis()));
-                }
-            }
-        });
+        BlueManager.historyTempLiveData.observe(
+
+                getViewLifecycleOwner(), new Observer<HistoryTemp>() {
+                    @Override
+                    public void onChanged(HistoryTemp historyTemp) {
+                        Log.d("HomeFragment historyTempLiveData onChanged ");
+                        try {
+                            if (historyTemp.getTempCount() > 0) {
+                                // 存入数据库
+                                History history = new History();
+                                history.setTime(historyTemp.getStartTime());
+                                history.setMemberID(historyTemp.getMemberId());
+                                history.setDeviceID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+                                history.setTemps(Arrays.toString(historyTemp.getTemps()));
+                                dealWithHistory(history);
+                                db.getHistoryDao().insert(history);
+                                if (historyTemp.getStatus() == 1) {
+                                    BlueManager.getInstance().send(ProtocolUtils.getHistoryTemp());
+                                } else {
+                                    TTSManager.getInstance().speek("历史体温数据获取完成");
+                                }
+                                Map<String, String> params = new HashMap<>();
+                                params.put("devicesID", history.getDeviceID());
+                                params.put("memberID", String.valueOf(history.getMemberID()));
+                                params.put("time", String.valueOf(history.getTime()));
+                                params.put("temps", history.getTemps());
+                                TempApiManager.getInstance().updateHistory(params)
+                                        .subscribeOn(Schedulers.io())
+                                        .unsubscribeOn(Schedulers.io())
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .subscribe(new Consumer<Response<String>>() {
+                                            @Override
+                                            public void accept(Response<String> response) throws Exception {
+                                                Log.d(response.toString());
+                                                if ("000".equals(response.getStatus())) {
+                                                    history.setUpdated(true);
+                                                    db.getHistoryDao().update(history);
+                                                }
+                                            }
+                                        }, new Consumer<Throwable>() {
+                                            @Override
+                                            public void accept(Throwable throwable) throws Exception {
+                                                Log.d(throwable.getMessage());
+                                            }
+                                        });
+                            }
+                        } catch (Exception e) {
+                            Log.d(e.getMessage());
+                        }
+
+                    }
+                });
+
+        BlueManager.memberLiveData.observe(
+
+                getViewLifecycleOwner(), new Observer<Boolean>() {
+                    @Override
+                    public void onChanged(Boolean success) {
+                        Log.d("HomeFragment memberLiveData onChanged ");
+                        if (success) {
+                            Log.d("HomeFragment memberLiveData onChanged send getTempStatus");
+                            BlueManager.getInstance().send(ProtocolUtils.getTempStatus(System.currentTimeMillis()));
+                        }
+                    }
+                });
 
         TempApplication.currentLiveData.observeForever(new Observer<Member>() {
             @Override
@@ -376,14 +386,32 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        BlueManager.highLiveData.observe(getViewLifecycleOwner(), new Observer<String>() {
-            @Override
-            public void onChanged(String s) {
-                String[] split = s.split("#");
-                binding.high.setText(split[0]);
-                binding.highTime.setText(TimeUtils.getHourStr(new Date(Long.valueOf(split[1]))));
+        BlueManager.highLiveData.observe(
+
+                getViewLifecycleOwner(), new Observer<String>() {
+                    @Override
+                    public void onChanged(String s) {
+                        String[] split = s.split("#");
+                        binding.high.setText(split[0]);
+                        binding.highTime.setText(TimeUtils.getHourStr(new Date(Long.valueOf(split[1]))));
+                    }
+                });
+    }
+
+    private void initPointer() {
+        CurrentTemp currentTemp = BlueManager.currentTempLiveData.getValue();
+        if (currentTemp != null) {
+            View pointer = binding.pointer;
+            pointer.setPivotX(pointer.getWidth());
+            pointer.setPivotY(pointer.getHeight() / 2);
+            float from = pointer.getRotation();
+            float to = (180 * (currentTemp.getTemp() - 34)) / 8f;
+            Log.d("from = " + from + " to " + to);
+            if (from != to) {
+                pointer.setRotation(to);
+                lastTemp = currentTemp.getTemp();
             }
-        });
+        }
     }
 
     private void checkCharging(int charging) {
@@ -405,9 +433,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 if (list.size() == 0) {
                     getHistoryFromNet(info);
                 } else {
-
                     updateHistoryToNet(info);
-
                     for (History history : list) {
                         dealWithHistory(history);
                     }
@@ -458,6 +484,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                                 @Override
                                 public void accept(Response<String> response) throws Exception {
                                     Log.d(response.toString());
+                                    if ("000".equals(response.getStatus())) {
+                                        for (History history : updateHistory) {
+                                            history.setUpdated(true);
+                                        }
+                                        db.getHistoryDao().update(updateHistory);
+                                    }
                                 }
                             }, new Consumer<Throwable>() {
                                 @Override
@@ -528,10 +560,17 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     }
 
     private void setData(List<Entry> values) {
-        currentList = values;
+        if (values == null) {
+            return;
+        }
         for (Entry entry : values) {
+            // 过去24小时
+            if (entry.getTime() >= System.currentTimeMillis() - 24 * 60 * 60 * 1000) {
+                currentList.add(entry);
+            }
             float y = entry.getTemp();
             if (checkQueue.size() >= COUNT) {
+
                 checkQueue.poll();
             }
             checkQueue.offer(y);
@@ -545,6 +584,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             }
         }
         binding.highCount.setText(String.valueOf(highCount));
+        binding.measure.setText(TimeUtils.getHourStrForSecond(new Date(currentList.size() * 10 * 1000)));
         binding.highTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(highTimeCount * 1000)));
         binding.lowTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(lowTimeCount * 1000)));
         binding.normalTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(normalTimeCount * 1000)));
@@ -622,9 +662,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 binding.six.setSelected(false);
                 binding.twelve.setSelected(false);
                 binding.twenty.setSelected(false);
-                if (null != currentList) {
-                    binding.lineChart.changeStyle(currentList,0);
-                }
+                binding.lineChart.changeStyle(currentList, 0);
                 break;
             case R.id.two:
                 binding.second.setSelected(false);
@@ -632,9 +670,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 binding.six.setSelected(false);
                 binding.twelve.setSelected(false);
                 binding.twenty.setSelected(false);
-                if (null != currentList) {
-                    binding.lineChart.changeStyle(currentList,1);
-                }
+                binding.lineChart.changeStyle(currentList, 1);
                 break;
             case R.id.six:
                 binding.second.setSelected(false);
@@ -642,9 +678,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 binding.six.setSelected(true);
                 binding.twelve.setSelected(false);
                 binding.twenty.setSelected(false);
-                if (null != currentList) {
-                    binding.lineChart.changeStyle(currentList,2);
-                }
+                binding.lineChart.changeStyle(currentList, 2);
                 break;
             case R.id.twelve:
                 binding.second.setSelected(false);
@@ -652,47 +686,42 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 binding.six.setSelected(false);
                 binding.twelve.setSelected(true);
                 binding.twenty.setSelected(false);
-                if (null != currentList) {
-                    binding.lineChart.changeStyle(currentList,3);
-                }
+                binding.lineChart.changeStyle(currentList, 3);
                 break;
-
             case R.id.twenty:
                 binding.second.setSelected(false);
                 binding.two.setSelected(false);
                 binding.six.setSelected(false);
                 binding.twelve.setSelected(false);
                 binding.twenty.setSelected(true);
-                if (null != currentList) {
-                    binding.lineChart.changeStyle(currentList,4);
-                }
+                binding.lineChart.changeStyle(currentList, 4);
                 break;
             case R.id.record:
-                List<Float> floats1 = new ArrayList<>();
-                floats1.add(36.5f);
-                floats1.add(36.1f);
-                floats1.add(36.2f);
-                floats1.add(36.3f);
-                floats1.add(36.4f);
-                floats1.add(36.5f);
-                floats1.add(36.6f);
-                floats1.add(36.7f);
-                floats1.add(36.8f);
-                floats1.add(36.9f);
-                floats1.add(37.0f);
-                floats1.add(37.1f);
-                floats1.add(37.2f);
-                floats1.add(37.3f);
-                floats1.add(37.4f);
-                floats1.add(37.5f);
-                floats1.add(37.6f);
-                floats1.add(37.7f);
-                floats1.add(36.8f);
-                floats1.add(36.9f);
-                floats1.add(37.9f);
-                floats1.add(36.1f);
-                floats1.add(36.2f);
-                BlueManager._currentList.postValue(floats1);
+//                List<Float> floats1 = new ArrayList<>();
+//                floats1.add(36.5f);
+//                floats1.add(36.1f);
+//                floats1.add(36.2f);
+//                floats1.add(36.3f);
+//                floats1.add(36.4f);
+//                floats1.add(36.5f);
+//                floats1.add(36.6f);
+//                floats1.add(36.7f);
+//                floats1.add(36.8f);
+//                floats1.add(36.9f);
+//                floats1.add(37.0f);
+//                floats1.add(37.1f);
+//                floats1.add(37.2f);
+//                floats1.add(37.3f);
+//                floats1.add(37.4f);
+//                floats1.add(37.5f);
+//                floats1.add(37.6f);
+//                floats1.add(37.7f);
+//                floats1.add(36.8f);
+//                floats1.add(36.9f);
+//                floats1.add(37.9f);
+//                floats1.add(36.1f);
+//                floats1.add(36.2f);
+//                BlueManager._currentList.postValue(floats1);
                 if (null != tempInfo && tempInfo.getMemberCount() > 0) {
                     Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
                 }
@@ -748,8 +777,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                         break;
                     }
                 }
-            }
-            if (lowReminds != null && lowReminds.length > 0) {
+            } else if (lowReminds != null && lowReminds.length > 0) {
                 for (int i = 0; i < lowReminds.length; i++) {
                     float low = lowReminds[i];
                     if (temp <= low) {
