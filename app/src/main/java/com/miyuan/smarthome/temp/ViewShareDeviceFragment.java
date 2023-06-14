@@ -56,7 +56,7 @@ public class ViewShareDeviceFragment extends Fragment implements View.OnClickLis
                 }
                 Bundle bundle = new Bundle();
                 bundle.putString("deviceId", deviceId);
-                Navigation.findNavController(getView()).navigate(R.id.action_ViewShareDeviceFragment_to_HomeShowFragment);
+                Navigation.findNavController(getView()).navigate(R.id.action_ViewShareDeviceFragment_to_HomeShowFragment, bundle);
                 break;
         }
     }

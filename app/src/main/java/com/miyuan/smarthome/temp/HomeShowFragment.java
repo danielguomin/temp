@@ -64,6 +64,7 @@ public class HomeShowFragment extends Fragment implements View.OnClickListener {
             public void run() {
                 Map<String, String> map = new HashMap<>();
                 map.put("devicesID", deviceId);
+                map.put("memberID", 1 + "");
                 TempApiManager.getInstance().getRealTemp(map)
                         .subscribeOn(Schedulers.io())
                         .unsubscribeOn(Schedulers.io())
@@ -73,7 +74,7 @@ public class HomeShowFragment extends Fragment implements View.OnClickListener {
                             public void accept(Response<History> response) throws Exception {
                                 Log.d(response.toString());
                                 if ("000".equals(response.getStatus())) {
-                                    History history = response.getDatas();
+                                    History history = response.getData();
                                     dealWithHistory(history);
                                 }
                             }

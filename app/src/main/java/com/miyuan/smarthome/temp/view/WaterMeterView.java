@@ -647,7 +647,7 @@ public class WaterMeterView extends View {
         backGroundPaint.setAntiAlias(true);
         //为Paint设置渐变
         LinearGradient linearGradient = new LinearGradient(pointFMax.x, pointFMax.y, pointFList.get(0).x, viewHeight - itemHeight, new int[]{
-                0x66E1F1FF, 0x66EFF7FF, 0x66FAFCFF},
+                0xFFE1F1FF, 0xFFEFF7FF, 0xFFFAFCFF},
                 null, Shader.TileMode.CLAMP);
         backGroundPaint.setShader(linearGradient);
         canvas.drawPath(getCurveAndAliasPath(), backGroundPaint);
@@ -786,17 +786,23 @@ public class WaterMeterView extends View {
      */
     private Path getCurveAndAliasPath() {
         curvePath.reset();
+        List<PointF> tempList = new ArrayList<>();
         for (int i = 0; i < pointFList.size(); i++) {
-            if (i == 0) {
-                curvePath.moveTo(pointFList.get(i).x, pointFList.get(i).y);
+            if (pointFList.get(i).x >= itemWidth * 3 / 4) {
+                tempList.add(pointFList.get(i));
             }
-            if (i != pointFList.size() - 1) {
-                curvePath.cubicTo((pointFList.get(i).x + pointFList.get(i + 1).x) / 2, pointFList.get(i).y,
-                        (pointFList.get(i).x + pointFList.get(i + 1).x) / 2, pointFList.get(i + 1).y,
-                        pointFList.get(i + 1).x, pointFList.get(i + 1).y);
+        }
+        for (int i = 0; i < tempList.size(); i++) {
+            if (i == 0) {
+                curvePath.moveTo(tempList.get(i).x, tempList.get(i).y);
+            }
+            if (i != tempList.size() - 1) {
+                curvePath.cubicTo((tempList.get(i).x + tempList.get(i + 1).x) / 2, tempList.get(i).y,
+                        (tempList.get(i).x + tempList.get(i + 1).x) / 2, tempList.get(i + 1).y,
+                        tempList.get(i + 1).x, tempList.get(i + 1).y);
             } else {
-                curvePath.lineTo(pointFList.get(i).x, viewHeight - itemWidth);
-                curvePath.lineTo(pointFList.get(0).x, viewHeight - itemWidth);
+                curvePath.lineTo(tempList.get(i).x, viewHeight - itemHeight / 2);
+                curvePath.lineTo(tempList.get(0).x, viewHeight - itemHeight / 2);
                 curvePath.close();
             }
         }

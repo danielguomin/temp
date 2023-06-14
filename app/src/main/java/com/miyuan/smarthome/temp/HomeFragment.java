@@ -271,14 +271,13 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                     Entry entry = new Entry(currentFirstTime + i * 10 * 1000, floats.get(i));
                     entryList.add(entry);
                 }
-                Log.d("HomeFragment currentList entryList  " + entryList.size());
                 setData(entryList);
                 History history = new History();
                 history.setMemberID(TempApplication.currentLiveData.getValue().getMemberId());
                 history.setDeviceID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
                 history.setTemps(Arrays.toString(temps));
                 history.setTime(currentFirstTime);
-                if (floats.size() > 0) {
+                if (floats.size() > 1) {
                     db.getHistoryDao().update(history);
                 } else {
                     db.getHistoryDao().insert(history);
@@ -518,7 +517,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                             public void accept(Response<List<History>> response) throws Exception {
                                 Log.d(response.toString());
                                 if ("000".equals(response.getStatus())) {
-                                    db.getHistoryDao().insert(response.getDatas());
+                                    db.getHistoryDao().insert(response.getData());
                                 }
                             }
                         }, new Consumer<Throwable>() {
@@ -545,7 +544,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                             public void accept(Response<List<Nurse>> response) throws Exception {
                                 Log.d(response.toString());
                                 if ("000".equals(response.getStatus())) {
-                                    db.getNurseDao().insert(response.getDatas());
+                                    db.getNurseDao().insert(response.getData());
                                 }
                             }
                         }, new Consumer<Throwable>() {
