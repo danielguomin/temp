@@ -15,7 +15,6 @@ import androidx.room.Room;
 
 import com.miyuan.smarthome.temp.db.Remind;
 import com.miyuan.smarthome.temp.db.TempDataBase;
-import com.miyuan.smarthome.temp.log.Log;
 import com.miyuan.smarthome.temp.utils.SingleLiveData;
 
 import java.util.List;
@@ -95,5 +94,11 @@ public class TempPickerFragment extends DialogFragment implements View.OnClickLi
     private int dp2px(int dp) {
         float scale = getResources().getDisplayMetrics().density;
         return (int) (dp * scale + 0.5f);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        db.close();
     }
 }

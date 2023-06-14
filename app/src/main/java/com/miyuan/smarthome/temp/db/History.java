@@ -2,6 +2,7 @@ package com.miyuan.smarthome.temp.db;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 
 @Entity(primaryKeys = {"deviceID", "memberID", "time"})
 public class History {
@@ -14,6 +15,9 @@ public class History {
     private int memberID;
 
     private String temps;
+
+    @Ignore
+    private String name;
 
     private boolean updated = false;
 
@@ -58,6 +62,14 @@ public class History {
         this.updated = updated;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     @Override
     public String toString() {
         return "History{" +
@@ -65,6 +77,7 @@ public class History {
                 ", deviceID='" + deviceID + '\'' +
                 ", memberID=" + memberID +
                 ", temps='" + temps + '\'' +
+                ", name='" + name + '\'' +
                 ", updated=" + updated +
                 '}';
     }

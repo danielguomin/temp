@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".HomeFragment">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="367dp"
+            android:background="@drawable/home_bg"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/name"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:textColor="@color/black"
+                android:textSize="17sp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:id="@+id/triangle"
+                android:layout_width="7.33dp"
+                android:layout_height="6.67dp"
+                android:layout_marginLeft="6.33dp"
+                android:layout_marginTop="17.33dp"
+                android:background="@drawable/shape_reverse_triangle"
+                app:layout_constraintLeft_toRightOf="@id/name"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@drawable/divider"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/name" />
+
+            <com.miyuan.smarthome.temp.view.BatteryView
+                android:id="@+id/charging"
+                android:layout_width="32dp"
+                android:layout_height="14dp"
+                android:layout_marginLeft="22dp"
+                android:layout_marginTop="11dp"
+                app:batteryColor="@android:color/black"
+                app:batteryOrientation="horizontal"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:id="@+id/history"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginTop="6.67dp"
+                android:layout_marginRight="22dp"
+                android:background="@drawable/history"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:id="@+id/remind"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginTop="6.67dp"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/remind"
+                app:layout_constraintRight_toLeftOf="@id/history"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:id="@+id/share"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginTop="6.67dp"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/share"
+                app:layout_constraintRight_toLeftOf="@id/remind"
+                app:layout_constraintTop_toTopOf="parent" />
+
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/temp_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="23dp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/name">
+
+                <View
+                    android:id="@+id/temp_bg"
+                    android:layout_width="316dp"
+                    android:layout_height="216.67dp"
+                    android:background="@drawable/temp_bg"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/temp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="103.33dp"
+                    android:textSize="49.24sp"
+                    android:textStyle="bold"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/temp_unit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="°C"
+                    android:textSize="19.99sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBaseline_toBaselineOf="@id/temp"
+                    app:layout_constraintLeft_toRightOf="@id/temp" />
+
+
+                <View
+                    android:id="@+id/pointer"
+                    android:layout_width="68.33dp"
+                    android:layout_height="11.33dp"
+                    android:layout_marginLeft="89dp"
+                    android:layout_marginTop="95dp"
+                    android:background="@drawable/pointer"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+
+                <TextView
+                    android:id="@+id/hint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="目前获取温度较低，确认设备正常贴在腋下？"
+                    android:textColor="@color/white"
+                    android:textSize="10sp"
+                    android:visibility="invisible"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/temp_bg" />
+
+                <View
+                    android:id="@+id/hinttag"
+                    android:layout_width="6.67dp"
+                    android:layout_height="8.67dp"
+                    android:layout_marginTop="6.67dp"
+                    android:layout_marginRight="3.67dp"
+                    android:background="@drawable/warm"
+                    android:visibility="invisible"
+                    app:layout_constraintRight_toLeftOf="@id/hint"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/temp_bg" />
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/statistics"
+            android:layout_width="match_parent"
+            android:layout_height="195.67dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="297dp"
+            android:layout_marginRight="5dp"
+            android:background="@drawable/test"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="15dp"
+                android:layout_marginBottom="18dp"
+                android:text="此处统计为最近24小时数据信息"
+                android:textColor="#FFB6B5B5"
+                android:textSize="6.67sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/dd"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                    android:id="@+id/high_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="45dp"
+                    android:layout_marginTop="57dp"
+                    android:text="00:00:00"
+                    android:textColor="#FFFF0000"
+                    android:textSize="6.67sp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <LinearLayout
+                    android:id="@+id/top"
+                    android:layout_width="match_parent"
+                    android:layout_height="74.33dp"
+                    android:orientation="horizontal"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/high"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#FFFF0000"
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="最高"
+                            android:textColor="#FF7D7D7D"
+                            android:textSize="11.67sp" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/high_time_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="00:00:00"
+                            android:textColor="#FFFF0000"
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="高烧时长"
+                            android:textColor="#FF7D7D7D"
+                            android:textSize="11.67sp" />
+
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/high_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#FFFF0000"
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="高烧次数"
+                            android:textColor="#FF7D7D7D"
+                            android:textSize="11.67sp" />
+
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="74.33dp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/top">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:paddingTop="8dp">
+
+                        <TextView
+                            android:id="@+id/measure"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="00:00:00"
+                            android:textColor="#FF000000"
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="测温时长"
+                            android:textColor="#FF7D7D7D"
+                            android:textSize="11.67sp" />
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:paddingTop="8dp">
+
+                        <TextView
+                            android:id="@+id/normal_time_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="00:00:00"
+                            android:textColor="#FF000000"
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="正常体温时长"
+                            android:textColor="#FF7D7D7D"
+                            android:textSize="11.67sp" />
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:paddingTop="8dp">
+
+                        <TextView
+                            android:id="@+id/low_time_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="00:00:00"
+                            android:textColor="#FF000000"
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="低烧时长"
+                            android:textColor="#FF7D7D7D"
+                            android:textSize="11.67sp" />
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:paddingTop="8dp">
+
+                        <TextView
+                            android:id="@+id/nusre_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#FF000000"
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="护理记录"
+                            android:textColor="#FF7D7D7D"
+                            android:textSize="11.67sp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+        <com.miyuan.smarthome.temp.view.WaterMeterView
+            android:id="@+id/lineChart"
+            android:layout_width="match_parent"
+            android:layout_height="163.67dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="5dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/statistics" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.core.widget.NestedScrollView>

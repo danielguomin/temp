@@ -67,7 +67,9 @@ public class TempRemindListFragment extends Fragment implements View.OnClickList
                     remind.setChoice(!remind.isChoice());
                     remindAdapter.notifyItemChanged(position);
                 } else {
-                    TempPickerFragment.getInstance(reminds.get(position)).show(getParentFragmentManager(), "");
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("remind", remind);
+                    Navigation.findNavController(getView()).navigate(R.id.action_TempRemindListFragment_to_TempRemindAddFragment, bundle);
                 }
             }
         });
@@ -90,6 +92,7 @@ public class TempRemindListFragment extends Fragment implements View.OnClickList
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+        db.close();
     }
 
     @Override

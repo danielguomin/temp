@@ -338,4 +338,11 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         Date date = new Date(year - 1900, monthOfYear, dayOfMonth);
         isSameDay(date);
     }
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        db.close();
+    }
 }

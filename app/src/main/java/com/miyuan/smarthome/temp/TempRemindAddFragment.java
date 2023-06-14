@@ -19,6 +19,8 @@ public class TempRemindAddFragment extends Fragment implements View.OnClickListe
 
     private FragmentTempRemindAddBinding binding;
     private TempDataBase db;
+    private boolean isEdit;
+    private Remind remindDel;
 
     @Override
     public View onCreateView(
@@ -63,12 +65,25 @@ public class TempRemindAddFragment extends Fragment implements View.OnClickListe
         binding.whole.setMinValue(34);
         binding.decimal.setMinValue(0);
         binding.decimal.setMaxValue(9);
+        Remind remind = (Remind) getArguments().getSerializable("remind");
+        if (remind != null) {
+            remindDel = remind;
+            isEdit = true;
+            float temp = remind.getTemp();
+            int integerPart = (int) Math.floor(temp);
+            int decimalPart = (int) ((temp - integerPart) * 10);
+            binding.whole.setValue(Integer.valueOf(integerPart));
+            binding.decimal.setValue(Integer.valueOf(decimalPart));
+            binding.high.setChecked(remind.isOpen() ? remind.isHigh() : false);
+            binding.low.setChecked(remind.isLow());
+        }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+        db.close();
     }
 
     @Override
@@ -88,6 +103,9 @@ public class TempRemindAddFragment extends Fragment implements View.OnClickListe
                         remind.setHigh(binding.high.isChecked());
                         remind.setLow(binding.low.isChecked());
                         remind.setOpen(binding.high.isChecked());
+                        if (isEdit) {
+                            db.getRemindDao().delete(remindDel);
+                        }
                         db.getRemindDao().insert(remind);
                         Navigation.findNavController(v).navigateUp();
                     } else {

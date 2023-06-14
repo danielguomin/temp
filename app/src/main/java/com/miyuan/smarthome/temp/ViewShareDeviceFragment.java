@@ -2,9 +2,11 @@ package com.miyuan.smarthome.temp;
 
 import android.os.Bundle;
 import android.text.Html;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
@@ -47,6 +49,14 @@ public class ViewShareDeviceFragment extends Fragment implements View.OnClickLis
                 Navigation.findNavController(getView()).navigateUp();
                 break;
             case R.id.show:
+                String deviceId = binding.deviceId.getText().toString().trim();
+                if (TextUtils.isEmpty(deviceId)) {
+                    Toast.makeText(getActivity(), "请输入设备码！", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                Bundle bundle = new Bundle();
+                bundle.putString("deviceId", deviceId);
+                Navigation.findNavController(getView()).navigate(R.id.action_ViewShareDeviceFragment_to_HomeShowFragment);
                 break;
         }
     }

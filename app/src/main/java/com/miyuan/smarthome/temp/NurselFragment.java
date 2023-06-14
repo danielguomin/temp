@@ -111,6 +111,7 @@ public class NurselFragment extends Fragment implements View.OnClickListener {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+        db.close();
     }
 
     @Override

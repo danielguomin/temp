@@ -23,6 +23,9 @@ public interface RemindDao {
     @Delete
     void delete(List<Remind> reminds);
 
+    @Delete
+    void delete(Remind remind);
+
     @Update
     void update(Remind remind);
 

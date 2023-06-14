@@ -261,8 +261,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 if (entryHistoryList != null) {
                     entryList.addAll(entryHistoryList);
                 }
-                Log.d("HomeFragment currentList entryHistoryList " + entryHistoryList.size());
-                Log.d("HomeFragment currentList entryList1  " + entryList.size());
 
                 if (currentFirstTime == 0) {
                     currentFirstTime = System.currentTimeMillis();
@@ -290,6 +288,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 params.put("memberID", String.valueOf(history.getMemberID()));
                 params.put("time", String.valueOf(history.getTime()));
                 params.put("temps", history.getTemps());
+                params.put("name", TempApplication.currentLiveData.getValue().getName());
                 TempApiManager.getInstance().updateRealTemp(params)
                         .subscribeOn(Schedulers.io())
                         .unsubscribeOn(Schedulers.io())
@@ -697,31 +696,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 binding.lineChart.changeStyle(currentList, 4);
                 break;
             case R.id.record:
-//                List<Float> floats1 = new ArrayList<>();
-//                floats1.add(36.5f);
-//                floats1.add(36.1f);
-//                floats1.add(36.2f);
-//                floats1.add(36.3f);
-//                floats1.add(36.4f);
-//                floats1.add(36.5f);
-//                floats1.add(36.6f);
-//                floats1.add(36.7f);
-//                floats1.add(36.8f);
-//                floats1.add(36.9f);
-//                floats1.add(37.0f);
-//                floats1.add(37.1f);
-//                floats1.add(37.2f);
-//                floats1.add(37.3f);
-//                floats1.add(37.4f);
-//                floats1.add(37.5f);
-//                floats1.add(37.6f);
-//                floats1.add(37.7f);
-//                floats1.add(36.8f);
-//                floats1.add(36.9f);
-//                floats1.add(37.9f);
-//                floats1.add(36.1f);
-//                floats1.add(36.2f);
-//                BlueManager._currentList.postValue(floats1);
                 if (null != tempInfo && tempInfo.getMemberCount() > 0) {
                     Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
                 }
@@ -828,5 +802,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             }
         });
         lastTemp = temp;
+    }
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        db.close();
     }
 }

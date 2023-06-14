@@ -37,7 +37,8 @@ public class ShareDeviceFragment extends Fragment implements View.OnClickListene
         binding.titlelayout.title.setText("给他人共享");
         binding.copy.setOnClickListener(this);
         binding.deviceID.setText(BlueManager.tempInfoLiveData.getValue().getDeviceId());
-        binding.content.setText(Html.fromHtml("<font>   是否共享当前测温成员“彤彤”的体温信息给其他APP查看？ <br/><br/>   确认共享请点击下方</font><font color='#2BAC69'>【复制共享码】</font><font>按钮，将共享码发给共享的人。切勿修改共享码。<br/><br/>  共享期间请保持手机与设备正常连接。建议在wifi模式下共享信息。<font/>", Html.FROM_HTML_MODE_LEGACY));
+        String name = TempApplication.currentLiveData.getValue().getName();
+        binding.content.setText(Html.fromHtml("<font>   是否共享当前测温成员“" + name + "”的体温信息给其他APP查看？ <br/><br/>   确认共享请点击下方</font><font color='#2BAC69'>【复制共享码】</font><font>按钮，将共享码发给共享的人。切勿修改共享码。<br/><br/>  共享期间请保持手机与设备正常连接。建议在wifi模式下共享信息。<font/>", Html.FROM_HTML_MODE_LEGACY));
     }
 
     @Override

@@ -1,12 +1,13 @@
 package com.miyuan.smarthome.temp.db;
 
-import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
+import java.io.Serializable;
+
 @Entity
-public class Remind {
+public class Remind implements Serializable {
     @PrimaryKey(autoGenerate = true)
     private int id;
 

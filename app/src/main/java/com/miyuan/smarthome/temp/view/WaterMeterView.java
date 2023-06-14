@@ -665,19 +665,36 @@ public class WaterMeterView extends View {
         curvePath.reset();
 
         for (int i = 0; i < pointFList.size(); i++) {
-            if (i == 0) {
-                curvePath.moveTo(pointFList.get(i).x, pointFList.get(i).y);
+            PointF pointF = pointFList.get(i);
+            if (pointF.x < itemWidth * 3 / 4 || pointF.x > viewWidth - itemWidth / 4) {
+                continue;
             }
-//            } else {
-//                curvePath.lineTo(pointFList.get(i).x, pointFList.get(i).y);
+
+            float temp = list.get(i).getTemp();
+            if (temp <= 37.3f) {
+                colorBrokenLinePaint = 0XFF08BE62;
+            } else if (temp >= 37.4f && temp < 38) {
+                colorBrokenLinePaint = 0XFFFFDE00;
+            } else if (temp >= 38 && temp <= 39.5) {
+                colorBrokenLinePaint = 0XFFFF9C01;
+            } else {
+                colorBrokenLinePaint = 0XFFFF0101;
+            }
+//            if (i == 0) {
+//                curvePath.moveTo(pointFList.get(i).x, pointFList.get(i).y);
 //            }
-            if (i != pointFList.size() - 1) {
-                curvePath.cubicTo((pointFList.get(i).x + pointFList.get(i + 1).x) / 2, pointFList.get(i).y,
-                        (pointFList.get(i).x + pointFList.get(i + 1).x) / 2, pointFList.get(i + 1).y,
-                        pointFList.get(i + 1).x, pointFList.get(i + 1).y);
-            }
+////            } else {
+////                curvePath.lineTo(pointFList.get(i).x, pointFList.get(i).y);
+////            }
+//            if (i != pointFList.size() - 1) {
+//                curvePath.cubicTo((pointFList.get(i).x + pointFList.get(i + 1).x) / 2, pointFList.get(i).y,
+//                        (pointFList.get(i).x + pointFList.get(i + 1).x) / 2, pointFList.get(i + 1).y,
+//                        pointFList.get(i + 1).x, pointFList.get(i + 1).y);
+//            }
+            brokenLinePaint.setColor(colorBrokenLinePaint);
+            canvas.drawCircle(pointFList.get(i).x, pointFList.get(i).y, 2, brokenLinePaint);
         }
-        canvas.drawPath(curvePath, brokenLinePaint);
+//        canvas.drawPath(curvePath, brokenLinePaint);
         canvas.restore();
     }
 
