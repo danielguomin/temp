@@ -36,10 +36,6 @@ import com.miyuan.smarthome.temp.net.TempApiManager;
 import com.miyuan.smarthome.temp.utils.TTSManager;
 import com.miyuan.smarthome.temp.utils.TimeUtils;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -94,7 +90,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             Log.d("HomeFragment onCreateView");
             binding = FragmentHomeBinding.inflate(inflater, container, false);
             db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
-            BlueManager.getInstance().init(getActivity());
         }
         initView();
         return binding.getRoot();
@@ -117,24 +112,46 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     private long currentFirstTime;
 
 
+    int nurselCount = 0;
+
     @Override
     public void onResume() {
         super.onResume();
-        handler.post(runnable);
+        getNurseInfo();
+//        handler.post(runnable);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        handler.removeCallbacks(runnable);
+//        handler.removeCallbacks(runnable);
     }
 
-    private int nurselCount = 0;
-    private int highTimeCount = 0;
-    private int lowTimeCount = 0;
-    private int normalTimeCount = 0;
-    private int highCount = 0;
-    private boolean high = false;
+    private void initPointer() {
+        CurrentTemp currentTemp = BlueManager.currentTempLiveData.getValue();
+        if (currentTemp != null) {
+            View pointer = binding.pointer;
+            pointer.setPivotX(pointer.getWidth());
+            pointer.setPivotY(pointer.getHeight() / 2);
+            float from = pointer.getRotation();
+            float to = (180 * (currentTemp.getTemp() - 34)) / 8f;
+            Log.d("from = " + from + " to " + to);
+            if (from != to) {
+                pointer.setRotation(to);
+                lastTemp = currentTemp.getTemp();
+            }
+        }
+    }
+
+    private void checkCharging(int charging) {
+        if (charging <= 20 && this.charging[0] == false) {
+            this.charging[0] = true;
+            TTSManager.getInstance().speek("当前测温设备电量低于20%，请确认备用电池是否满电");
+        } else if (charging <= 40 && this.charging[1] == false) {
+            this.charging[1] = true;
+            TTSManager.getInstance().speek("当前测温设备电量低于40%，请确认备用电池是否满电");
+        }
+    }
 
     private void initView() {
         binding.history.setOnClickListener(this);
@@ -174,11 +191,11 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             }
         }
         if (null != highReminds && highReminds.size() > 0) {
-            highReminds.toArray(this.highReminds);
+            this.highReminds = highReminds.toArray(this.highReminds);
             Arrays.sort(this.highReminds);
         }
         if (null != lowReminds && lowReminds.size() > 0) {
-            lowReminds.toArray(this.lowReminds);
+            this.lowReminds = lowReminds.toArray(this.lowReminds);
             Arrays.sort(this.lowReminds);
         }
 
@@ -253,7 +270,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        BlueManager.currentList.observe(getViewLifecycleOwner(), new Observer<List<Float>>() {
+        BlueManager.currentList.observeForever(new Observer<List<Float>>() {
             @Override
             public void onChanged(List<Float> floats) {
                 Log.d("HomeFragment currentList onChanged " + floats.size());
@@ -274,16 +291,21 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 setData(entryList);
                 History history = new History();
                 history.setMemberID(TempApplication.currentLiveData.getValue().getMemberId());
-                history.setDeviceID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+                history.setDevicesID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
                 history.setTemps(Arrays.toString(temps));
                 history.setTime(currentFirstTime);
-                if (floats.size() > 1) {
-                    db.getHistoryDao().update(history);
-                } else {
-                    db.getHistoryDao().insert(history);
+                try {
+
+                    if (floats.size() > 1) {
+                        db.getHistoryDao().update(history);
+                    } else {
+                        db.getHistoryDao().insert(history);
+                    }
+                } catch (Exception e) {
+                    Log.d(e.getMessage());
                 }
                 Map<String, String> params = new HashMap<>();
-                params.put("devicesID", history.getDeviceID());
+                params.put("devicesID", history.getDevicesID());
                 params.put("memberID", String.valueOf(history.getMemberID()));
                 params.put("time", String.valueOf(history.getTime()));
                 params.put("temps", history.getTemps());
@@ -322,7 +344,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                                 History history = new History();
                                 history.setTime(historyTemp.getStartTime());
                                 history.setMemberID(historyTemp.getMemberId());
-                                history.setDeviceID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+                                history.setDevicesID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
                                 history.setTemps(Arrays.toString(historyTemp.getTemps()));
                                 dealWithHistory(history);
                                 db.getHistoryDao().insert(history);
@@ -332,7 +354,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                                     TTSManager.getInstance().speek("历史体温数据获取完成");
                                 }
                                 Map<String, String> params = new HashMap<>();
-                                params.put("devicesID", history.getDeviceID());
+                                params.put("devicesID", history.getDevicesID());
                                 params.put("memberID", String.valueOf(history.getMemberID()));
                                 params.put("time", String.valueOf(history.getTime()));
                                 params.put("temps", history.getTemps());
@@ -396,32 +418,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 });
     }
 
-    private void initPointer() {
-        CurrentTemp currentTemp = BlueManager.currentTempLiveData.getValue();
-        if (currentTemp != null) {
-            View pointer = binding.pointer;
-            pointer.setPivotX(pointer.getWidth());
-            pointer.setPivotY(pointer.getHeight() / 2);
-            float from = pointer.getRotation();
-            float to = (180 * (currentTemp.getTemp() - 34)) / 8f;
-            Log.d("from = " + from + " to " + to);
-            if (from != to) {
-                pointer.setRotation(to);
-                lastTemp = currentTemp.getTemp();
-            }
-        }
-    }
-
-    private void checkCharging(int charging) {
-        if (charging <= 20 && this.charging[0] == false) {
-            this.charging[0] = true;
-            TTSManager.getInstance().speek("当前测温设备电量低于20%，请确认备用电池是否满电");
-        } else if (charging <= 40 && this.charging[1] == false) {
-            this.charging[1] = true;
-            TTSManager.getInstance().speek("当前测温设备电量低于40%，请确认备用电池是否满电");
-        }
-    }
-
     private void getHistory(TempInfo info) {
         MainActivity.executors.execute(new Runnable() {
             @Override
@@ -431,50 +427,44 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 if (list.size() == 0) {
                     getHistoryFromNet(info);
                 } else {
-                    updateHistoryToNet(info);
+                    updateHistoryToNet();
                     for (History history : list) {
                         dealWithHistory(history);
                     }
-                    Log.d("entryHistoryList " + entryHistoryList.size());
-                    List<Nurse> nurseList = db.getNurseDao().getAll();
-                    for (Nurse nurse : nurseList) {
-                        if (TimeUtils.isSameDay(new Date(nurse.getTime()))) {
-                            nurselCount++;
-                        }
-                    }
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            binding.nusreCount.setText(String.valueOf(nurselCount));
-                        }
-                    });
-
+                    getNurseInfo();
                 }
             }
         });
     }
 
-    private void updateHistoryToNet(TempInfo info) {
-        MainActivity.executors.execute(new Runnable() {
+    private void getNurseInfo() {
+        List<Nurse> nurseList = db.getNurseDao().getAll();
+        nurselCount = 0;
+        for (Nurse nurse : nurseList) {
+            if (TimeUtils.isSameDay(new Date(nurse.getTime()))) {
+                nurselCount++;
+            }
+        }
+        handler.post(new Runnable() {
             @Override
             public void run() {
-                List<History> updateHistory = db.getHistoryDao().getUpdateHistory(false);
-                if (updateHistory.size() > 0) {
-                    JSONArray array = new JSONArray();
-                    for (History history : updateHistory) {
-                        JSONObject object = new JSONObject();
-                        try {
-                            object.put("devicesID", history.getDeviceID());
-                            object.put("memberID", String.valueOf(history.getMemberID()));
-                            object.put("time", String.valueOf(history.getTime()));
-                            object.put("temps", history.getTemps());
-                            array.put(object);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                binding.nusreCount.setText(String.valueOf(nurselCount));
+            }
+        });
+    }
 
-                    TempApiManager.getInstance().updateHistoryList(array.toString())
+    private void updateHistoryToNet() {
+        List<History> updateHistory = db.getHistoryDao().getUpdateHistory(false);
+        for (History history : updateHistory) {
+            MainActivity.executors.execute(new Runnable() {
+                @Override
+                public void run() {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("devicesID", history.getDevicesID());
+                    params.put("memberID", String.valueOf(history.getMemberID()));
+                    params.put("time", String.valueOf(history.getTime()));
+                    params.put("temps", history.getTemps());
+                    TempApiManager.getInstance().updateHistory(params)
                             .subscribeOn(Schedulers.io())
                             .unsubscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
@@ -483,10 +473,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                                 public void accept(Response<String> response) throws Exception {
                                     Log.d(response.toString());
                                     if ("000".equals(response.getStatus())) {
-                                        for (History history : updateHistory) {
-                                            history.setUpdated(true);
-                                        }
-                                        db.getHistoryDao().update(updateHistory);
+                                        history.setUpdated(true);
+                                        db.getHistoryDao().update(history);
                                     }
                                 }
                             }, new Consumer<Throwable>() {
@@ -496,10 +484,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                                 }
                             });
                 }
-            }
-        });
-
+            });
+        }
     }
+
 
     private void getHistoryFromNet(TempInfo info) {
         MainActivity.executors.execute(new Runnable() {
@@ -561,6 +549,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         if (values == null) {
             return;
         }
+        currentList.clear();
+        int normalTimeCount = 0, highTimeCount = 0, lowTimeCount = 0;
         for (Entry entry : values) {
             // 过去24小时
             if (entry.getTime() >= System.currentTimeMillis() - 24 * 60 * 60 * 1000) {
@@ -568,20 +558,18 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             }
             float y = entry.getTemp();
             if (checkQueue.size() >= COUNT) {
-
                 checkQueue.poll();
             }
             checkQueue.offer(y);
             check();
-            if (y <= LOW_TEMP_DIVIDER) {
+            if (y < LOW_TEMP_DIVIDER) {
                 normalTimeCount += 10;
-            } else if (y >= HIGH_TEMP_DIVIDER) {
+            } else if (y > HIGH_TEMP_DIVIDER) {
                 highTimeCount += 10;
             } else {
                 lowTimeCount += 10;
             }
         }
-        binding.highCount.setText(String.valueOf(highCount));
         binding.measure.setText(TimeUtils.getHourStrForSecond(new Date(currentList.size() * 10 * 1000)));
         binding.highTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(highTimeCount * 1000)));
         binding.lowTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(lowTimeCount * 1000)));
@@ -590,6 +578,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     }
 
     private void check() {
+        int highCount = 0;
+        boolean high = false;
         Iterator<Float> iterator = checkQueue.iterator();
         int i = 0;
         while (iterator.hasNext()) {
@@ -718,12 +708,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    private float currentRemind = 0;
-
     private void checkNotify(float temp) {
 
         if (temp <= 35) {
-            if (currentRemind == 35 || remindTag.get(35f)) {
+            if (remindTag.get(35f)) {
                 return;
             }
             // 播报
@@ -739,29 +727,32 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             if (highReminds != null && highReminds.length > 0) {
                 for (int i = highReminds.length - 1; i >= 0; i--) {
                     float higher = highReminds[i];
-                    if (temp >= highReminds[i]) {
-                        if (currentRemind == higher || remindTag.get(higher)) {
-                            return;
+                    if (temp > higher) {
+                        if (remindTag.get(higher)) {
+                            break;
                         }
-                        currentRemind = higher;
                         remindTag.put(higher, true);
                         // 播报
                         TTSManager.getInstance().speek("当前体温高于所设的温度提醒" + higher + "°C，请注意查看护理!");
                         break;
+                    } else {
+                        remindTag.put(higher, false);
                     }
                 }
-            } else if (lowReminds != null && lowReminds.length > 0) {
+            }
+            if (lowReminds != null && lowReminds.length > 0) {
                 for (int i = 0; i < lowReminds.length; i++) {
                     float low = lowReminds[i];
-                    if (temp <= low) {
-                        if (currentRemind == low || remindTag.get(low)) {
-                            return;
+                    if (temp < low) {
+                        if (remindTag.get(low)) {
+                            break;
                         }
-                        currentRemind = low;
                         remindTag.put(low, true);
                         // 播报
                         TTSManager.getInstance().speek("当前体温低于所设的温度提醒" + low + "°C，请注意查看护理!");
                         break;
+                    } else {
+                        remindTag.put(low, false);
                     }
                 }
             }

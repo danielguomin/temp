@@ -10,6 +10,7 @@ import androidx.navigation.NavGraph;
 import androidx.navigation.Navigation;
 import androidx.room.Room;
 
+import com.miyuan.smarthome.temp.blue.BlueManager;
 import com.miyuan.smarthome.temp.databinding.ActivityMainBinding;
 import com.miyuan.smarthome.temp.db.Remind;
 import com.miyuan.smarthome.temp.db.TempDataBase;
@@ -76,7 +77,9 @@ public class MainActivity extends AppCompatActivity {
             }
             navController.setGraph(graph);
 
+            BlueManager.getInstance().init(this);
             checkDataBase();
+
         }
     }
 

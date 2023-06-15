@@ -4,13 +4,13 @@ import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 
-@Entity(primaryKeys = {"deviceID", "memberID", "time"})
+@Entity(primaryKeys = {"devicesID", "memberID", "time"})
 public class History {
 
     private long time;
 
     @NonNull
-    private String deviceID;
+    private String devicesID;
 
     private int memberID;
 
@@ -37,12 +37,13 @@ public class History {
         this.memberID = memberID;
     }
 
-    public void setDeviceID(String deviceID) {
-        this.deviceID = deviceID;
+    @NonNull
+    public String getDevicesID() {
+        return devicesID;
     }
 
-    public String getDeviceID() {
-        return deviceID;
+    public void setDevicesID(@NonNull String devicesID) {
+        this.devicesID = devicesID;
     }
 
     public String getTemps() {
@@ -74,7 +75,7 @@ public class History {
     public String toString() {
         return "History{" +
                 "time=" + time +
-                ", deviceID='" + deviceID + '\'' +
+                ", devicesID='" + devicesID + '\'' +
                 ", memberID=" + memberID +
                 ", temps='" + temps + '\'' +
                 ", name='" + name + '\'' +

@@ -51,8 +51,6 @@ public class HomeShowFragment extends Fragment implements View.OnClickListener {
             binding = FragmentHomeShowBinding.inflate(inflater, container, false);
         }
         initView();
-        handler.removeCallbacks(runnable);
-        handler.postDelayed(runnable, 0);//启动定时任务
         return binding.getRoot();
     }
 
@@ -98,7 +96,7 @@ public class HomeShowFragment extends Fragment implements View.OnClickListener {
         String temps1 = history.getTemps();
         String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
         for (int i = 0; i < temps.length; i++) {
-            Entry entry = new Entry(start + i * 10 * 1000, Float.valueOf(temps[i]));
+            Entry entry = new Entry(start + i * 10, Float.valueOf(temps[i]));
             currentList.add(entry);
         }
         dealWithPointer(currentList.get(currentList.size() - 1).getTemp());
@@ -122,7 +120,6 @@ public class HomeShowFragment extends Fragment implements View.OnClickListener {
         binding.remind.setVisibility(View.INVISIBLE);
         binding.share.setVisibility(View.INVISIBLE);
         binding.share.setVisibility(View.INVISIBLE);
-        binding.name.setVisibility(View.INVISIBLE);
         binding.charging.setVisibility(View.INVISIBLE);
         binding.triangle.setVisibility(View.INVISIBLE);
     }

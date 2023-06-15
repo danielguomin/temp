@@ -415,6 +415,8 @@ public class WaterMeterView extends View {
             return;
         }
         //数据清理
+        maxTemp = "";
+        pointFMax = null;
         list.clear();
         pointFList.clear();
         pointFSelectedPosition = -1;
@@ -571,12 +573,16 @@ public class WaterMeterView extends View {
         if (pointFMax == null || "".equals(maxTemp)) {
             return;
         }
-        canvas.save();
-        circlePaint.reset();
-
         //画圆
         float x_point = pointFMax.x;
         float y_point = pointFMax.y;
+
+        if (x_point - UIUtil.dp2pxF(14) < itemWidth * 3 / 4) {
+            return;
+        }
+        canvas.save();
+        circlePaint.reset();
+
         //用背景色在拐点处画实心圆
         circlePaint.setStyle(Paint.Style.STROKE);
         circlePaint.setColor(0XFFFF0000);
@@ -762,7 +768,7 @@ public class WaterMeterView extends View {
 
         temp = "39.5°C";
         coordinatePaint.setColor(0XFFFF0000);
-        textPaint.setColor(0XFFFF0000);
+        textPaint.setColor(0X80FF0000);
         tempY = getYFromTemp(39.5f);
         canvas.drawLine(itemWidth * 3 / 4, tempY,
                 viewWidth - itemWidth / 4, tempY, coordinatePaint);

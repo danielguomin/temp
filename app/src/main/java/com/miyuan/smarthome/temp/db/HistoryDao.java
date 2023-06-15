@@ -14,8 +14,8 @@ public interface HistoryDao {
     @Query("SELECT * FROM history")
     List<History> getAll();
 
-    @Query("SELECT * FROM history WHERE deviceId = :deviceId AND memberId =:memberId ORDER BY time ASC")
-    List<History> getAll(String deviceId, int memberId);
+    @Query("SELECT * FROM history WHERE devicesID = :devicesID AND memberId =:memberId ORDER BY time ASC")
+    List<History> getAll(String devicesID, int memberId);
 
     @Query("SELECT * FROM history WHERE updated = :updated ORDER BY time ASC")
     List<History> getUpdateHistory(boolean updated);

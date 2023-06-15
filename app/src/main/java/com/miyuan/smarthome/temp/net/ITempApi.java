@@ -27,6 +27,9 @@ public interface ITempApi {
     @POST("service/history/add")
     Flowable<Response<String>> updateHistory(@Body RequestBody body);
 
+    @POST("service/history/adds")
+    Flowable<Response<String>> updateHistories(@Body RequestBody body);
+
     @POST("service/history/getData")
     Flowable<Response<List<History>>> getHistory(@Body RequestBody body);
 }

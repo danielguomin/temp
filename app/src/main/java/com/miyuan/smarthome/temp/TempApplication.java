@@ -80,6 +80,11 @@ public class TempApplication extends Application {
         context = this;
     }
 
+    @Override
+    public void onTerminate() {
+        super.onTerminate();
+    }
+
     public void registerUncaughtException() {
         final Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {

@@ -3,7 +3,6 @@ package com.miyuan.smarthome.temp.blue;
 import static android.bluetooth.BluetoothDevice.TRANSPORT_LE;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -67,7 +66,7 @@ public class BlueManager {
     private BluetoothGattCharacteristic readCharacteristic;
     private BluetoothGatt mBluetoothGatt;
     private BluetoothAdapter mBluetoothAdapter;
-    private Activity mContext;
+    private Context mContext;
     private Handler mMainHandler = new Handler(Looper.getMainLooper());
     private HandlerThread mWorkerThread;
     private Handler mHandler;
@@ -274,8 +273,8 @@ public class BlueManager {
 
     @SuppressLint("ServiceCast")
     @MainThread
-    public void init(Activity activity) {
-        mContext = activity;
+    public void init(Context context) {
+        mContext = context;
         if (isSupportBle()) {
             bluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
         }
