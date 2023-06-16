@@ -4,6 +4,7 @@ import static com.miyuan.smarthome.temp.TempApplication.HIGH_TEMP_DIVIDER;
 import static com.miyuan.smarthome.temp.TempApplication.LOW_TEMP_DIVIDER;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,7 @@ import com.miyuan.smarthome.temp.blue.BlueManager;
 import com.miyuan.smarthome.temp.databinding.FragmentHistoryBinding;
 import com.miyuan.smarthome.temp.db.Entry;
 import com.miyuan.smarthome.temp.db.History;
+import com.miyuan.smarthome.temp.db.Nurse;
 import com.miyuan.smarthome.temp.db.TempDataBase;
 import com.miyuan.smarthome.temp.log.Log;
 import com.miyuan.smarthome.temp.utils.TimeUtils;
@@ -46,9 +48,10 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         int memberId = getArguments().getInt("memberId");
         String deviceId = BlueManager.tempInfoLiveData.getValue().getDeviceId();
         historyList = db.getHistoryDao().getAll(deviceId, memberId);
-        Log.d("HistoryFragment " + historyList.size());
         isSameDay(new Date(System.currentTimeMillis()));
     }
+
+    Handler handler = new Handler();
 
     private long startTime = 0;
 
@@ -66,6 +69,17 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         binding = null;
     }
 
+    private void getNurseInfo(long time) {
+        int nurselCount = 0;
+        List<Nurse> nurseList = db.getNurseDao().getAll();
+        for (Nurse nurse : nurseList) {
+            if (TimeUtils.isSameDay(new Date(nurse.getTime()), new Date(time))) {
+                nurselCount++;
+            }
+        }
+        binding.lineChart.setNurseData(nurseList);
+        binding.nusreCount.setText(String.valueOf(nurselCount));
+    }
 
     @Override
     public View onCreateView(
@@ -76,8 +90,9 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
             binding = FragmentHistoryBinding.inflate(inflater, container, false);
             db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
         }
-        getHistory();
         initView();
+        getHistory();
+        getNurseInfo(System.currentTimeMillis());
         return binding.getRoot();
     }
 
@@ -110,7 +125,13 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
 
         binding.high.setText(String.valueOf(highTemp));
         binding.highTime.setText(TimeUtils.getHourStr(new Date(Long.valueOf(highTime))));
-        setData(entryList);
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                setData(entryList);
+            }
+        });
+
     }
 
     private void setData(List<Entry> values) {
@@ -195,6 +216,7 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         Log.d(" onDateChanged  year " + year + " month " + monthOfYear + " day " + dayOfMonth);
         Date date = new Date(year - 1900, monthOfYear, dayOfMonth);
         isSameDay(date);
+        getNurseInfo(date.getTime());
     }
 
 

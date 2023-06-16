@@ -35,14 +35,21 @@ public class TimeUtils {
         return nowDay.equals(day);
     }
 
-    public static boolean isYesterday(Date date) {
-        calendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH) - 1);
-        Date yesterday = calendar.getTime();
-        String nowDay = sdf.format(yesterday);
-        String day = sdf.format(date);
-        return nowDay.equals(day);
+    public static boolean isYesterday(long timestamp) {
+        Calendar calendar = Calendar.getInstance();
+        clearCalendar(calendar, Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND, Calendar.MILLISECOND);
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
+        long firstOfDay = calendar.getTimeInMillis(); // 昨天最早时间
+        calendar.setTimeInMillis(timestamp);
+        clearCalendar(calendar, Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND, Calendar.MILLISECOND); // 指定时间戳当天最早时间
+        return firstOfDay == calendar.getTimeInMillis();
     }
 
+    private static void clearCalendar(Calendar c, int... fields) {
+        for (int f : fields) {
+            c.set(f, 0);
+        }
+    }
 
     public static String getNormal() {
         return sdfNormal.format(new Date());

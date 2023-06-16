@@ -174,6 +174,7 @@ public class NurselFragment extends Fragment implements View.OnClickListener {
                                         Toast.makeText(getActivity(), "保存成功！", Toast.LENGTH_SHORT).show();
                                         Navigation.findNavController(v).navigateUp();
                                     } else {
+                                        binding.save.setEnabled(true);
                                         Toast.makeText(getActivity(), "保存失败！", Toast.LENGTH_SHORT).show();
                                     }
                                 }
@@ -181,6 +182,7 @@ public class NurselFragment extends Fragment implements View.OnClickListener {
                                 @Override
                                 public void accept(Throwable throwable) throws Exception {
                                     Log.d(throwable.getMessage());
+                                    binding.save.setEnabled(true);
                                     Toast.makeText(getActivity(), "保存失败！", Toast.LENGTH_SHORT).show();
                                 }
                             });

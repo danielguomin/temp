@@ -81,6 +81,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         }
     };
 
+    int nurselCount = 0;
+
+    Queue<Float> checkQueue = new LinkedList<>();
+
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
@@ -92,27 +96,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
         }
         initView();
+        Log.d("TimeUtils.isYesterday " + TimeUtils.isYesterday(1686828316457L) + "");
         return binding.getRoot();
-    }
-
-    Queue<Float> checkQueue = new LinkedList<>();
-
-    private void dealWithHistory(History history) {
-        if (TimeUtils.isSameDay(new Date(history.getTime())) || TimeUtils.isYesterday(new Date(history.getTime()))) {
-            long start = history.getTime();
-            String temps1 = history.getTemps();
-            String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
-            for (int i = 0; i < temps.length; i++) {
-                Entry entry = new Entry(start + i * 10 * 1000, Float.valueOf(temps[i]));
-                entryHistoryList.add(entry);
-            }
-        }
     }
 
     private long currentFirstTime;
 
-
-    int nurselCount = 0;
 
     @Override
     public void onResume() {
@@ -431,23 +420,34 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                     for (History history : list) {
                         dealWithHistory(history);
                     }
-                    getNurseInfo();
                 }
             }
         });
     }
 
+    private void dealWithHistory(History history) {
+        if (TimeUtils.isSameDay(new Date(history.getTime())) || TimeUtils.isYesterday(history.getTime())) {
+            long start = history.getTime();
+            String temps1 = history.getTemps();
+            String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
+            for (int i = 0; i < temps.length; i++) {
+                Entry entry = new Entry(start + i * 10 * 1000, Float.valueOf(temps[i]));
+                entryHistoryList.add(entry);
+            }
+        }
+    }
+
     private void getNurseInfo() {
         List<Nurse> nurseList = db.getNurseDao().getAll();
-        nurselCount = 0;
         for (Nurse nurse : nurseList) {
-            if (TimeUtils.isSameDay(new Date(nurse.getTime()))) {
+            if (TimeUtils.isSameDay(new Date(nurse.getTime())) || TimeUtils.isYesterday(nurse.getTime())) {
                 nurselCount++;
             }
         }
         handler.post(new Runnable() {
             @Override
             public void run() {
+                binding.lineChart.setNurseData(nurseList);
                 binding.nusreCount.setText(String.valueOf(nurselCount));
             }
         });

@@ -21,6 +21,7 @@ import android.widget.Scroller;
 import androidx.annotation.Nullable;
 
 import com.miyuan.smarthome.temp.db.Entry;
+import com.miyuan.smarthome.temp.db.Nurse;
 import com.miyuan.smarthome.temp.log.Log;
 import com.miyuan.smarthome.temp.utils.UIUtil;
 
@@ -163,15 +164,22 @@ public class WaterMeterView extends View {
      * 数据列表data
      */
     private List<Entry> list = new ArrayList<>();
+
+    private List<Nurse> allNurses = new ArrayList<>();
+    private List<Nurse> nurses = new ArrayList<>();
     /**
      * 每个月的坐标点集
      */
     private List<PointF> pointFList = new ArrayList<>();
+    private List<PointF> nursePointFList = new ArrayList<>();
     /**
      * 选中的那个点
      */
     private PointF pointFSelected = null;
     private int pointFSelectedPosition = -1;
+
+    private PointF pointFNurse = null;
+    private int pointSelectedNurse = -1;
     /**
      * 最大点
      */
@@ -190,8 +198,7 @@ public class WaterMeterView extends View {
      * Scroller
      */
     private Scroller scroller;
-    private float x, y, downX;
-    private float downY;
+    private float x, y;
 
     public WaterMeterView(Context context) {
         this(context, null);
@@ -259,56 +266,36 @@ public class WaterMeterView extends View {
         velocityTracker.addMovement(event);
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-//                if (!scroller.isFinished()) {
-//                    //没结束，手动让他结束
-//                    scroller.abortAnimation();
-//                }
-                downX = x = event.getX();
-                downY = event.getY();
+                pointFSelected = null;
+                pointFSelectedPosition = -1;
+                pointFNurse = null;
+                pointSelectedNurse = -1;
                 return true;
-//            case MotionEvent.ACTION_MOVE:
-//                x = event.getX();
-//                int deltaX = (int) (downX - x);
-//                越界恢复
-//                if (getScrollX() + deltaX < 0) {
-//                    scrollTo(0, 0);
-//                    return true;
-//                } else if (getScrollX() + deltaX > viewWidth - screenWidth) {
-//                    scrollTo(viewWidth - screenWidth, 0);
-//                    return true;
-//                }
-//                scrollBy(deltaX, 0);
-//                break;
             case MotionEvent.ACTION_MOVE:
                 x = event.getX();
                 y = event.getY();
-                //计算1秒内滑动过多少像素
-//                velocityTracker.computeCurrentVelocity(1000);
-//                int xVelocity = (int) velocityTracker.getXVelocity();
-//                if (Math.abs(xVelocity) > viewConfiguration.getScaledMinimumFlingVelocity()) {
-//                    //滑动速度可被判定为抛动
-//                    //根据挥动手势开始滚动。 行驶的距离将取决于猛击的初始速度。
-//                    scroller.fling(getScrollX(), 0, -xVelocity, 0, 0, viewWidth - screenWidth, 0, 0);
-//                    invalidate();
-//                } else {
-                //判断点击pointFList中是否有满足范围的，有就invalidate
-                //偏移量
-//                float tX = getScrollX();
                 for (int i = 0; i < pointFList.size(); i++) {
                     if (Math.abs(x - (pointFList.get(i).x)) < UIUtil.dp2pxF(21) && Math.abs(y - pointFList.get(i).y) < UIUtil.dp2pxF(21)) {
                         pointFSelected = pointFList.get(i);
                         pointFSelectedPosition = i;
-                        break;
+                        invalidate();
+                        return true;
                     }
                 }
-                invalidate();
+                for (int i = 0; i < nursePointFList.size(); i++) {
+                    if (Math.abs(x - (nursePointFList.get(i).x)) < UIUtil.dp2pxF(21) && Math.abs(y - nursePointFList.get(i).y) < UIUtil.dp2pxF(21)) {
+                        pointFNurse = nursePointFList.get(i);
+                        pointSelectedNurse = i;
+                        invalidate();
+                        return true;
+                    }
+                }
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                pointFSelected = null;
-                pointFSelectedPosition = -1;
                 break;
         }
+        invalidate();
         return super.onTouchEvent(event);
     }
 
@@ -327,13 +314,6 @@ public class WaterMeterView extends View {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int specSize = MeasureSpec.getSize(heightMeasureSpec);
         int specMode = MeasureSpec.getMode(heightMeasureSpec);
-//        expectViewHeight = (itemYSize + 1) * itemWidth;
-//        if (specMode == MeasureSpec.EXACTLY) {
-//            //特定大小，不管他多大
-//            viewHeight = Math.max(specSize, expectViewHeight);
-//        } else {
-//            viewHeight = expectViewHeight;
-//        }
         if (specMode == MeasureSpec.EXACTLY)// match_parent , accurate
         {
             viewHeight = specSize;
@@ -365,9 +345,6 @@ public class WaterMeterView extends View {
         itemWidth = viewWidth / 7;
         viewHeight = viewWidth * 3 / 5;
         itemHeight = viewHeight / 9;
-//        int totalWidth;
-//        totalWidth = itemWidth * 7;
-//        viewWidth = Math.max(screenWidth, totalWidth);
         setMeasuredDimension(viewWidth, viewHeight);
     }
 
@@ -377,8 +354,6 @@ public class WaterMeterView extends View {
         screenWidth = getResources().getDisplayMetrics().widthPixels;
         screenHeight = getResources().getDisplayMetrics().heightPixels;
         itemWidth = viewWidth / 7;
-//        calculateGap();
-//        initPointFData();
     }
 
     /**
@@ -408,6 +383,8 @@ public class WaterMeterView extends View {
 
     /**
      * 公开方法，用于设置元数据
+     *
+     * @param data
      */
     public void setData(List<Entry> data) {
         if (data == null) {
@@ -419,8 +396,12 @@ public class WaterMeterView extends View {
         pointFMax = null;
         list.clear();
         pointFList.clear();
+        nurses.clear();
+        nursePointFList.clear();
         pointFSelectedPosition = -1;
         pointFSelected = null;
+        pointSelectedNurse = -1;
+        pointFNurse = null;
 
         switch (currentType) {
             case 0:
@@ -444,7 +425,23 @@ public class WaterMeterView extends View {
                 list.add(entity);
             }
         }
-//        calculateGap();
+
+        for (Nurse nurse : allNurses) {
+            if (nurse.getTime() >= startTime) {
+                nurses.add(nurse);
+            }
+        }
+        initPointFData();
+        invalidate();
+    }
+
+    public void setNurseData(List<Nurse> nurses) {
+        this.allNurses = nurses;
+        for (Nurse nurse : allNurses) {
+            if (nurse.getTime() >= startTime) {
+                this.nurses.add(nurse);
+            }
+        }
         initPointFData();
         invalidate();
     }
@@ -479,37 +476,14 @@ public class WaterMeterView extends View {
             long time = list.get(i).getTime();
             centerX = getXFromTime(time / 1000, dividend);
             centerY = getYFromTemp(list.get(i).getTemp());
-//            float dosage = Float.valueOf(list.get(i).getDosage());
-//            centerY = viewHeight - itemWidth - unitVerticalGap * dosage;
-//            centerX = itemWidth + itemWidth * i;
             pointFList.add(new PointF(centerX, centerY));
         }
-    }
-
-    /**
-     * 计算单位高度差
-     */
-    private void calculateGap() {
-        if (list.isEmpty()) {
-            return;
+        for (int i = 0; nurses != null && i < nurses.size(); i++) {
+            long time = nurses.get(i).getTime();
+            centerX = getXFromTime(time / 1000, dividend);
+            centerY = viewHeight - itemHeight * 2 / 3 + UIUtil.dp2pxF(1f);
+            nursePointFList.add(new PointF(centerX, centerY));
         }
-        //先计算unitYItem
-        float lastMaxTem = -1f;
-        float lastMinTem = 99999f;
-//        for (WaterAndElectricMeterDetail bean : list) {
-//            float d_dosage = Float.valueOf(bean.getDosage());
-//            if (d_dosage > lastMaxTem) {
-//                maxDosage = d_dosage;
-//                lastMaxTem = d_dosage;
-//            }
-//            if (d_dosage < lastMinTem) {
-//                minDosage = d_dosage;
-//                lastMinTem = d_dosage;
-//            }
-//            unitYItem = (int) Math.ceil(maxDosage / 4);
-//        }
-        //计算单位高度差
-        unitVerticalGap = ((float) itemWidth / (float) unitYItem);
     }
 
     @Override
@@ -519,14 +493,84 @@ public class WaterMeterView extends View {
         drawBackBlue(canvas);
         //画坐标
         drawAxis(canvas);
+        //画护理
+        drawNurseAxis(canvas);
         //画曲线
         drawCurve(canvas);
         //画最大温度点
         drawMaxPoint(canvas);
         //画小圆点和虚线
         drawPointsAndLine(canvas);
-        //画水表详情框
+        //画水温度详情
         drawWaterDetailsText(canvas);
+        //画护理详情
+        drawNurseDetailsText(canvas);
+    }
+
+    private void drawNurseAxis(Canvas canvas) {
+        if (nursePointFList.size() == 0) {
+            return;
+        }
+        canvas.save();
+        circlePaint.reset();
+        for (PointF pointF : nursePointFList) {
+            //画圆
+            float x_point = pointF.x;
+            float y_point = pointF.y;
+            //用背景色在拐点处画实心圆
+            circlePaint.setStyle(Paint.Style.FILL_AND_STROKE);
+            circlePaint.setColor(Color.GRAY);
+            canvas.drawCircle(x_point, y_point, pointRadius + UIUtil.dp2pxF(2f), circlePaint);
+        }
+        canvas.restore();
+    }
+
+    private void drawNurseDetailsText(Canvas canvas) {
+        canvas.save();
+        WaterDetailBgPath.reset();
+        if (pointFNurse == null || pointSelectedNurse == -1) {
+            return;
+        }
+        Nurse entity = nurses.get(pointSelectedNurse);
+        String textO = "记录时间：" + sdf.format(entity.getTime());
+        String textT = "";
+        switch (entity.getType()) {
+            case 0:
+                textT = "护理方式：用药";
+                break;
+            case 1:
+                textT = "护理方式：物理降温";
+                break;
+            case 2:
+                textT = "护理方式：其他";
+                break;
+        }
+        String content = entity.getContent();
+
+        rectF.left = pointFNurse.x + UIUtil.dp2pxF(12);
+        //88dp是当text0，没有读数的时候，默认的长度。
+        rectF.right = pointFNurse.x + UIUtil.dp2pxF(12) + UIUtil.getTextWidth(textPaintDetail, textO) + UIUtil.dp2pxF(12);
+        rectF.top = pointFNurse.y - UIUtil.dp2pxF(62);
+        rectF.bottom = pointFNurse.y - UIUtil.dp2pxF(12);
+
+        if (rectF.right > viewWidth) {
+            //调整文字框位置
+            rectF.left = pointFNurse.x - UIUtil.dp2pxF(12) - UIUtil.getTextWidth(textPaintDetail, textO) - UIUtil.dp2pxF(12);
+            rectF.right = pointFNurse.x - UIUtil.dp2pxF(12);
+        }
+        WaterDetailBgPath.moveTo(rectF.left, rectF.top);
+        WaterDetailBgPath.addRoundRect(rectF, UIUtil.dp2pxF(5), UIUtil.dp2pxF(5), Path.Direction.CW);
+        //画背景
+        canvas.drawPath(WaterDetailBgPath, backGroundDetailPaint);
+        //写第一行文字
+        Paint.FontMetrics m = textPaintDetail.getFontMetrics();
+        textPaintDetail.setColor(backGroundColor);
+        canvas.drawText(textO, 0, textO.length(), rectF.left + UIUtil.dp2pxF(8), rectF.bottom - UIUtil.dp2pxF(40) - (m.ascent + m.descent) / 2, textPaintDetail);
+        //写第二行文字
+        canvas.drawText(textT, 0, textT.length(), rectF.left + UIUtil.dp2pxF(8), rectF.bottom - UIUtil.dp2pxF(26) - (m.ascent + m.descent) / 2, textPaintDetail);
+        //写第三行文字
+        canvas.drawText(content, 0, content.length(), rectF.left + UIUtil.dp2pxF(8), rectF.bottom - UIUtil.dp2pxF(12) - (m.ascent + m.descent) / 2, textPaintDetail);
+        canvas.restore();
     }
 
     /**
