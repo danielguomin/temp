@@ -10,9 +10,10 @@ public class TimeUtils {
     public static final String DEFAULT_YMD = "yyyy-MM-dd";
 
     public static final String DEFAULT_HMS = "HH:mm:ss";
-    public static final String DEFAULT_H = "HH";
+    public static final String DEFAULT_HM = "HH:mm";
 
     private static SimpleDateFormat sdf = new SimpleDateFormat(DEFAULT_YMD);
+    private static SimpleDateFormat sdf_time = new SimpleDateFormat(DEFAULT_HM);
     private static SimpleDateFormat sdfTime = new SimpleDateFormat(DEFAULT_HMS);
     private static SimpleDateFormat sdfNormal = new SimpleDateFormat(DEFAULT_YMD + " " + DEFAULT_HMS);
 
@@ -58,6 +59,10 @@ public class TimeUtils {
     public static String getHourStr(Date date) {
         sdfTime.setTimeZone(TimeZone.getDefault());
         return sdfTime.format(date);
+    }
+
+    public static String getHourMinStr(long time) {
+        return sdf_time.format(new Date(time));
     }
 
     public static String getHourStrForSecond(Date date) {

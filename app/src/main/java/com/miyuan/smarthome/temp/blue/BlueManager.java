@@ -85,11 +85,6 @@ public class BlueManager {
     public static LiveData<Boolean> memberLiveData = _memberLiveData;
     private List<Float> currentTempList = new ArrayList<>();
 
-    private static SingleLiveData<String> _highLiveData = new SingleLiveData<>();
-    public static LiveData<String> highLiveData = _highLiveData;
-
-    private static float high = 0;
-
     private int connectStatus;
     private boolean isScaning = false;
     private volatile boolean canGo = true;
@@ -639,10 +634,6 @@ public class BlueManager {
                     float t = (HexUtils.byteToInt(content[7]) + 170) / 10.0f;
                     temp.setTemp(t);
                     long time = System.currentTimeMillis();
-                    if (t > high) {
-                        high = t;
-                        _highLiveData.postValue(t + "#" + time);
-                    }
                     _currentTempLiveData.postValue(temp);
                     currentTempList.add(t);
                     _currentList.postValue(currentTempList);
@@ -660,10 +651,6 @@ public class BlueManager {
                     for (int i = 0; i <= count - 1; i++) {
                         float temp = (HexUtils.byteToInt(content[13 + i]) + 170) / 10.0f;
                         temps[i] = temp;
-                        if (temp > high && isSameDay) {
-                            high = temp;
-                            _highLiveData.postValue(temp + "#" + time + i * 10);
-                        }
                     }
                     historyTemp.setTemps(temps);
                     _historyTempLiveData.postValue(historyTemp);

@@ -23,6 +23,7 @@ import androidx.annotation.Nullable;
 import com.miyuan.smarthome.temp.db.Entry;
 import com.miyuan.smarthome.temp.db.Nurse;
 import com.miyuan.smarthome.temp.log.Log;
+import com.miyuan.smarthome.temp.utils.TimeUtils;
 import com.miyuan.smarthome.temp.utils.UIUtil;
 
 import java.text.SimpleDateFormat;
@@ -41,14 +42,9 @@ public class WaterMeterView extends View {
      * 默认7个
      */
     private static final int itemYSize = 7;
+    private static final int ITEMXCOUNT = 7;
     private static SimpleDateFormat sdf = new SimpleDateFormat(DEFAULT);
-    private final String[] STYLE0 = new String[]{"0", "5", "10", "15", "20", "25", "30"};
-    private final String[] STYLE1 = new String[]{"0", "0:20", "0:40", "1:00", "1:20", "1:40", "2:00"};
-    private final String[] STYLE2 = new String[]{"0", "1:00", "2:00", "3:00", "4:00", "5:00", "6:00"};
-    private final String[] STYLE3 = new String[]{"0", "2:00", "4:00", "6:00", "8:00", "10:00", "12:00"};
-    private final String[] STYLE4 = new String[]{"0", "4:00", "8:00", "12:00", "16:00", "20:00", "24:00"};
     private final int[] DEGRESS = new int[]{35, 36, 37, 38, 39, 40, 41, 42};
-    private String[] xaisStr = STYLE0;
     private int currentType = 0;
     /**
      * 折线画笔
@@ -361,25 +357,10 @@ public class WaterMeterView extends View {
      */
     public void changeStyle(List<Entry> data, int type) {
         currentType = type;
-        switch (type) {
-            case 0:
-                xaisStr = STYLE0;
-                break;
-            case 1:
-                xaisStr = STYLE1;
-                break;
-            case 2:
-                xaisStr = STYLE2;
-                break;
-            case 3:
-                xaisStr = STYLE3;
-                break;
-            case 4:
-                xaisStr = STYLE4;
-                break;
-        }
         setData(data);
     }
+
+    private long beginTime;
 
     /**
      * 公开方法，用于设置元数据
@@ -402,22 +383,22 @@ public class WaterMeterView extends View {
         pointFSelected = null;
         pointSelectedNurse = -1;
         pointFNurse = null;
-
+        beginTime = System.currentTimeMillis();
         switch (currentType) {
             case 0:
-                startTime = System.currentTimeMillis() / 1000 - 30 * 60;
+                startTime = beginTime / 1000 - 30 * 60;
                 break;
             case 1:
-                startTime = System.currentTimeMillis() / 1000 - 2 * 60 * 60;
+                startTime = beginTime / 1000 - 2 * 60 * 60;
                 break;
             case 2:
-                startTime = System.currentTimeMillis() / 1000 - 6 * 60 * 60;
+                startTime = beginTime / 1000 - 6 * 60 * 60;
                 break;
             case 3:
-                startTime = System.currentTimeMillis() / 1000 - 12 * 60 * 60;
+                startTime = beginTime / 1000 - 12 * 60 * 60;
                 break;
             case 4:
-                startTime = System.currentTimeMillis() / 1000 - 24 * 60 * 60;
+                startTime = beginTime / 1000 - 24 * 60 * 60;
                 break;
         }
         for (Entry entity : data) {
@@ -763,12 +744,24 @@ public class WaterMeterView extends View {
         //划时间
         float centerX;
         float centerY = viewHeight + UIUtil.dp2pxF(10f) - itemHeight * 2 / 3;
-        for (int i = 0; i < xaisStr.length; i++) {
+        for (int i = 0; i < ITEMXCOUNT; i++) {
             String text = "";
-            if (currentType != 0) {
-                text = xaisStr[i];
-            } else {
-                text = xaisStr[i] + "分";
+            switch (currentType) {
+                case 0:  // 间隔5分钟
+                    text = TimeUtils.getHourMinStr(beginTime - ((ITEMXCOUNT - 1 - i) * 5 * 60 * 1000));
+                    break;
+                case 1:  // 间隔20分钟
+                    text = TimeUtils.getHourMinStr(beginTime - ((ITEMXCOUNT - 1 - i) * 20 * 60 * 1000));
+                    break;
+                case 2:  // 间隔1小时
+                    text = TimeUtils.getHourMinStr(beginTime - ((ITEMXCOUNT - 1 - i) * 60 * 60 * 1000));
+                    break;
+                case 3:  // 间隔2小时
+                    text = TimeUtils.getHourMinStr(beginTime - ((ITEMXCOUNT - 1 - i) * 2 * 60 * 60 * 1000));
+                    break;
+                case 4:  // 间隔4小时
+                    text = TimeUtils.getHourMinStr(beginTime - ((ITEMXCOUNT - 1 - i) * 4 * 60 * 60 * 1000));
+                    break;
             }
             centerX = itemWidth * 3 / 4 + i * itemWidth;
             Paint.FontMetrics m = textPaint.getFontMetrics();

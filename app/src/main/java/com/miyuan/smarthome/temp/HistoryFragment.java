@@ -43,6 +43,7 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
     boolean[] dpLow = new boolean[COUNT];
     Queue<Float> checkQueue = new LinkedList<>();
     boolean high = false;
+    int highCount = 0;
 
     private void getHistory() {
         int memberId = getArguments().getInt("memberId");
@@ -138,15 +139,17 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         if (values == null) {
             return;
         }
-        int normalCount = 0, highCount = 0, lowCount = 0;
+        int normalCountTime = 0, highCountTime = 0, lowCountTime = 0;
+        highCount = 0;
+        high = false;
         for (Entry entry : values) {
             float y = entry.getTemp();
             if (y <= LOW_TEMP_DIVIDER) {
-                normalCount += 10;
+                normalCountTime += 10;
             } else if (y >= HIGH_TEMP_DIVIDER) {
-                highCount += 10;
+                highCountTime += 10;
             } else {
-                lowCount += 10;
+                lowCountTime += 10;
             }
             if (checkQueue.size() >= COUNT) {
                 checkQueue.poll();
@@ -157,12 +160,12 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         binding.measure.setText(TimeUtils.getHourStrForSecond(new
                 Date(values.size() * 10 * 1000)));
         binding.highTimeCount.setText(TimeUtils.getHourStrForSecond(new
-                Date(highCount * 1000)));
+                Date(highCountTime * 1000)));
         binding.lowTimeCount.setText(TimeUtils.getHourStrForSecond(new
-                Date(lowCount * 1000)));
+                Date(lowCountTime * 1000)));
         binding.normalTimeCount.setText(TimeUtils.getHourStrForSecond(new
-                Date(normalCount * 1000)));
-
+                Date(normalCountTime * 1000)));
+        binding.highCount.setText(String.valueOf(highCount));
         binding.lineChart.changeStyle(values, 4);
 
     }
@@ -170,7 +173,6 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
     private void check() {
         Iterator<Float> iterator = checkQueue.iterator();
         int i = 0;
-        int highCount = 0;
         while (iterator.hasNext()) {
             Float next = iterator.next();
             if (i == 0) {
@@ -192,7 +194,6 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         if (dpLow[checkQueue.size() - 1]) {
             high = false;
         }
-        binding.highCount.setText(String.valueOf(highCount));
     }
 
     @Override

@@ -107,13 +107,11 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     public void onResume() {
         super.onResume();
         getNurseInfo();
-//        handler.post(runnable);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-//        handler.removeCallbacks(runnable);
     }
 
     private void initPointer() {
@@ -394,17 +392,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 binding.name.setText(member.getName() + "的体温");
             }
         });
-
-        BlueManager.highLiveData.observe(
-
-                getViewLifecycleOwner(), new Observer<String>() {
-                    @Override
-                    public void onChanged(String s) {
-                        String[] split = s.split("#");
-                        binding.high.setText(split[0]);
-                        binding.highTime.setText(TimeUtils.getHourStr(new Date(Long.valueOf(split[1]))));
-                    }
-                });
     }
 
     private void getHistory(TempInfo info) {
@@ -437,21 +424,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    private void getNurseInfo() {
-        List<Nurse> nurseList = db.getNurseDao().getAll();
-        for (Nurse nurse : nurseList) {
-            if (TimeUtils.isSameDay(new Date(nurse.getTime())) || TimeUtils.isYesterday(nurse.getTime())) {
-                nurselCount++;
-            }
-        }
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                binding.lineChart.setNurseData(nurseList);
-                binding.nusreCount.setText(String.valueOf(nurselCount));
-            }
-        });
-    }
+    boolean continueHigh = false;
 
     private void updateHistoryToNet() {
         List<History> updateHistory = db.getHistoryDao().getUpdateHistory(false);
@@ -545,15 +518,42 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         });
     }
 
+    int highCount = 0;
+    private float high = 0;
+    private long highTime = 0;
+
+    private void getNurseInfo() {
+        nurselCount = 0;
+        List<Nurse> nurseList = db.getNurseDao().getAll();
+        for (Nurse nurse : nurseList) {
+            if (TimeUtils.isSameDay(new Date(nurse.getTime())) || TimeUtils.isYesterday(nurse.getTime())) {
+                nurselCount++;
+            }
+        }
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                binding.lineChart.setNurseData(nurseList);
+                binding.nusreCount.setText(String.valueOf(nurselCount));
+            }
+        });
+    }
+
     private void setData(List<Entry> values) {
         if (values == null) {
             return;
         }
         currentList.clear();
         int normalTimeCount = 0, highTimeCount = 0, lowTimeCount = 0;
+        highCount = 0;
+        continueHigh = false;
         for (Entry entry : values) {
             // 过去24小时
             if (entry.getTime() >= System.currentTimeMillis() - 24 * 60 * 60 * 1000) {
+                if (entry.getTemp() > high) {
+                    high = entry.getTemp();
+                    highTime = entry.getTime();
+                }
                 currentList.add(entry);
             }
             float y = entry.getTemp();
@@ -574,12 +574,13 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         binding.highTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(highTimeCount * 1000)));
         binding.lowTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(lowTimeCount * 1000)));
         binding.normalTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(normalTimeCount * 1000)));
+        binding.high.setText(String.valueOf(high));
+        binding.highTime.setText(TimeUtils.getHourStr(new Date(highTime)));
+        binding.highCount.setText(String.valueOf(highCount));
         binding.lineChart.setData(currentList);
     }
 
     private void check() {
-        int highCount = 0;
-        boolean high = false;
         Iterator<Float> iterator = checkQueue.iterator();
         int i = 0;
         while (iterator.hasNext()) {
@@ -594,16 +595,15 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             i++;
         }
         if (dpHigh[checkQueue.size() - 1]) {
-            if (high) {
+            if (continueHigh) {
                 return;
             }
-            high = true;
+            continueHigh = true;
             highCount++;
         }
         if (dpLow[checkQueue.size() - 1]) {
-            high = false;
+            continueHigh = false;
         }
-        binding.highCount.setText(String.valueOf(highCount));
     }
 
     private void updateName() {
