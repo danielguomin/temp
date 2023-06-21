@@ -5,6 +5,7 @@ import static com.miyuan.smarthome.temp.TempApplication.LOW_TEMP_DIVIDER;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -100,15 +101,18 @@ public class HistoryFragment extends Fragment implements View.OnClickListener {
             }
             long start = history.getTime();
             String temps1 = history.getTemps();
-            String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
-            for (int i = 0; i < temps.length; i++) {
-                Float temp = Float.valueOf(temps[i]);
-                if (temp > highTemp) {
-                    highTemp = temp;
-                    highTime = start + i * 10 * 1000;
+            String temp = temps1.substring(1, temps1.length() - 1);
+            if (!TextUtils.isEmpty(temp)) {
+                String[] temps = temp.split(",");
+                for (int i = 0; i < temps.length; i++) {
+                    Float t = Float.valueOf(temps[i]);
+                    if (t > highTemp) {
+                        highTemp = t;
+                        highTime = start + i * 10 * 1000;
+                    }
+                    Entry entry = new Entry(start + i * 10 * 1000, t);
+                    entryList.add(entry);
                 }
-                Entry entry = new Entry(start + i * 10 * 1000, temp);
-                entryList.add(entry);
             }
         }
 
