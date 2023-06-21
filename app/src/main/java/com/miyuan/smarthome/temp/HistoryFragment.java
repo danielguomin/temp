@@ -8,31 +8,26 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.DatePicker;
-import android.widget.LinearLayout;
 
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.room.Room;
 
-import com.miyuan.smarthome.temp.blue.BlueManager;
 import com.miyuan.smarthome.temp.databinding.FragmentHistoryBinding;
 import com.miyuan.smarthome.temp.db.Entry;
 import com.miyuan.smarthome.temp.db.History;
 import com.miyuan.smarthome.temp.db.Nurse;
 import com.miyuan.smarthome.temp.db.TempDataBase;
-import com.miyuan.smarthome.temp.log.Log;
 import com.miyuan.smarthome.temp.utils.TimeUtils;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-public class HistoryFragment extends Fragment implements View.OnClickListener, DatePicker.OnDateChangedListener {
+public class HistoryFragment extends Fragment implements View.OnClickListener {
 
     private FragmentHistoryBinding binding;
 
@@ -46,10 +41,8 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
     int highCount = 0;
 
     private void getHistory() {
-        int memberId = getArguments().getInt("memberId");
-        String deviceId = BlueManager.tempInfoLiveData.getValue().getDeviceId();
-        historyList = db.getHistoryDao().getAll(deviceId, memberId);
-        isSameDay(new Date(System.currentTimeMillis()));
+        historyList = TempApplication.historyLiveData.getValue();
+        isSameDay();
     }
 
     Handler handler = new Handler();
@@ -59,9 +52,6 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
     private void initView() {
         binding.titlelayout.back.setOnClickListener(this);
         binding.titlelayout.title.setText("历史体温");
-        binding.today.setOnClickListener(this);
-        ((LinearLayout) binding.time.getChildAt(0)).getChildAt(0).setVisibility(View.GONE);
-        binding.time.setOnDateChangedListener(this);
     }
 
     @Override
@@ -93,46 +83,43 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         }
         initView();
         getHistory();
-        getNurseInfo(System.currentTimeMillis());
         return binding.getRoot();
     }
 
-    private void isSameDay(Date date) {
+    private void isSameDay() {
         if (historyList == null || historyList.size() <= 0) {
             return;
         }
         List<Entry> entryList = new ArrayList<>();
         float highTemp = 0;
         long highTime = 0;
+        getNurseInfo(historyList.get(0).getTime());
         for (History history : historyList) {
             if (startTime == 0) {
                 startTime = history.getTime();
             }
-            if (TimeUtils.isSameDay(new Date(history.getTime()), date)) {
-                long start = history.getTime();
-                String temps1 = history.getTemps();
-                String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
-                for (int i = 0; i < temps.length; i++) {
-                    Float temp = Float.valueOf(temps[i]);
-                    if (temp > highTemp) {
-                        highTemp = temp;
-                        highTime = start + i * 10 * 1000;
-                    }
-                    Entry entry = new Entry(start + i * 10 * 1000, temp);
-                    entryList.add(entry);
+            long start = history.getTime();
+            String temps1 = history.getTemps();
+            String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
+            for (int i = 0; i < temps.length; i++) {
+                Float temp = Float.valueOf(temps[i]);
+                if (temp > highTemp) {
+                    highTemp = temp;
+                    highTime = start + i * 10 * 1000;
                 }
+                Entry entry = new Entry(start + i * 10 * 1000, temp);
+                entryList.add(entry);
             }
         }
 
         binding.high.setText(String.valueOf(highTemp));
         binding.highTime.setText(TimeUtils.getHourStr(new Date(Long.valueOf(highTime))));
-        handler.post(new Runnable() {
+        handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 setData(entryList);
             }
-        });
-
+        }, 500);
     }
 
     private void setData(List<Entry> values) {
@@ -166,7 +153,7 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
         binding.normalTimeCount.setText(TimeUtils.getHourStrForSecond(new
                 Date(normalCountTime * 1000)));
         binding.highCount.setText(String.valueOf(highCount));
-        binding.lineChart.changeStyle(values, 4);
+        binding.lineChart.changeStyle(values, 5);
 
     }
 
@@ -202,24 +189,8 @@ public class HistoryFragment extends Fragment implements View.OnClickListener, D
             case R.id.back:
                 Navigation.findNavController(v).navigateUp();
                 break;
-            case R.id.today:
-                Calendar calendar = Calendar.getInstance();
-                int year = calendar.get(Calendar.YEAR);
-                int month = calendar.get(Calendar.MONTH);
-                int day = calendar.get(Calendar.DAY_OF_MONTH);
-                binding.time.updateDate(year, month, day);
-                break;
         }
     }
-
-    @Override
-    public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        Log.d(" onDateChanged  year " + year + " month " + monthOfYear + " day " + dayOfMonth);
-        Date date = new Date(year - 1900, monthOfYear, dayOfMonth);
-        isSameDay(date);
-        getNurseInfo(date.getTime());
-    }
-
 
     @Override
     public void onDestroy() {

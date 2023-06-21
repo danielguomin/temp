@@ -6,6 +6,7 @@ import android.os.Environment;
 
 import androidx.lifecycle.LiveData;
 
+import com.miyuan.smarthome.temp.db.History;
 import com.miyuan.smarthome.temp.db.Member;
 import com.miyuan.smarthome.temp.utils.SingleLiveData;
 import com.tencent.mmkv.MMKV;
@@ -17,11 +18,15 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class TempApplication extends Application {
 
     public static SingleLiveData<Member> _currentMemberLiveData = new SingleLiveData<>();
     public static LiveData<Member> currentLiveData = _currentMemberLiveData;
+
+    public static SingleLiveData<List<History>> _historyLiveData = new SingleLiveData<>();
+    public static LiveData<List<History>> historyLiveData = _historyLiveData;
 
     public static float HIGH_TEMP_DIVIDER = 38f;
     public static float LOW_TEMP_DIVIDER = 37.3f;

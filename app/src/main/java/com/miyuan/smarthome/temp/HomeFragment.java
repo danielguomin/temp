@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -96,7 +97,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
         }
         initView();
-        Log.d("TimeUtils.isYesterday " + TimeUtils.isYesterday(1686828316457L) + "");
         return binding.getRoot();
     }
 
@@ -226,6 +226,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 for (Member member : members) {
                     if (member.getMemberId() == info.getMemberId()) {
                         TempApplication._currentMemberLiveData.postValue(member);
+                        currentFirstTime = 0;
+                        getHistory(info);
                     }
                 }
 
@@ -234,8 +236,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 // 定时获取实时温度
                 handler.removeCallbacks(runnable);
                 handler.postDelayed(runnable, 1000);//启动定时任务
-
-                getHistory(info);
 
                 handler.postDelayed(new Runnable() {
                     @Override
@@ -265,7 +265,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 if (entryHistoryList != null) {
                     entryList.addAll(entryHistoryList);
                 }
-
                 if (currentFirstTime == 0) {
                     currentFirstTime = System.currentTimeMillis();
                 }
@@ -372,19 +371,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                     }
                 });
 
-        BlueManager.memberLiveData.observe(
-
-                getViewLifecycleOwner(), new Observer<Boolean>() {
-                    @Override
-                    public void onChanged(Boolean success) {
-                        Log.d("HomeFragment memberLiveData onChanged ");
-                        if (success) {
-                            Log.d("HomeFragment memberLiveData onChanged send getTempStatus");
-                            BlueManager.getInstance().send(ProtocolUtils.getTempStatus(System.currentTimeMillis()));
-                        }
-                    }
-                });
-
         TempApplication.currentLiveData.observeForever(new Observer<Member>() {
             @Override
             public void onChanged(Member member) {
@@ -416,10 +402,13 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         if (TimeUtils.isSameDay(new Date(history.getTime())) || TimeUtils.isYesterday(history.getTime())) {
             long start = history.getTime();
             String temps1 = history.getTemps();
-            String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
-            for (int i = 0; i < temps.length; i++) {
-                Entry entry = new Entry(start + i * 10 * 1000, Float.valueOf(temps[i]));
-                entryHistoryList.add(entry);
+            String temp = temps1.substring(1, temps1.length() - 1);
+            if (!TextUtils.isEmpty(temp)) {
+                String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
+                for (int i = 0; i < temps.length; i++) {
+                    Entry entry = new Entry(start + i * 10 * 1000, Float.valueOf(temps[i].trim()));
+                    entryHistoryList.add(entry);
+                }
             }
         }
     }
@@ -523,20 +512,24 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     private long highTime = 0;
 
     private void getNurseInfo() {
-        nurselCount = 0;
-        List<Nurse> nurseList = db.getNurseDao().getAll();
-        for (Nurse nurse : nurseList) {
-            if (TimeUtils.isSameDay(new Date(nurse.getTime())) || TimeUtils.isYesterday(nurse.getTime())) {
-                nurselCount++;
+        TempInfo tempInfo = BlueManager.tempInfoLiveData.getValue();
+        if (tempInfo != null) {
+            nurselCount = 0;
+            List<Nurse> nurseList = db.getNurseDao().getAll(tempInfo.getDeviceId(), tempInfo.getMemberId());
+            for (Nurse nurse : nurseList) {
+                if (TimeUtils.isSameDay(new Date(nurse.getTime())) || TimeUtils.isYesterday(nurse.getTime())) {
+                    nurselCount++;
+                }
             }
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    binding.lineChart.setNurseData(nurseList);
+                    binding.nusreCount.setText(String.valueOf(nurselCount));
+                }
+            });
+
         }
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                binding.lineChart.setNurseData(nurseList);
-                binding.nusreCount.setText(String.valueOf(nurselCount));
-            }
-        });
     }
 
     private void setData(List<Entry> values) {

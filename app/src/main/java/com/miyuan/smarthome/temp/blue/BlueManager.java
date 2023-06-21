@@ -30,13 +30,11 @@ import com.miyuan.smarthome.temp.db.Member;
 import com.miyuan.smarthome.temp.db.TempInfo;
 import com.miyuan.smarthome.temp.log.Log;
 import com.miyuan.smarthome.temp.utils.SingleLiveData;
-import com.miyuan.smarthome.temp.utils.TimeUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -633,15 +631,17 @@ public class BlueManager {
                     temp.setMemberId(HexUtils.byteToInt(content[6]));
                     float t = (HexUtils.byteToInt(content[7]) + 170) / 10.0f;
                     temp.setTemp(t);
-                    long time = System.currentTimeMillis();
                     _currentTempLiveData.postValue(temp);
                     currentTempList.add(t);
                     _currentList.postValue(currentTempList);
                 } else if (content[1] == 03) { // 历史温度
+                    int status = HexUtils.byteToInt(content[4]);
+                    if (status == 0) {
+                        return;
+                    }
                     HistoryTemp historyTemp = new HistoryTemp();
                     historyTemp.setStatus(HexUtils.byteToInt(content[4]));
                     long time = HexUtils.byteTo4Long(Arrays.copyOfRange(content, 5, 9)) * 1000;
-                    boolean isSameDay = TimeUtils.isSameDay(new Date(time));
                     historyTemp.setStartTime(time);
                     historyTemp.setMemberId(HexUtils.byteToInt(content[9]));
                     historyTemp.setStep(HexUtils.byteToInt(content[10]));
@@ -655,6 +655,7 @@ public class BlueManager {
                     historyTemp.setTemps(temps);
                     _historyTempLiveData.postValue(historyTemp);
                 } else if (content[1] == 05) { // 修改成员信息
+                    currentTempList.clear();
                     _memberLiveData.postValue(HexUtils.byteToInt(content[4]) == 1);
                 }
             }

@@ -46,7 +46,7 @@ public class HistoryListFragment extends Fragment implements View.OnClickListene
                 public void onItemClick(int position) {
                     Bundle bundle = new Bundle();
                     bundle.putInt("memberId", members.get(position).getMemberId());
-                    Navigation.findNavController(getView()).navigate(R.id.action_HistoryListFragment_to_HistoryFragment, bundle);
+                    Navigation.findNavController(getView()).navigate(R.id.action_HistoryListFragment_to_HistoryTempListFragment, bundle);
                 }
             });
         }

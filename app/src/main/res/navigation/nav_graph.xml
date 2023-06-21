@@ -139,7 +139,28 @@
         android:label="history list Fragment"
         tools:layout="@layout/fragment_history_list">
         <action
-            android:id="@+id/action_HistoryListFragment_to_HistoryFragment"
+            android:id="@+id/action_HistoryListFragment_to_HistoryTempListFragment"
+            app:destination="@id/HistoryTempListFragment"
+            app:enterAnim="@anim/anim_right_in"
+            app:exitAnim="@anim/anim_left_out"
+            app:popEnterAnim="@anim/anim_left_in"
+            app:popExitAnim="@anim/anim_right_out" />
+
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/HistoryTempListFragment"
+        android:name="com.miyuan.smarthome.temp.HistoryTempListFragment"
+        android:label="history temp list Fragment"
+        tools:layout="@layout/fragment_history_temp_list">
+
+        <argument
+            android:name="memberId"
+            app:argType="integer" />
+
+        <action
+            android:id="@+id/action_HistoryTempListFragment_to_HistoryFragment"
             app:destination="@id/HistoryFragment"
             app:enterAnim="@anim/anim_right_in"
             app:exitAnim="@anim/anim_left_out"
@@ -153,10 +174,6 @@
         android:name="com.miyuan.smarthome.temp.HistoryFragment"
         android:label="history Fragment"
         tools:layout="@layout/fragment_history">
-
-        <argument
-            android:name="memberId"
-            app:argType="integer" />
 
     </fragment>
 

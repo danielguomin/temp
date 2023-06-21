@@ -46,10 +46,21 @@ public class TimeUtils {
         return firstOfDay == calendar.getTimeInMillis();
     }
 
+    public static long getTimeTodayBegin() {
+        Calendar calendar = Calendar.getInstance();
+        clearCalendar(calendar, Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND, Calendar.MILLISECOND); // 指定时间戳当天最早时间
+        return calendar.getTimeInMillis();
+    }
+
     private static void clearCalendar(Calendar c, int... fields) {
         for (int f : fields) {
             c.set(f, 0);
         }
+    }
+
+    public static String getTimeStr(long time) {
+        sdf.setTimeZone(TimeZone.getDefault());
+        return sdf.format(new Date(time));
     }
 
     public static String getNormal() {

@@ -400,6 +400,10 @@ public class WaterMeterView extends View {
             case 4:
                 startTime = beginTime / 1000 - 24 * 60 * 60;
                 break;
+            case 5:
+                // 当天零点
+                startTime = TimeUtils.getTimeTodayBegin() / 1000;
+                break;
         }
         for (Entry entity : data) {
             if (entity.getTime() >= startTime) {
@@ -418,6 +422,7 @@ public class WaterMeterView extends View {
 
     public void setNurseData(List<Nurse> nurses) {
         this.allNurses = nurses;
+        this.nurses.clear();
         for (Nurse nurse : allNurses) {
             if (nurse.getTime() >= startTime) {
                 this.nurses.add(nurse);
@@ -449,6 +454,7 @@ public class WaterMeterView extends View {
                 dividend = 12 * 60 * 60;
                 break;
             case 4:
+            case 5:
                 dividend = 24 * 60 * 60;
                 break;
 
@@ -761,6 +767,9 @@ public class WaterMeterView extends View {
                     break;
                 case 4:  // 间隔4小时
                     text = TimeUtils.getHourMinStr(beginTime - ((ITEMXCOUNT - 1 - i) * 4 * 60 * 60 * 1000));
+                    break;
+                case 5:
+                    text = (24 - ((ITEMXCOUNT - 1 - i) * 4)) + ":00";
                     break;
             }
             centerX = itemWidth * 3 / 4 + i * itemWidth;
