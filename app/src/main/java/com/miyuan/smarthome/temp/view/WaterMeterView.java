@@ -271,7 +271,7 @@ public class WaterMeterView extends View {
                 x = event.getX();
                 y = event.getY();
                 for (int i = 0; i < pointFList.size(); i++) {
-                    if (Math.abs(x - (pointFList.get(i).x)) < UIUtil.dp2pxF(21) && Math.abs(y - pointFList.get(i).y) < UIUtil.dp2pxF(21)) {
+                    if (Math.abs(x - (pointFList.get(i).x)) < UIUtil.dp2pxF(5) && Math.abs(y - pointFList.get(i).y) < UIUtil.dp2pxF(5)) {
                         pointFSelected = pointFList.get(i);
                         pointFSelectedPosition = i;
                         invalidate();
@@ -279,7 +279,7 @@ public class WaterMeterView extends View {
                     }
                 }
                 for (int i = 0; i < nursePointFList.size(); i++) {
-                    if (Math.abs(x - (nursePointFList.get(i).x)) < UIUtil.dp2pxF(21) && Math.abs(y - nursePointFList.get(i).y) < UIUtil.dp2pxF(21)) {
+                    if (Math.abs(x - (nursePointFList.get(i).x)) < UIUtil.dp2pxF(5) && Math.abs(y - nursePointFList.get(i).y) < UIUtil.dp2pxF(5)) {
                         pointFNurse = nursePointFList.get(i);
                         pointSelectedNurse = i;
                         invalidate();

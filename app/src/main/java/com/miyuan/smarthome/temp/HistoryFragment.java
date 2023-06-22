@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.room.Room;
 
+import com.miyuan.smarthome.temp.blue.BlueManager;
 import com.miyuan.smarthome.temp.databinding.FragmentHistoryBinding;
 import com.miyuan.smarthome.temp.db.Entry;
 import com.miyuan.smarthome.temp.db.History;
@@ -63,13 +64,15 @@ public class HistoryFragment extends Fragment implements View.OnClickListener {
 
     private void getNurseInfo(long time) {
         int nurselCount = 0;
-        List<Nurse> nurseList = db.getNurseDao().getAll();
+        List<Nurse> nurseList = db.getNurseDao().getAll(BlueManager.tempInfoLiveData.getValue().getDeviceId(), TempApplication._currentMemberLiveData.getValue().getMemberId());
+        List<Nurse> temps = new ArrayList<>();
         for (Nurse nurse : nurseList) {
             if (TimeUtils.isSameDay(new Date(nurse.getTime()), new Date(time))) {
+                temps.add(nurse);
                 nurselCount++;
             }
         }
-        binding.lineChart.setNurseData(nurseList);
+        binding.lineChart.setNurseData(temps);
         binding.nusreCount.setText(String.valueOf(nurselCount));
     }
 

@@ -95,6 +95,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             Log.d("HomeFragment onCreateView");
             binding = FragmentHomeBinding.inflate(inflater, container, false);
             db = Room.databaseBuilder(getContext(), TempDataBase.class, "database_temp").allowMainThreadQueries().build();
+            binding.second.setSelected(true);
         }
         initView();
         return binding.getRoot();
@@ -147,7 +148,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         binding.record.setOnClickListener(this);
         binding.second.setOnClickListener(this);
         binding.two.setOnClickListener(this);
-        binding.second.setSelected(true);
         binding.six.setOnClickListener(this);
         binding.twelve.setOnClickListener(this);
         binding.twenty.setOnClickListener(this);
@@ -227,6 +227,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                     if (member.getMemberId() == info.getMemberId()) {
                         TempApplication._currentMemberLiveData.postValue(member);
                         currentFirstTime = 0;
+                        high = 0;
+                        highTime = 0;
                         getHistory(info);
                     }
                 }
@@ -515,7 +517,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         TempInfo tempInfo = BlueManager.tempInfoLiveData.getValue();
         if (tempInfo != null) {
             nurselCount = 0;
-            List<Nurse> nurseList = db.getNurseDao().getAll(tempInfo.getDeviceId(), tempInfo.getMemberId());
+            List<Nurse> nurseList = db.getNurseDao().getAll(tempInfo.getDeviceId(), TempApplication._currentMemberLiveData.getValue().getMemberId());
             for (Nurse nurse : nurseList) {
                 if (TimeUtils.isSameDay(new Date(nurse.getTime())) || TimeUtils.isYesterday(nurse.getTime())) {
                     nurselCount++;
