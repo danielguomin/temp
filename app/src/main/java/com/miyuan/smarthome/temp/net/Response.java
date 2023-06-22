@@ -3,7 +3,7 @@ package com.miyuan.smarthome.temp.net;
 public class Response<T> {
     private String status;
     private String message;
-    private T data;
+    private T datas;
 
 
     public String getStatus() {
@@ -22,12 +22,12 @@ public class Response<T> {
         this.message = message;
     }
 
-    public T getData() {
-        return data;
+    public T getDatas() {
+        return datas;
     }
 
-    public void setData(T data) {
-        this.data = data;
+    public void setDatas(T datas) {
+        this.datas = datas;
     }
 
     @Override
@@ -35,7 +35,7 @@ public class Response<T> {
         return "Response{" +
                 "status='" + status + '\'' +
                 ", message='" + message + '\'' +
-                ", data=" + data +
+                ", datas=" + datas +
                 '}';
     }
 }

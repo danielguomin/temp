@@ -30,6 +30,6 @@ public interface ITempApi {
     @POST("service/history/adds")
     Flowable<Response<String>> updateHistories(@Body RequestBody body);
 
-    @POST("service/history/getData")
+    @POST("service/history/getHistory")
     Flowable<Response<List<History>>> getHistory(@Body RequestBody body);
 }

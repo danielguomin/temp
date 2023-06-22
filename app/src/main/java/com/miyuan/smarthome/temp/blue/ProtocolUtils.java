@@ -79,7 +79,7 @@ public class ProtocolUtils {
 
     public static byte[] getHistoryTemp() {
         Log.d("Protocol getHistoryTemp ==");
-        byte[] result = new byte[13];
+        byte[] result = new byte[6];
         result[0] = PROTOCOL_HEAD_TAIL;
         result[1] = (byte) PROTOCAL_COMMON_00;
         result[2] = 03;

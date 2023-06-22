@@ -72,7 +72,7 @@ public class HomeShowFragment extends Fragment implements View.OnClickListener {
                             public void accept(Response<History> response) throws Exception {
                                 Log.d(response.toString());
                                 if ("000".equals(response.getStatus())) {
-                                    History history = response.getData();
+                                    History history = response.getDatas();
                                     dealWithHistory(history);
                                 }
                             }

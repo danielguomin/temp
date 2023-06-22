@@ -76,7 +76,6 @@ public class BlueManager {
     public static LiveData<CurrentTemp> currentTempLiveData = _currentTempLiveData;
     private static SingleLiveData<HistoryTemp> _historyTempLiveData = new SingleLiveData<>();
     public static LiveData<HistoryTemp> historyTempLiveData = _historyTempLiveData;
-    //    public static long startTime = 0;
     public static SingleLiveData<List<Float>> _currentList = new SingleLiveData<>();
     public static LiveData<List<Float>> currentList = _currentList;
     private static SingleLiveData<Boolean> _memberLiveData = new SingleLiveData<>();

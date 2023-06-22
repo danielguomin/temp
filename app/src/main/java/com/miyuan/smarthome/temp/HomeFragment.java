@@ -141,6 +141,102 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    Observer<List<Float>> observer = new Observer<List<Float>>() {
+        @Override
+        public void onChanged(List<Float> floats) {
+            Log.d("HomeFragment currentList onChanged " + floats.size());
+            List<Entry> entryList = new ArrayList<>();
+            if (entryHistoryList != null) {
+                entryList.addAll(entryHistoryList);
+            }
+            if (currentFirstTime == 0) {
+                currentFirstTime = System.currentTimeMillis();
+            }
+            float[] temps = new float[floats.size()];
+            for (int i = 0; i < floats.size(); i++) {
+                temps[i] = floats.get(i);
+                Entry entry = new Entry(currentFirstTime + i * 10 * 1000, floats.get(i));
+                entryList.add(entry);
+            }
+            setData(entryList);
+            History history = new History();
+            history.setMemberID(TempApplication.currentLiveData.getValue().getMemberId());
+            history.setDevicesID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+            history.setTemps(Arrays.toString(temps));
+            history.setTime(currentFirstTime);
+//            try {
+
+            if (floats.size() > 1) {
+                db.getHistoryDao().update(history);
+            } else {
+                db.getHistoryDao().insert(history);
+            }
+//            } catch (Exception e) {
+//                Log.d(e.getMessage());
+//            }
+            Map<String, String> params = new HashMap<>();
+            params.put("devicesID", history.getDevicesID());
+            params.put("memberID", String.valueOf(history.getMemberID()));
+            params.put("time", String.valueOf(history.getTime()));
+            params.put("temps", history.getTemps());
+            params.put("name", TempApplication.currentLiveData.getValue().getName());
+            TempApiManager.getInstance().updateRealTemp(params)
+                    .subscribeOn(Schedulers.io())
+                    .unsubscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Consumer<Response<String>>() {
+                        @Override
+                        public void accept(Response<String> response) throws Exception {
+                            Log.d(response.toString());
+                            if ("000".equals(response.getStatus())) {
+                                history.setUpdated(true);
+                                db.getHistoryDao().update(history);
+                            }
+                        }
+                    }, new Consumer<Throwable>() {
+                        @Override
+                        public void accept(Throwable throwable) throws Exception {
+                            Log.d(throwable.getMessage());
+                        }
+                    });
+        }
+    };
+
+    private void getHistory(TempInfo info) {
+        MainActivity.executors.execute(new Runnable() {
+            @Override
+            public void run() {
+                List<History> list = db.getHistoryDao().getAll(info.getDeviceId(), info.getMemberId());
+                entryHistoryList = new ArrayList<>();
+                if (list.size() == 0) {
+                    getHistoryFromNet(info);
+                } else {
+                    updateHistoryToNet();
+                    for (History history : list) {
+                        dealWithHistory(history);
+                    }
+                }
+            }
+        });
+    }
+
+    private void dealWithHistory(History history) {
+        if (TimeUtils.isSameDay(new Date(history.getTime())) || TimeUtils.isYesterday(history.getTime())) {
+            long start = history.getTime();
+            String temps1 = history.getTemps();
+            String temp = temps1.substring(1, temps1.length() - 1);
+            if (!TextUtils.isEmpty(temp)) {
+                String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
+                for (int i = 0; i < temps.length; i++) {
+                    Entry entry = new Entry(start + i * 10 * 1000, Float.valueOf(temps[i].trim()));
+                    entryHistoryList.add(entry);
+                }
+            }
+        }
+    }
+
+    boolean continueHigh = false;
+
     private void initView() {
         binding.history.setOnClickListener(this);
         binding.remind.setOnClickListener(this);
@@ -229,6 +325,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                         currentFirstTime = 0;
                         high = 0;
                         highTime = 0;
+                        handler.removeCallbacks(runnable);
                         getHistory(info);
                     }
                 }
@@ -259,116 +356,56 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        BlueManager.currentList.observeForever(new Observer<List<Float>>() {
-            @Override
-            public void onChanged(List<Float> floats) {
-                Log.d("HomeFragment currentList onChanged " + floats.size());
-                List<Entry> entryList = new ArrayList<>();
-                if (entryHistoryList != null) {
-                    entryList.addAll(entryHistoryList);
-                }
-                if (currentFirstTime == 0) {
-                    currentFirstTime = System.currentTimeMillis();
-                }
-                float[] temps = new float[floats.size()];
-                for (int i = 0; i < floats.size(); i++) {
-                    temps[i] = floats.get(i);
-                    Entry entry = new Entry(currentFirstTime + i * 10 * 1000, floats.get(i));
-                    entryList.add(entry);
-                }
-                setData(entryList);
-                History history = new History();
-                history.setMemberID(TempApplication.currentLiveData.getValue().getMemberId());
-                history.setDevicesID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
-                history.setTemps(Arrays.toString(temps));
-                history.setTime(currentFirstTime);
-                try {
-
-                    if (floats.size() > 1) {
-                        db.getHistoryDao().update(history);
-                    } else {
-                        db.getHistoryDao().insert(history);
-                    }
-                } catch (Exception e) {
-                    Log.d(e.getMessage());
-                }
-                Map<String, String> params = new HashMap<>();
-                params.put("devicesID", history.getDevicesID());
-                params.put("memberID", String.valueOf(history.getMemberID()));
-                params.put("time", String.valueOf(history.getTime()));
-                params.put("temps", history.getTemps());
-                params.put("name", TempApplication.currentLiveData.getValue().getName());
-                TempApiManager.getInstance().updateRealTemp(params)
-                        .subscribeOn(Schedulers.io())
-                        .unsubscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Consumer<Response<String>>() {
-                            @Override
-                            public void accept(Response<String> response) throws Exception {
-                                Log.d(response.toString());
-                                if ("000".equals(response.getStatus())) {
-                                    history.setUpdated(true);
-                                    db.getHistoryDao().update(history);
-                                }
-                            }
-                        }, new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable throwable) throws Exception {
-                                Log.d(throwable.getMessage());
-                            }
-                        });
-            }
-        });
+        BlueManager.currentList.observeForever(observer);
 
         BlueManager.historyTempLiveData.observe(
-
                 getViewLifecycleOwner(), new Observer<HistoryTemp>() {
                     @Override
                     public void onChanged(HistoryTemp historyTemp) {
                         Log.d("HomeFragment historyTempLiveData onChanged ");
-                        try {
-                            if (historyTemp.getTempCount() > 0) {
-                                // 存入数据库
-                                History history = new History();
-                                history.setTime(historyTemp.getStartTime());
-                                history.setMemberID(historyTemp.getMemberId());
-                                history.setDevicesID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
-                                history.setTemps(Arrays.toString(historyTemp.getTemps()));
-                                dealWithHistory(history);
-                                db.getHistoryDao().insert(history);
-                                if (historyTemp.getStatus() == 1) {
-                                    BlueManager.getInstance().send(ProtocolUtils.getHistoryTemp());
-                                } else {
-                                    TTSManager.getInstance().speek("历史体温数据获取完成");
-                                }
-                                Map<String, String> params = new HashMap<>();
-                                params.put("devicesID", history.getDevicesID());
-                                params.put("memberID", String.valueOf(history.getMemberID()));
-                                params.put("time", String.valueOf(history.getTime()));
-                                params.put("temps", history.getTemps());
-                                TempApiManager.getInstance().updateHistory(params)
-                                        .subscribeOn(Schedulers.io())
-                                        .unsubscribeOn(Schedulers.io())
-                                        .observeOn(AndroidSchedulers.mainThread())
-                                        .subscribe(new Consumer<Response<String>>() {
-                                            @Override
-                                            public void accept(Response<String> response) throws Exception {
-                                                Log.d(response.toString());
-                                                if ("000".equals(response.getStatus())) {
-                                                    history.setUpdated(true);
-                                                    db.getHistoryDao().update(history);
-                                                }
-                                            }
-                                        }, new Consumer<Throwable>() {
-                                            @Override
-                                            public void accept(Throwable throwable) throws Exception {
-                                                Log.d(throwable.getMessage());
-                                            }
-                                        });
+//                        try {
+                        if (historyTemp.getTempCount() > 0) {
+                            // 存入数据库
+                            History history = new History();
+                            history.setTime(historyTemp.getStartTime());
+                            history.setMemberID(historyTemp.getMemberId());
+                            history.setDevicesID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+                            history.setTemps(Arrays.toString(historyTemp.getTemps()));
+                            dealWithHistory(history);
+                            db.getHistoryDao().insert(history);
+                            if (historyTemp.getStatus() == 1) {
+                                BlueManager.getInstance().send(ProtocolUtils.getHistoryTemp());
+                            } else {
+                                TTSManager.getInstance().speek("历史体温数据获取完成");
                             }
-                        } catch (Exception e) {
-                            Log.d(e.getMessage());
+                            Map<String, String> params = new HashMap<>();
+                            params.put("devicesID", history.getDevicesID());
+                            params.put("memberID", String.valueOf(history.getMemberID()));
+                            params.put("time", String.valueOf(history.getTime()));
+                            params.put("temps", history.getTemps());
+                            TempApiManager.getInstance().updateHistory(params)
+                                    .subscribeOn(Schedulers.io())
+                                    .unsubscribeOn(Schedulers.io())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(new Consumer<Response<String>>() {
+                                        @Override
+                                        public void accept(Response<String> response) throws Exception {
+                                            Log.d(response.toString());
+                                            if ("000".equals(response.getStatus())) {
+                                                history.setUpdated(true);
+                                                db.getHistoryDao().update(history);
+                                            }
+                                        }
+                                    }, new Consumer<Throwable>() {
+                                        @Override
+                                        public void accept(Throwable throwable) throws Exception {
+                                            Log.d(throwable.getMessage());
+                                        }
+                                    });
                         }
+//                        } catch (Exception e) {
+//                            Log.d(e.getMessage());
+//                        }
 
                     }
                 });
@@ -381,41 +418,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             }
         });
     }
-
-    private void getHistory(TempInfo info) {
-        MainActivity.executors.execute(new Runnable() {
-            @Override
-            public void run() {
-                List<History> list = db.getHistoryDao().getAll(info.getDeviceId(), info.getMemberId());
-                entryHistoryList = new ArrayList<>();
-                if (list.size() == 0) {
-                    getHistoryFromNet(info);
-                } else {
-                    updateHistoryToNet();
-                    for (History history : list) {
-                        dealWithHistory(history);
-                    }
-                }
-            }
-        });
-    }
-
-    private void dealWithHistory(History history) {
-        if (TimeUtils.isSameDay(new Date(history.getTime())) || TimeUtils.isYesterday(history.getTime())) {
-            long start = history.getTime();
-            String temps1 = history.getTemps();
-            String temp = temps1.substring(1, temps1.length() - 1);
-            if (!TextUtils.isEmpty(temp)) {
-                String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
-                for (int i = 0; i < temps.length; i++) {
-                    Entry entry = new Entry(start + i * 10 * 1000, Float.valueOf(temps[i].trim()));
-                    entryHistoryList.add(entry);
-                }
-            }
-        }
-    }
-
-    boolean continueHigh = false;
 
     private void updateHistoryToNet() {
         List<History> updateHistory = db.getHistoryDao().getUpdateHistory(false);
@@ -450,63 +452,39 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 }
             });
         }
-    }
 
-
-    private void getHistoryFromNet(TempInfo info) {
-        MainActivity.executors.execute(new Runnable() {
-            @Override
-            public void run() {
-                Map<String, String> params = new HashMap<>();
-                params.put("devicesID", info.getDeviceId());
-                params.put("memberID", String.valueOf(info.getMemberId()));
-                TempApiManager.getInstance().getHistory(params)
-                        .subscribeOn(Schedulers.io())
-                        .unsubscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Consumer<Response<List<History>>>() {
-                            @Override
-                            public void accept(Response<List<History>> response) throws Exception {
-                                Log.d(response.toString());
-                                if ("000".equals(response.getStatus())) {
-                                    db.getHistoryDao().insert(response.getData());
+        List<Nurse> nurseList = db.getNurseDao().getAll(false);
+        for (Nurse nurse : nurseList) {
+            MainActivity.executors.execute(new Runnable() {
+                @Override
+                public void run() {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("devicesID", nurse.getDevicesID());
+                    params.put("memberID", String.valueOf(nurse.getMemberID()));
+                    params.put("time", String.valueOf(nurse.getTime()));
+                    params.put("type", String.valueOf(nurse.getType()));
+                    params.put("content", nurse.getContent());
+                    TempApiManager.getInstance().updateNurseInfo(params)
+                            .subscribeOn(Schedulers.io())
+                            .unsubscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Consumer<Response<String>>() {
+                                @Override
+                                public void accept(Response<String> response) throws Exception {
+                                    if (response.getStatus().equals("000")) {
+                                        nurse.setUpdated(true);
+                                        db.getNurseDao().update(nurse);
+                                    }
                                 }
-                            }
-                        }, new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable throwable) throws Exception {
-                                Log.d(throwable.getMessage());
-                            }
-                        });
-            }
-        });
-
-        MainActivity.executors.execute(new Runnable() {
-            @Override
-            public void run() {
-                Map<String, String> params = new HashMap<>();
-                params.put("devicesID", info.getDeviceId());
-                params.put("memberID", String.valueOf(info.getMemberId()));
-                TempApiManager.getInstance().getNurseInfo(params)
-                        .subscribeOn(Schedulers.io())
-                        .unsubscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Consumer<Response<List<Nurse>>>() {
-                            @Override
-                            public void accept(Response<List<Nurse>> response) throws Exception {
-                                Log.d(response.toString());
-                                if ("000".equals(response.getStatus())) {
-                                    db.getNurseDao().insert(response.getData());
+                            }, new Consumer<Throwable>() {
+                                @Override
+                                public void accept(Throwable throwable) throws Exception {
+                                    Log.d(throwable.getMessage());
                                 }
-                            }
-                        }, new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable throwable) throws Exception {
-                                Log.d(throwable.getMessage());
-                            }
-                        });
-            }
-        });
+                            });
+                }
+            });
+        }
     }
 
     int highCount = 0;
@@ -794,5 +772,71 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     public void onDestroy() {
         super.onDestroy();
         db.close();
+    }
+
+    private void getHistoryFromNet(TempInfo info) {
+        MainActivity.executors.execute(new Runnable() {
+            @Override
+            public void run() {
+                Map<String, String> params = new HashMap<>();
+                params.put("devicesID", info.getDeviceId());
+                params.put("memberID", String.valueOf(info.getMemberId()));
+                TempApiManager.getInstance().getHistory(params)
+                        .subscribeOn(Schedulers.io())
+                        .unsubscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Consumer<Response<List<History>>>() {
+                            @Override
+                            public void accept(Response<List<History>> response) throws Exception {
+                                Log.d(response.toString());
+                                if ("000".equals(response.getStatus())) {
+                                    List<History> list = response.getDatas();
+                                    if (list != null && list.size() > 0) {
+                                        db.getHistoryDao().insert(list);
+                                        for (History history : list) {
+                                            dealWithHistory(history);
+                                        }
+                                    }
+                                }
+                            }
+                        }, new Consumer<Throwable>() {
+                            @Override
+                            public void accept(Throwable throwable) throws Exception {
+                                Log.d(throwable.getMessage());
+                            }
+                        });
+            }
+        });
+
+        MainActivity.executors.execute(new Runnable() {
+            @Override
+            public void run() {
+                Map<String, String> params = new HashMap<>();
+                params.put("devicesID", info.getDeviceId());
+                params.put("memberID", String.valueOf(info.getMemberId()));
+                TempApiManager.getInstance().getNurseInfo(params)
+                        .subscribeOn(Schedulers.io())
+                        .unsubscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Consumer<Response<List<Nurse>>>() {
+                            @Override
+                            public void accept(Response<List<Nurse>> response) throws Exception {
+                                Log.d(response.toString());
+                                if ("000".equals(response.getStatus())) {
+                                    List<Nurse> list = response.getDatas();
+                                    if (list != null) {
+                                        db.getNurseDao().insert(list);
+                                        getNurseInfo();
+                                    }
+                                }
+                            }
+                        }, new Consumer<Throwable>() {
+                            @Override
+                            public void accept(Throwable throwable) throws Exception {
+                                Log.d(throwable.getMessage());
+                            }
+                        });
+            }
+        });
     }
 }

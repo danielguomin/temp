@@ -153,13 +153,12 @@ public class NurselFragment extends Fragment implements View.OnClickListener {
                     nurse.setTime(nurselTime);
                     nurse.setType(nurselType);
                     nurse.setContent(content);
-                    nurse.setMemberId(1);
-                    nurse.setMemberId(TempApplication.currentLiveData.getValue().getMemberId());
-                    nurse.setDeviceId(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+                    nurse.setMemberID(TempApplication.currentLiveData.getValue().getMemberId());
+                    nurse.setDevicesID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
                     db.getNurseDao().insert(nurse);
                     Map<String, String> params = new HashMap<>();
-                    params.put("devicesID", nurse.getDeviceId());
-                    params.put("memberID", String.valueOf(nurse.getMemberId()));
+                    params.put("devicesID", nurse.getDevicesID());
+                    params.put("memberID", String.valueOf(nurse.getMemberID()));
                     params.put("time", String.valueOf(nurse.getTime()));
                     params.put("type", String.valueOf(nurse.getType()));
                     params.put("content", nurse.getContent());
@@ -171,6 +170,8 @@ public class NurselFragment extends Fragment implements View.OnClickListener {
                                 @Override
                                 public void accept(Response<String> response) throws Exception {
                                     if (response.getStatus().equals("000")) {
+                                        nurse.setUpdated(true);
+                                        db.getNurseDao().update(nurse);
                                         Toast.makeText(getActivity(), "保存成功！", Toast.LENGTH_SHORT).show();
                                         Navigation.findNavController(v).navigateUp();
                                     } else {
