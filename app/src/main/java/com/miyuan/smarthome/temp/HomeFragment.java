@@ -164,16 +164,15 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             history.setDevicesID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
             history.setTemps(Arrays.toString(temps));
             history.setTime(currentFirstTime);
-//            try {
-
-            if (floats.size() > 1) {
-                db.getHistoryDao().update(history);
-            } else {
-                db.getHistoryDao().insert(history);
+            try {
+                if (floats.size() > 1) {
+                    db.getHistoryDao().update(history);
+                } else {
+                    db.getHistoryDao().insert(history);
+                }
+            } catch (Exception e) {
+                Log.d(e.getMessage());
             }
-//            } catch (Exception e) {
-//                Log.d(e.getMessage());
-//            }
             Map<String, String> params = new HashMap<>();
             params.put("devicesID", history.getDevicesID());
             params.put("memberID", String.valueOf(history.getMemberID()));
@@ -363,49 +362,49 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                     @Override
                     public void onChanged(HistoryTemp historyTemp) {
                         Log.d("HomeFragment historyTempLiveData onChanged ");
-//                        try {
-                        if (historyTemp.getTempCount() > 0) {
-                            // 存入数据库
-                            History history = new History();
-                            history.setTime(historyTemp.getStartTime());
-                            history.setMemberID(historyTemp.getMemberId());
-                            history.setDevicesID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
-                            history.setTemps(Arrays.toString(historyTemp.getTemps()));
-                            dealWithHistory(history);
-                            db.getHistoryDao().insert(history);
-                            if (historyTemp.getStatus() == 1) {
-                                BlueManager.getInstance().send(ProtocolUtils.getHistoryTemp());
-                            } else {
-                                TTSManager.getInstance().speek("历史体温数据获取完成");
-                            }
-                            Map<String, String> params = new HashMap<>();
-                            params.put("devicesID", history.getDevicesID());
-                            params.put("memberID", String.valueOf(history.getMemberID()));
-                            params.put("time", String.valueOf(history.getTime()));
-                            params.put("temps", history.getTemps());
-                            TempApiManager.getInstance().updateHistory(params)
-                                    .subscribeOn(Schedulers.io())
-                                    .unsubscribeOn(Schedulers.io())
-                                    .observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe(new Consumer<Response<String>>() {
-                                        @Override
-                                        public void accept(Response<String> response) throws Exception {
-                                            Log.d(response.toString());
-                                            if ("000".equals(response.getStatus())) {
-                                                history.setUpdated(true);
-                                                db.getHistoryDao().update(history);
+                        try {
+                            if (historyTemp.getTempCount() > 0) {
+                                // 存入数据库
+                                History history = new History();
+                                history.setTime(historyTemp.getStartTime());
+                                history.setMemberID(historyTemp.getMemberId());
+                                history.setDevicesID(BlueManager.tempInfoLiveData.getValue().getDeviceId());
+                                history.setTemps(Arrays.toString(historyTemp.getTemps()));
+                                dealWithHistory(history);
+                                db.getHistoryDao().insert(history);
+                                if (historyTemp.getStatus() == 1) {
+                                    BlueManager.getInstance().send(ProtocolUtils.getHistoryTemp());
+                                } else {
+                                    TTSManager.getInstance().speek("历史体温数据获取完成");
+                                }
+                                Map<String, String> params = new HashMap<>();
+                                params.put("devicesID", history.getDevicesID());
+                                params.put("memberID", String.valueOf(history.getMemberID()));
+                                params.put("time", String.valueOf(history.getTime()));
+                                params.put("temps", history.getTemps());
+                                TempApiManager.getInstance().updateHistory(params)
+                                        .subscribeOn(Schedulers.io())
+                                        .unsubscribeOn(Schedulers.io())
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .subscribe(new Consumer<Response<String>>() {
+                                            @Override
+                                            public void accept(Response<String> response) throws Exception {
+                                                Log.d(response.toString());
+                                                if ("000".equals(response.getStatus())) {
+                                                    history.setUpdated(true);
+                                                    db.getHistoryDao().update(history);
+                                                }
                                             }
-                                        }
-                                    }, new Consumer<Throwable>() {
-                                        @Override
-                                        public void accept(Throwable throwable) throws Exception {
-                                            Log.d(throwable.getMessage());
-                                        }
-                                    });
+                                        }, new Consumer<Throwable>() {
+                                            @Override
+                                            public void accept(Throwable throwable) throws Exception {
+                                                Log.d(throwable.getMessage());
+                                            }
+                                        });
+                            }
+                        } catch (Exception e) {
+                            Log.d(e.getMessage());
                         }
-//                        } catch (Exception e) {
-//                            Log.d(e.getMessage());
-//                        }
 
                     }
                 });
@@ -792,6 +791,9 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                                 if ("000".equals(response.getStatus())) {
                                     List<History> list = response.getDatas();
                                     if (list != null && list.size() > 0) {
+                                        for (History history : list) {
+                                            history.setUpdated(true);
+                                        }
                                         db.getHistoryDao().insert(list);
                                         for (History history : list) {
                                             dealWithHistory(history);
@@ -824,6 +826,9 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                                 Log.d(response.toString());
                                 if ("000".equals(response.getStatus())) {
                                     List<Nurse> list = response.getDatas();
+                                    for (Nurse nurse : list) {
+                                        nurse.setUpdated(true);
+                                    }
                                     if (list != null) {
                                         db.getNurseDao().insert(list);
                                         getNurseInfo();
