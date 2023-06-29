@@ -279,7 +279,7 @@ public class WaterMeterView extends View {
                     }
                 }
                 for (int i = 0; i < nursePointFList.size(); i++) {
-                    if (Math.abs(x - (nursePointFList.get(i).x)) < UIUtil.dp2pxF(5) && Math.abs(y - nursePointFList.get(i).y) < UIUtil.dp2pxF(5)) {
+                    if (Math.abs(x - (nursePointFList.get(i).x)) < UIUtil.dp2pxF(10) && Math.abs(y - nursePointFList.get(i).y) < UIUtil.dp2pxF(10)) {
                         pointFNurse = nursePointFList.get(i);
                         pointSelectedNurse = i;
                         invalidate();
@@ -357,7 +357,7 @@ public class WaterMeterView extends View {
      */
     public void changeStyle(List<Entry> data, int type) {
         currentType = type;
-        setData(data);
+        setData(data, this.allNurses);
     }
 
     private long beginTime;
@@ -367,17 +367,18 @@ public class WaterMeterView extends View {
      *
      * @param data
      */
-    public void setData(List<Entry> data) {
-        if (data == null) {
-            invalidate();
-            return;
-        }
+    public void setData(List<Entry> data, List<Nurse> nurses) {
+//        if (data == null) {
+//            invalidate();
+//            return;
+//        }
+        this.allNurses = nurses;
+        this.nurses.clear();
         //数据清理
         maxTemp = "";
         pointFMax = null;
         list.clear();
         pointFList.clear();
-        nurses.clear();
         nursePointFList.clear();
         pointFSelectedPosition = -1;
         pointFSelected = null;
@@ -413,23 +414,16 @@ public class WaterMeterView extends View {
 
         for (Nurse nurse : allNurses) {
             if (nurse.getTime() >= startTime) {
-                nurses.add(nurse);
+                this.nurses.add(nurse);
             }
         }
         initPointFData();
         invalidate();
     }
 
-    public void setNurseData(List<Nurse> nurses) {
+    public void setNurses(List<Nurse> nurses) {
         this.allNurses = nurses;
-        this.nurses.clear();
-        for (Nurse nurse : allNurses) {
-            if (nurse.getTime() >= startTime) {
-                this.nurses.add(nurse);
-            }
-        }
         initPointFData();
-        invalidate();
     }
 
     /**
@@ -439,6 +433,7 @@ public class WaterMeterView extends View {
         float centerX = 0;
         float centerY = 0;
         pointFList.clear();
+        nursePointFList.clear();
         int dividend = 30 * 60;
         switch (currentType) {
             case 0:
@@ -501,6 +496,9 @@ public class WaterMeterView extends View {
         canvas.save();
         circlePaint.reset();
         for (PointF pointF : nursePointFList) {
+            if (pointF.x - UIUtil.dp2pxF(14) < itemWidth * 3 / 4) {
+                continue;
+            }
             //画圆
             float x_point = pointF.x;
             float y_point = pointF.y;
@@ -536,27 +534,43 @@ public class WaterMeterView extends View {
 
         rectF.left = pointFNurse.x + UIUtil.dp2pxF(12);
         //88dp是当text0，没有读数的时候，默认的长度。
-        rectF.right = pointFNurse.x + UIUtil.dp2pxF(12) + UIUtil.getTextWidth(textPaintDetail, textO) + UIUtil.dp2pxF(12);
-        rectF.top = pointFNurse.y - UIUtil.dp2pxF(62);
+        rectF.right = pointFNurse.x + UIUtil.dp2pxF(12) + UIUtil.getTextWidth(textPaintDetail, textO) + UIUtil.dp2pxF(50);
         rectF.bottom = pointFNurse.y - UIUtil.dp2pxF(12);
 
         if (rectF.right > viewWidth) {
             //调整文字框位置
-            rectF.left = pointFNurse.x - UIUtil.dp2pxF(12) - UIUtil.getTextWidth(textPaintDetail, textO) - UIUtil.dp2pxF(12);
+            rectF.left = pointFNurse.x - UIUtil.dp2pxF(12) - UIUtil.getTextWidth(textPaintDetail, textO) - UIUtil.dp2pxF(50);
             rectF.right = pointFNurse.x - UIUtil.dp2pxF(12);
         }
+        float verticalOffset = 0;
+        int start = 0;
+        int count = 0;
+        while (start < content.length()) {
+            count = textPaintDetail.breakText(content, start, content.length(), true, UIUtil.getTextWidth(textPaintDetail, textO) + UIUtil.dp2pxF(40), null);
+            start += count;
+            verticalOffset += textPaintDetail.getFontSpacing();
+        }
+        rectF.top = pointFNurse.y - verticalOffset - UIUtil.dp2pxF(40);
         WaterDetailBgPath.moveTo(rectF.left, rectF.top);
         WaterDetailBgPath.addRoundRect(rectF, UIUtil.dp2pxF(5), UIUtil.dp2pxF(5), Path.Direction.CW);
         //画背景
         canvas.drawPath(WaterDetailBgPath, backGroundDetailPaint);
         //写第一行文字
-        Paint.FontMetrics m = textPaintDetail.getFontMetrics();
         textPaintDetail.setColor(backGroundColor);
-        canvas.drawText(textO, 0, textO.length(), rectF.left + UIUtil.dp2pxF(8), rectF.bottom - UIUtil.dp2pxF(40) - (m.ascent + m.descent) / 2, textPaintDetail);
-        //写第二行文字
-        canvas.drawText(textT, 0, textT.length(), rectF.left + UIUtil.dp2pxF(8), rectF.bottom - UIUtil.dp2pxF(26) - (m.ascent + m.descent) / 2, textPaintDetail);
-        //写第三行文字
-        canvas.drawText(content, 0, content.length(), rectF.left + UIUtil.dp2pxF(8), rectF.bottom - UIUtil.dp2pxF(12) - (m.ascent + m.descent) / 2, textPaintDetail);
+        verticalOffset = rectF.top + UIUtil.dp2pxF(12);
+        canvas.drawText(textO, 0, textO.length(), rectF.left + UIUtil.dp2pxF(8), verticalOffset, textPaintDetail);
+        verticalOffset += textPaintDetail.getFontSpacing();
+        canvas.drawText(textT, 0, textT.length(), rectF.left + UIUtil.dp2pxF(8), verticalOffset, textPaintDetail);
+        verticalOffset += textPaintDetail.getFontSpacing();
+        start = 0;
+        count = 0;
+        while (start < content.length()) {
+            count = textPaintDetail.breakText(content, start, content.length(), true, UIUtil.getTextWidth(textPaintDetail, textO) + UIUtil.dp2pxF(40), null);
+            canvas.drawText(content, start, start + count, rectF.left + UIUtil.dp2pxF(8), verticalOffset, textPaintDetail);
+            start += count;
+            verticalOffset += textPaintDetail.getFontSpacing();
+        }
+        Log.d("verticalOffset " + verticalOffset);
         canvas.restore();
     }
 
@@ -586,6 +600,10 @@ public class WaterMeterView extends View {
             //调整文字框位置
             rectF.left = pointFSelected.x - UIUtil.dp2pxF(12) - UIUtil.getTextWidth(textPaintDetail, textO) - UIUtil.dp2pxF(12);
             rectF.right = pointFSelected.x - UIUtil.dp2pxF(12);
+        }
+        if (rectF.top < itemHeight / 3) {
+            rectF.top = itemHeight / 3;
+            rectF.bottom = itemHeight / 3 + UIUtil.dp2pxF(52) - UIUtil.dp2pxF(12);
         }
         WaterDetailBgPath.moveTo(rectF.left, rectF.top);
         WaterDetailBgPath.addRoundRect(rectF, UIUtil.dp2pxF(5), UIUtil.dp2pxF(5), Path.Direction.CW);

@@ -71,7 +71,6 @@ public class HistoryTempListFragment extends Fragment implements View.OnClickLis
             @Override
             public void onItemClick(String time) {
                 _historyLiveData.postValue(datas.get(time));
-//                bundle.putParcelableArrayList("histories", (ArrayList<? extends Parcelable>) list);
                 Navigation.findNavController(getView()).navigate(R.id.action_HistoryTempListFragment_to_HistoryFragment);
             }
         });

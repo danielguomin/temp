@@ -42,6 +42,8 @@ public class HistoryFragment extends Fragment implements View.OnClickListener {
     boolean high = false;
     int highCount = 0;
 
+    private List<Nurse> nurses = new ArrayList<>();
+
     private void getHistory() {
         historyList = TempApplication.historyLiveData.getValue();
         isSameDay();
@@ -65,14 +67,13 @@ public class HistoryFragment extends Fragment implements View.OnClickListener {
     private void getNurseInfo(long time) {
         int nurselCount = 0;
         List<Nurse> nurseList = db.getNurseDao().getAll(BlueManager.tempInfoLiveData.getValue().getDeviceId(), TempApplication._currentMemberLiveData.getValue().getMemberId());
-        List<Nurse> temps = new ArrayList<>();
+        nurses.clear();
         for (Nurse nurse : nurseList) {
             if (TimeUtils.isSameDay(new Date(nurse.getTime()), new Date(time))) {
-                temps.add(nurse);
+                nurses.add(nurse);
                 nurselCount++;
             }
         }
-        binding.lineChart.setNurseData(temps);
         binding.nusreCount.setText(String.valueOf(nurselCount));
     }
 
@@ -151,15 +152,12 @@ public class HistoryFragment extends Fragment implements View.OnClickListener {
             checkQueue.offer(y);
             check();
         }
-        binding.measure.setText(TimeUtils.getHourStrForSecond(new
-                Date(values.size() * 10 * 1000)));
-        binding.highTimeCount.setText(TimeUtils.getHourStrForSecond(new
-                Date(highCountTime * 1000)));
-        binding.lowTimeCount.setText(TimeUtils.getHourStrForSecond(new
-                Date(lowCountTime * 1000)));
-        binding.normalTimeCount.setText(TimeUtils.getHourStrForSecond(new
-                Date(normalCountTime * 1000)));
+        binding.measure.setText(TimeUtils.getTimeString(values.size() * 10 * 1000L));
+        binding.highTimeCount.setText(TimeUtils.getTimeString(highCountTime * 1000L));
+        binding.lowTimeCount.setText(TimeUtils.getTimeString(lowCountTime * 1000L));
+        binding.normalTimeCount.setText(TimeUtils.getTimeString(normalCountTime * 1000L));
         binding.highCount.setText(String.valueOf(highCount));
+        binding.lineChart.setNurses(nurses);
         binding.lineChart.changeStyle(values, 5);
 
     }

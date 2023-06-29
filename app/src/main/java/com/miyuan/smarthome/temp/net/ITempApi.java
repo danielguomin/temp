@@ -32,4 +32,7 @@ public interface ITempApi {
 
     @POST("service/history/getHistory")
     Flowable<Response<List<History>>> getHistory(@Body RequestBody body);
+
+    @POST("service/history/getCount")
+    Flowable<Response<String>> getHistoryCount(@Body RequestBody body);
 }

@@ -91,6 +91,10 @@ public class TempApiManager {
         return iTempApi.getHistory(getRequestBody(params));
     }
 
+    public Flowable<Response<String>> getHistoryCount(@NonNull Map<String, String> params) {
+        return iTempApi.getHistoryCount(getRequestBody(params));
+    }
+
 
     private RequestBody getRequestBody(@NonNull Map<String, String> map) {
         JSONObject requestData = new JSONObject();

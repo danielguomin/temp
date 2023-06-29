@@ -3,6 +3,7 @@ package com.miyuan.smarthome.temp.net;
 public class Response<T> {
     private String status;
     private String message;
+    private int count;
     private T datas;
 
 
@@ -30,11 +31,20 @@ public class Response<T> {
         this.datas = datas;
     }
 
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+
     @Override
     public String toString() {
         return "Response{" +
                 "status='" + status + '\'' +
                 ", message='" + message + '\'' +
+                ", count='" + count + '\'' +
                 ", datas=" + datas +
                 '}';
     }

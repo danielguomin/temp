@@ -129,7 +129,7 @@ public class HomeShowFragment extends Fragment implements View.OnClickListener {
         if (values == null) {
             return;
         }
-        binding.lineChart.changeStyle(currentList, 4);
+        binding.lineChart.changeStyle(currentList, 5);
     }
 
 

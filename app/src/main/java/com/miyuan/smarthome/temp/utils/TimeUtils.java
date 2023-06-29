@@ -136,4 +136,43 @@ public class TimeUtils {
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         return hour * 3600;
     }
+
+    public static String getTimeString(final long millisecond) {
+        if (millisecond < 1000) {
+            return "00:00:00";
+        }
+        long second = millisecond / 1000;
+        long seconds = second % 60;
+        long minutes = second / 60;
+        long hours = 0;
+        if (minutes >= 60) {
+            hours = minutes / 60;
+            minutes = minutes % 60;
+        }
+        String timeString = "";
+        String secondString = "";
+        String minuteString = "";
+        String hourString = "";
+        if (seconds < 10) {
+            secondString = "0" + seconds;
+        } else {
+            secondString = String.valueOf(seconds);
+        }
+        if (minutes < 10) {
+            minuteString = "0" + minutes;
+        } else {
+            minuteString = String.valueOf(minutes);
+        }
+        if (hours < 10) {
+            hourString = "0" + hours;
+        } else {
+            hourString = String.valueOf(hours);
+        }
+        if (hours != 0) {
+            timeString = hourString + ":" + minuteString + ":" + secondString;
+        } else {
+            timeString = "00:" + minuteString + ":" + secondString;
+        }
+        return timeString;
+    }
 }

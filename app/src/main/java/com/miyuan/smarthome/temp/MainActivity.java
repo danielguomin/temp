@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
 
     private float[] lockTemps = new float[]{37.3f, 38f, 38.5f, 39f, 39.5f, 40f, 40.5f, 41f, 41.5f, 42};
 
-    public static ExecutorService executors = Executors.newCachedThreadPool();
+    public static ExecutorService executors = Executors.newFixedThreadPool(3);
 
 
     @Override

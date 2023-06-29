@@ -56,8 +56,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     private FragmentHomeBinding binding;
 
     private TempDataBase db;
-    private List<Entry> entryHistoryList;
+    private List<Entry> historyList;
     private List<Entry> currentList = new ArrayList<>();
+    private List<Nurse> AllNurseList = new ArrayList<>();
+    private List<Nurse> currentNurseList = new ArrayList<>();
 
     private final static int COUNT = 10;
     boolean[] dpHigh = new boolean[COUNT];
@@ -82,8 +84,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         }
     };
 
-    int nurselCount = 0;
-
     Queue<Float> checkQueue = new LinkedList<>();
 
     @Override
@@ -102,13 +102,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     }
 
     private long currentFirstTime;
-
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        getNurseInfo();
-    }
 
     @Override
     public void onPause() {
@@ -146,8 +139,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         public void onChanged(List<Float> floats) {
             Log.d("HomeFragment currentList onChanged " + floats.size());
             List<Entry> entryList = new ArrayList<>();
-            if (entryHistoryList != null) {
-                entryList.addAll(entryHistoryList);
+            if (historyList != null) {
+                entryList.addAll(historyList);
             }
             if (currentFirstTime == 0) {
                 currentFirstTime = System.currentTimeMillis();
@@ -158,6 +151,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 Entry entry = new Entry(currentFirstTime + i * 10 * 1000, floats.get(i));
                 entryList.add(entry);
             }
+            getNurseInfo();
             setData(entryList);
             History history = new History();
             history.setMemberID(TempApplication.currentLiveData.getValue().getMemberId());
@@ -201,20 +195,42 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         }
     };
 
-    private void getHistory(TempInfo info) {
+    private void getHistory(final TempInfo info) {
+        historyList = new ArrayList<>();
         MainActivity.executors.execute(new Runnable() {
             @Override
             public void run() {
-                List<History> list = db.getHistoryDao().getAll(info.getDeviceId(), info.getMemberId());
-                entryHistoryList = new ArrayList<>();
-                if (list.size() == 0) {
-                    getHistoryFromNet(info);
-                } else {
-                    updateHistoryToNet();
-                    for (History history : list) {
-                        dealWithHistory(history);
-                    }
-                }
+                Map<String, String> params = new HashMap<>();
+                params.put("devicesID", info.getDeviceId());
+                params.put("memberID", String.valueOf(info.getMemberId()));
+                TempApiManager.getInstance().getHistoryCount(params)
+                        .subscribeOn(Schedulers.io())
+                        .unsubscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Consumer<Response<String>>() {
+                            @Override
+                            public void accept(Response<String> response) throws Exception {
+                                Log.d("getHistoryCount " + response.toString());
+                                if ("000".equals(response.getStatus())) {
+                                    List<History> dbList = db.getHistoryDao().getAll(info.getDeviceId(), info.getMemberId(), true);
+                                    if (dbList != null && dbList.size() > 0) {
+                                        if (response.getCount() != dbList.size()) {
+                                            db.getHistoryDao().delete(dbList);
+                                            getHistoryFromNet(info);
+                                        } else {
+                                            updateHistoryToNet();
+                                        }
+                                    } else {
+                                        getHistoryFromNet(info);
+                                    }
+                                }
+                            }
+                        }, new Consumer<Throwable>() {
+                            @Override
+                            public void accept(Throwable throwable) throws Exception {
+                                Log.d(throwable.getMessage());
+                            }
+                        });
             }
         });
     }
@@ -228,7 +244,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 String[] temps = temps1.substring(1, temps1.length() - 1).split(",");
                 for (int i = 0; i < temps.length; i++) {
                     Entry entry = new Entry(start + i * 10 * 1000, Float.valueOf(temps[i].trim()));
-                    entryHistoryList.add(entry);
+                    historyList.add(entry);
                 }
             }
         }
@@ -320,7 +336,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 List<Member> members = info.getMembers();
                 for (Member member : members) {
                     if (member.getMemberId() == info.getMemberId()) {
-                        TempApplication._currentMemberLiveData.postValue(member);
+                        TempApplication._currentMemberLiveData.setValue(member);
                         currentFirstTime = 0;
                         high = 0;
                         highTime = 0;
@@ -493,21 +509,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     private void getNurseInfo() {
         TempInfo tempInfo = BlueManager.tempInfoLiveData.getValue();
         if (tempInfo != null) {
-            nurselCount = 0;
-            List<Nurse> nurseList = db.getNurseDao().getAll(tempInfo.getDeviceId(), TempApplication._currentMemberLiveData.getValue().getMemberId());
-            for (Nurse nurse : nurseList) {
-                if (TimeUtils.isSameDay(new Date(nurse.getTime())) || TimeUtils.isYesterday(nurse.getTime())) {
-                    nurselCount++;
-                }
-            }
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    binding.lineChart.setNurseData(nurseList);
-                    binding.nusreCount.setText(String.valueOf(nurselCount));
-                }
-            });
-
+            AllNurseList.clear();
+            AllNurseList = db.getNurseDao().getAll(tempInfo.getDeviceId(), tempInfo.getMemberId());
         }
     }
 
@@ -516,40 +519,49 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             return;
         }
         currentList.clear();
-        int normalTimeCount = 0, highTimeCount = 0, lowTimeCount = 0;
+        int normalTimeCount = 0, highTimeCount = 0, lowTimeCount = 0, nurselCount = 0;
         highCount = 0;
         continueHigh = false;
         for (Entry entry : values) {
             // 过去24小时
-            if (entry.getTime() >= System.currentTimeMillis() - 24 * 60 * 60 * 1000) {
-                if (entry.getTemp() > high) {
-                    high = entry.getTemp();
+            if (entry.getTime() > (System.currentTimeMillis() - (24 * 60 * 60 * 1000) + 10 * 60 * 1000)) {
+                float y = entry.getTemp();
+                if (y > high) {
+                    high = y;
                     highTime = entry.getTime();
                 }
                 currentList.add(entry);
-            }
-            float y = entry.getTemp();
-            if (checkQueue.size() >= COUNT) {
-                checkQueue.poll();
-            }
-            checkQueue.offer(y);
-            check();
-            if (y < LOW_TEMP_DIVIDER) {
-                normalTimeCount += 10;
-            } else if (y > HIGH_TEMP_DIVIDER) {
-                highTimeCount += 10;
-            } else {
-                lowTimeCount += 10;
+                if (checkQueue.size() >= COUNT) {
+                    checkQueue.poll();
+                }
+                checkQueue.offer(y);
+                check();
+                if (y < LOW_TEMP_DIVIDER) {
+                    normalTimeCount += 10;
+                } else if (y > HIGH_TEMP_DIVIDER) {
+                    highTimeCount += 10;
+                } else {
+                    lowTimeCount += 10;
+                }
             }
         }
-        binding.measure.setText(TimeUtils.getHourStrForSecond(new Date(currentList.size() * 10 * 1000)));
-        binding.highTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(highTimeCount * 1000)));
-        binding.lowTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(lowTimeCount * 1000)));
-        binding.normalTimeCount.setText(TimeUtils.getHourStrForSecond(new Date(normalTimeCount * 1000)));
+
+        currentNurseList.clear();
+        for (Nurse nurse : AllNurseList) {
+            if (nurse.getTime() > (System.currentTimeMillis() - (24 * 60 * 60 * 1000) + 10 * 60 * 1000)) {
+                nurselCount++;
+                currentNurseList.add(nurse);
+            }
+        }
+        binding.measure.setText(TimeUtils.getTimeString(currentList.size() * 10 * 1000));
+        binding.highTimeCount.setText(TimeUtils.getTimeString(highTimeCount * 1000));
+        binding.lowTimeCount.setText(TimeUtils.getTimeString(lowTimeCount * 1000));
+        binding.normalTimeCount.setText(TimeUtils.getTimeString(normalTimeCount * 1000));
+        binding.nusreCount.setText(String.valueOf(nurselCount));
         binding.high.setText(String.valueOf(high));
         binding.highTime.setText(TimeUtils.getHourStr(new Date(highTime)));
         binding.highCount.setText(String.valueOf(highCount));
-        binding.lineChart.setData(currentList);
+        binding.lineChart.setData(currentList, currentNurseList);
     }
 
     private void check() {
@@ -611,10 +623,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_TempRemindListFragment);
                 break;
             case R.id.share:
-                // if (null != tempInfo && tempInfo.getMemberCount() > 0) {
-                Log.d("HomeFragment onClick go ShareFragment");
-                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_ShareFragment);
-                // }
+                if (null != tempInfo && tempInfo.getMemberCount() > 0) {
+                    Log.d("HomeFragment onClick go ShareFragment");
+                    Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_ShareFragment);
+                }
                 break;
             case R.id.second:
                 binding.second.setSelected(true);
@@ -791,13 +803,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                                 if ("000".equals(response.getStatus())) {
                                     List<History> list = response.getDatas();
                                     if (list != null && list.size() > 0) {
+                                        Log.d("getHistoryFromNet count " + list.size());
                                         for (History history : list) {
                                             history.setUpdated(true);
-                                        }
-                                        db.getHistoryDao().insert(list);
-                                        for (History history : list) {
                                             dealWithHistory(history);
                                         }
+                                        db.getHistoryDao().insert(list);
                                     }
                                 }
                             }

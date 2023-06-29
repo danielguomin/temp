@@ -17,6 +17,9 @@ public interface HistoryDao {
     @Query("SELECT * FROM history WHERE devicesID = :devicesID AND memberID =:memberId ORDER BY time ASC")
     List<History> getAll(String devicesID, int memberId);
 
+    @Query("SELECT * FROM history WHERE devicesID = :devicesID AND memberID =:memberId AND updated = :updated ORDER BY time ASC")
+    List<History> getAll(String devicesID, int memberId, boolean updated);
+
     @Query("SELECT * FROM history WHERE updated = :updated ORDER BY time ASC")
     List<History> getUpdateHistory(boolean updated);
 
@@ -28,6 +31,9 @@ public interface HistoryDao {
 
     @Delete
     void delete(History history);
+
+    @Delete
+    void delete(List<History> histories);
 
     @Update
     void update(History history);
