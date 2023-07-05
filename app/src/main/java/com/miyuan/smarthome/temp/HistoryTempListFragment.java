@@ -12,19 +12,19 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.room.Room;
 
-import com.miyuan.smarthome.temp.blue.BlueManager;
 import com.miyuan.smarthome.temp.databinding.FragmentHistoryTempListBinding;
 import com.miyuan.smarthome.temp.db.History;
 import com.miyuan.smarthome.temp.db.TempDataBase;
+import com.miyuan.smarthome.temp.log.Log;
 import com.miyuan.smarthome.temp.utils.TimeUtils;
 import com.miyuan.smarthome.temp.view.HistoryTempAdapter;
+import com.tencent.mmkv.MMKV;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-;
 
 public class HistoryTempListFragment extends Fragment implements View.OnClickListener {
 
@@ -50,9 +50,11 @@ public class HistoryTempListFragment extends Fragment implements View.OnClickLis
         binding.titlelayout.back.setOnClickListener(this);
         binding.titlelayout.title.setText("历史体温");
         int memberId = getArguments().getInt("memberId");
-        String deviceId = BlueManager.tempInfoLiveData.getValue().getDeviceId();
+        MMKV mmkv = MMKV.defaultMMKV();
+        String deviceId = mmkv.getString("devicesID", "");
         historyList = db.getHistoryDao().getAll(deviceId, memberId);
         Map<String, List<History>> datas = new HashMap<>();
+        List<String> times = new ArrayList<>();
         for (History history : historyList) {
             String timeStr = TimeUtils.getTimeStr(history.getTime());
             if (datas.containsKey(timeStr)) {
@@ -60,12 +62,14 @@ public class HistoryTempListFragment extends Fragment implements View.OnClickLis
             } else {
                 List<History> list = new ArrayList<>();
                 list.add(history);
+                times.add(timeStr);
                 datas.put(timeStr, list);
             }
         }
+        Log.d("times = " + times.toString());
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         binding.date.setLayoutManager(layoutManager);
-        HistoryTempAdapter memberAdapter = new HistoryTempAdapter(datas);
+        HistoryTempAdapter memberAdapter = new HistoryTempAdapter(times);
         binding.date.setAdapter(memberAdapter);
         memberAdapter.setOnItemClickListerner(new HistoryTempAdapter.OnItemClickListerner() {
             @Override

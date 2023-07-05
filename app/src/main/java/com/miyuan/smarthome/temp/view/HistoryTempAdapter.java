@@ -10,18 +10,16 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.miyuan.smarthome.temp.R;
-import com.miyuan.smarthome.temp.db.History;
 
 import java.util.List;
-import java.util.Map;
 
 public class HistoryTempAdapter extends
         RecyclerView.Adapter<HistoryTempAdapter.ViewHolder> {
-    private Map<String, List<History>> datas;
+    private List<String> datas;
     private OnItemClickListerner onItemClickListerner;
 
 
-    public HistoryTempAdapter(Map<String, List<History>> datas) {
+    public HistoryTempAdapter(List<String> datas) {
         this.datas = datas;
     }
 
@@ -40,7 +38,7 @@ public class HistoryTempAdapter extends
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, @SuppressLint("RecyclerView") final int position) {
-        String time = (String) datas.keySet().toArray()[position];
+        String time = datas.get(position);
         holder.name.setText(time);
         if (onItemClickListerner != null) {
             holder.itemView.setOnClickListener(new View.OnClickListener() {

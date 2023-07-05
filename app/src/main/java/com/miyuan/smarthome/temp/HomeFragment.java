@@ -36,6 +36,7 @@ import com.miyuan.smarthome.temp.net.Response;
 import com.miyuan.smarthome.temp.net.TempApiManager;
 import com.miyuan.smarthome.temp.utils.TTSManager;
 import com.miyuan.smarthome.temp.utils.TimeUtils;
+import com.tencent.mmkv.MMKV;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -342,6 +343,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                         highTime = 0;
                         handler.removeCallbacks(runnable);
                         getHistory(info);
+                        MMKV mmkv = MMKV.defaultMMKV();
+                        mmkv.putString("devicesID", info.getDeviceId());
+                        mmkv.putInt("memberID", info.getMemberId());
+                        mmkv.putString("memberName", member.getName());
                     }
                 }
 
@@ -613,10 +618,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 }
                 break;
             case R.id.history:
-                if (null != tempInfo && tempInfo.getMemberCount() > 0) {
-                    Log.d("HomeFragment onClick go HistoryListFragment");
-                    Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_HistoryListFragment);
-                }
+//                if (null != tempInfo && tempInfo.getMemberCount() > 0) {
+                Log.d("HomeFragment onClick go HistoryListFragment");
+                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_HistoryListFragment);
+//                }
                 break;
             case R.id.remind:
                 Log.d("HomeFragment onClick go TempRemindListFragment");
