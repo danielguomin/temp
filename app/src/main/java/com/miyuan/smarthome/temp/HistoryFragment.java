@@ -102,7 +102,8 @@ public class HistoryFragment extends Fragment implements View.OnClickListener {
         float highTemp = 0;
         long highTime = 0;
         getNurseInfo(historyList.get(0).getTime());
-        for (History history : historyList) {
+        for (int i = historyList.size() - 1; i > 0; i--) {
+            History history = historyList.get(i);
             if (startTime == 0) {
                 startTime = history.getTime();
             }
@@ -111,13 +112,13 @@ public class HistoryFragment extends Fragment implements View.OnClickListener {
             String temp = temps1.substring(1, temps1.length() - 1);
             if (!TextUtils.isEmpty(temp)) {
                 String[] temps = temp.split(",");
-                for (int i = 0; i < temps.length; i++) {
-                    Float t = Float.valueOf(temps[i]);
+                for (int j = 0; j < temps.length; j++) {
+                    Float t = Float.valueOf(temps[j]);
                     if (t > highTemp) {
                         highTemp = t;
-                        highTime = start + i * 10 * 1000;
+                        highTime = start + j * 10 * 1000;
                     }
-                    Entry entry = new Entry(start + i * 10 * 1000, t);
+                    Entry entry = new Entry(start + j * 10 * 1000, t);
                     entryList.add(entry);
                 }
             }

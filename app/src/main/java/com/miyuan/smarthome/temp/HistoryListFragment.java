@@ -47,10 +47,10 @@ public class HistoryListFragment extends Fragment implements View.OnClickListene
         if (!TextUtils.isEmpty(devicesID)) {
             LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
             binding.members.setLayoutManager(layoutManager);
-            members.clear();
             if (BlueManager.tempInfoLiveData.getValue() != null) {
-                members = BlueManager.tempInfoLiveData.getValue().getMembers();
+                members = TempApplication._memberesLiveData.getValue();
             } else {
+                members.clear();
                 Member member = new Member();
                 member.setName(memberName);
                 member.setMemberId(memberID);

@@ -2,6 +2,7 @@ package com.miyuan.smarthome.temp;
 
 import static com.miyuan.smarthome.temp.TempApplication.HIGH_TEMP_DIVIDER;
 import static com.miyuan.smarthome.temp.TempApplication.LOW_TEMP_DIVIDER;
+import static com.miyuan.smarthome.temp.TempApplication._memberesLiveData;
 
 import android.animation.ValueAnimator;
 import android.graphics.Color;
@@ -59,7 +60,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     private TempDataBase db;
     private List<Entry> historyList;
     private List<Entry> currentList = new ArrayList<>();
-    private List<Nurse> AllNurseList = new ArrayList<>();
+    private List<Nurse> allNurseList = new ArrayList<>();
     private List<Nurse> currentNurseList = new ArrayList<>();
 
     private final static int COUNT = 10;
@@ -214,9 +215,14 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                                 Log.d("getHistoryCount " + response.toString());
                                 if ("000".equals(response.getStatus())) {
                                     List<History> dbList = db.getHistoryDao().getAll(info.getDeviceId(), info.getMemberId(), true);
+                                    List<Nurse> nurses = db.getNurseDao().getAll();
                                     if (dbList != null && dbList.size() > 0) {
                                         if (response.getCount() != dbList.size()) {
                                             db.getHistoryDao().delete(dbList);
+                                            db.getNurseDao().delete(nurses);
+                                            dbList = db.getHistoryDao().getAll(info.getDeviceId(), info.getMemberId(), true);
+                                            nurses = db.getNurseDao().getAll();
+                                            Log.d("dbList size " + dbList.size() + "   nurses size " + nurses.size());
                                             getHistoryFromNet(info);
                                         } else {
                                             updateHistoryToNet();
@@ -315,6 +321,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                         Log.d("HomeFragment onChanged go ScanFailFragment");
                         Navigation.findNavController(getView()).navigate(R.id.action_HomeFragment_to_ScanFailFragment);
                         break;
+                    default:
+                        break;
                 }
             }
         });
@@ -335,6 +343,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                     return;
                 }
                 List<Member> members = info.getMembers();
+                _memberesLiveData.setValue(members);
                 for (Member member : members) {
                     if (member.getMemberId() == info.getMemberId()) {
                         TempApplication._currentMemberLiveData.setValue(member);
@@ -350,7 +359,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                     }
                 }
 
-                initUI(info, null);
+                initUi(info, null);
 
                 // 定时获取实时温度
                 handler.removeCallbacks(runnable);
@@ -372,7 +381,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             @Override
             public void onChanged(CurrentTemp temp) {
                 Log.d("HomeFragment currentTempLiveData onChanged ");
-                initUI(null, temp);
+                initUi(null, temp);
             }
         });
 
@@ -491,7 +500,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                             .subscribe(new Consumer<Response<String>>() {
                                 @Override
                                 public void accept(Response<String> response) throws Exception {
-                                    if (response.getStatus().equals("000")) {
+                                    if ("000".equals(response.getStatus())) {
                                         nurse.setUpdated(true);
                                         db.getNurseDao().update(nurse);
                                     }
@@ -514,8 +523,9 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     private void getNurseInfo() {
         TempInfo tempInfo = BlueManager.tempInfoLiveData.getValue();
         if (tempInfo != null) {
-            AllNurseList.clear();
-            AllNurseList = db.getNurseDao().getAll(tempInfo.getDeviceId(), tempInfo.getMemberId());
+            allNurseList.clear();
+            allNurseList = db.getNurseDao().getAll(tempInfo.getDeviceId(), tempInfo.getMemberId());
+            Log.d("allNurseList size " + allNurseList.size());
         }
     }
 
@@ -552,7 +562,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         }
 
         currentNurseList.clear();
-        for (Nurse nurse : AllNurseList) {
+        for (Nurse nurse : allNurseList) {
             if (nurse.getTime() > (System.currentTimeMillis() - (24 * 60 * 60 * 1000) + 10 * 60 * 1000)) {
                 nurselCount++;
                 currentNurseList.add(nurse);
@@ -628,10 +638,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_TempRemindListFragment);
                 break;
             case R.id.share:
-                if (null != tempInfo && tempInfo.getMemberCount() > 0) {
-                    Log.d("HomeFragment onClick go ShareFragment");
-                    Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_ShareFragment);
-                }
+                Log.d("HomeFragment onClick go ShareFragment");
+                Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_ShareFragment);
                 break;
             case R.id.second:
                 binding.second.setSelected(true);
@@ -678,10 +686,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                     Navigation.findNavController(v).navigate(R.id.action_HomeFragment_to_NurseFragment);
                 }
                 break;
+            default:
+                break;
         }
     }
 
-    private void initUI(TempInfo info, CurrentTemp temp) {
+    private void initUi(TempInfo info, CurrentTemp temp) {
         updateName();
         if (info != null) {
             binding.charging.setPower(info.getCharging());
@@ -810,10 +820,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                                     if (list != null && list.size() > 0) {
                                         Log.d("getHistoryFromNet count " + list.size());
                                         for (History history : list) {
-                                            history.setUpdated(true);
-                                            dealWithHistory(history);
+                                            if (history.getTime() != currentFirstTime) {
+                                                history.setUpdated(true);
+                                                dealWithHistory(history);
+                                                db.getHistoryDao().insert(history);
+                                            }
                                         }
-                                        db.getHistoryDao().insert(list);
                                     }
                                 }
                             }

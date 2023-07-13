@@ -46,8 +46,9 @@ public class TimeUtils {
         return firstOfDay == calendar.getTimeInMillis();
     }
 
-    public static long getTimeTodayBegin() {
+    public static long getTimeTodayBegin(long time) {
         Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(time);
         clearCalendar(calendar, Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND, Calendar.MILLISECOND); // 指定时间戳当天最早时间
         return calendar.getTimeInMillis();
     }

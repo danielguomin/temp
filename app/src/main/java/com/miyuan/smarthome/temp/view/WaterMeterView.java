@@ -402,8 +402,7 @@ public class WaterMeterView extends View {
                 startTime = beginTime / 1000 - 24 * 60 * 60;
                 break;
             case 5:
-                // 当天零点
-                startTime = TimeUtils.getTimeTodayBegin() / 1000;
+                startTime = TimeUtils.getTimeTodayBegin(data.get(0).getTime()) / 1000;
                 break;
         }
         for (Entry entity : data) {
@@ -697,7 +696,6 @@ public class WaterMeterView extends View {
                 maxTemp = String.valueOf(list.get(i).getTemp()) + "°C".trim();
             }
         }
-        Log.d("maxTemp " + maxTemp);
         //设置抗锯齿
         backGroundPaint.setAntiAlias(true);
         //为Paint设置渐变

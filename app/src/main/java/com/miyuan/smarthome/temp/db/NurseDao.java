@@ -29,6 +29,9 @@ public interface NurseDao {
     @Delete
     void delete(Nurse nurse);
 
+    @Delete
+    void delete(List<Nurse> nurses);
+
     @Update
     void update(Nurse nurse);
 

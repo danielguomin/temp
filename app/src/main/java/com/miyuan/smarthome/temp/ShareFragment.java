@@ -4,10 +4,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
+import com.miyuan.smarthome.temp.blue.BlueManager;
 import com.miyuan.smarthome.temp.databinding.FragmentShareBinding;
 
 public class ShareFragment extends Fragment implements View.OnClickListener {
@@ -46,10 +48,16 @@ public class ShareFragment extends Fragment implements View.OnClickListener {
                 Navigation.findNavController(v).navigateUp();
                 break;
             case R.id.share_layout:
-                Navigation.findNavController(v).navigate(R.id.action_ShareFragment_to_ShareDeviceFragment);
+                if (null != BlueManager.tempInfoLiveData.getValue()) {
+                    Navigation.findNavController(v).navigate(R.id.action_ShareFragment_to_ShareDeviceFragment);
+                } else {
+                    Toast.makeText(getActivity(), "请链接蓝牙设备", Toast.LENGTH_SHORT).show();
+                }
                 break;
             case R.id.show_layout:
                 Navigation.findNavController(v).navigate(R.id.action_ShareFragment_to_ViewShareDeviceFragment);
+                break;
+            default:
                 break;
         }
     }

@@ -28,6 +28,9 @@ public class TempApplication extends Application {
     public static SingleLiveData<List<History>> _historyLiveData = new SingleLiveData<>();
     public static LiveData<List<History>> historyLiveData = _historyLiveData;
 
+    public static SingleLiveData<List<Member>> _memberesLiveData = new SingleLiveData<>();
+    public static LiveData<List<Member>> memberesLiveData = _memberesLiveData;
+
     public static float HIGH_TEMP_DIVIDER = 38f;
     public static float LOW_TEMP_DIVIDER = 37.3f;
 
